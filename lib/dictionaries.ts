@@ -223,12 +223,14 @@ export const dictionaries: Record<string, Record<string, string>> = {
     
     "settings.about.title": "About Farm2Fork",
     "settings.about.subtitle": "Connecting you directly with local farmers.",
-    "settings.about.app": "Farm2Fork Buyer App",
+    "settings.about.app": "Farm2Fork",
     "settings.about.version": "Version 1.0.0",
-    "settings.about.desc": "Our mission is to build a transparent, sustainable food supply chain by connecting buyers directly with the farmers who grow their food.",
+    "settings.about.desc": "Farm2Fork is an agri-tech initiative built to empower local farmers, bypass predatory middlemen, and generate fresh produce for buyers. By securing transactions through transparent blockchain-grade ledger records, we build direct, trustworthy, and efficient supply networks.",
     
     "settings.terms.title": "Terms & Conditions",
     "settings.privacy.title": "Privacy Policy",
+    "settings.privacy.dataProtection": "Data Protection & Security",
+    "settings.privacy.subtitle": "At Farm2Fork, we value your privacy. We collect profile details (name, email, phone number) and location data solely to facilitate transactions, listing maps, and shipment tracking. Transaction details are securely recorded to audit delivery steps, and we never sell user data to third parties.",
     "settings.terms.subtitle": "Last updated: June 2026",
     "settings.terms.s1t": "1. Agreement to Terms",
     "settings.terms.s1d": "By using Farm2Fork, you agree to our policies. If you do not agree with any part of these terms, you may not use our service.",
@@ -254,7 +256,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.sidebar.logout": "Logout",
     
     "settings.modal.title": "Confirm Logout",
-    "settings.modal.desc": "Are you sure you want to log out of your account? You will need to sign in again to access your profile and orders.",
+    "settings.modal.desc": "Are you sure you want to log out of your account?",
     "settings.modal.cancel": "Cancel",
     "settings.modal.logout": "Log out",
 
@@ -491,10 +493,12 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.about.subtitle": "آپ کو براہ راست مقامی کسانوں سے جوڑنا۔",
     "settings.about.app": "فارم ٹو فورک خریدار ایپ",
     "settings.about.version": "ورژن 1.0.0",
-    "settings.about.desc": "ہمارا مشن ایک شفاف، پائیدار خوراک کی سپلائی چین بنانا ہے جو خریداروں کو براہ راست کسانوں سے جوڑتا ہے جو ان کا کھانا اگاتے ہیں۔",
+    "settings.about.desc": "فارم ٹو فورک ایک ایگری ٹیک پہل ہے جو مقامی کسانوں کو بااختیار بنانے، شکاری درمیانی لوگوں کو نظرانداز کرنے، اور خریداروں کے لیے تازہ پیداوار پیدا کرنے کے لیے بنائی گئی ہے۔ شفاف بلاک چین گریڈ لیجر ریکارڈز کے ذریعے لین دین کو محفوظ بنا کر، ہم براہ راست، قابل اعتماد، اور موثر سپلائی نیٹ ورک بناتے ہیں۔",
     
     "settings.terms.title": "شرائط و ضوابط",
     "settings.privacy.title": "رازداری کی پالیسی",
+    "settings.privacy.dataProtection": "ڈیٹا پروٹیکشن اور سیکیورٹی",
+    "settings.privacy.subtitle": "فارم ٹو فورک میں، ہم آپ کی رازداری کی قدر کرتے ہیں۔ ہم صرف لین دین، نقشے کی فہرست سازی، اور شپمنٹ ٹریکنگ کی سہولت کے لیے پروفائل کی تفصیلات (نام، ای میل، فون نمبر) اور مقام کا ڈیٹا اکٹھا کرتے ہیں۔ لین دین کی تفصیلات کو ترسیل کے مراحل کا آڈٹ کرنے کے لیے محفوظ طریقے سے ریکارڈ کیا جاتا ہے، اور ہم کبھی بھی صارف کا ڈیٹا تیسرے فریق کو فروخت نہیں کرتے ہیں۔",
     "settings.terms.subtitle": "آخری اپ ڈیٹ: جون 2026",
     "settings.terms.s1t": "1. شرائط سے اتفاق",
     "settings.terms.s1d": "فارم ٹو فورک کا استعمال کرتے ہوئے، آپ ہماری پالیسیوں سے اتفاق کرتے ہیں۔ اگر آپ ان شرائط کے کسی بھی حصے سے اتفاق نہیں کرتے ہیں، تو آپ ہماری سروس استعمال نہیں کر سکتے۔",
@@ -520,7 +524,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.sidebar.logout": "لاگ آؤٹ",
     
     "settings.modal.title": "لاگ آؤٹ کی تصدیق کریں",
-    "settings.modal.desc": "کیا آپ واقعی اپنے اکاؤنٹ سے لاگ آؤٹ کرنا چاہتے ہیں؟ اپنی پروفائل اور آرڈرز تک رسائی کے لیے آپ کو دوبارہ سائن ان کرنا ہوگا۔",
+    "settings.modal.desc": "کیا آپ واقعی اپنے اکاؤنٹ سے لاگ آؤٹ کرنا چاہتے ہیں؟",
     "settings.modal.cancel": "منسوخ کریں",
     "settings.modal.logout": "لاگ آؤٹ"
   }

@@ -158,39 +158,56 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
             <h2>{t("settings.about.title")}</h2>
             <p className="profile-tab-subtitle">{t("settings.about.subtitle")}</p>
 
-            <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <div style={{ width: "80px", height: "80px", background: "var(--primary-green-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto var(--sp-lg)" }}>
-                <LuLeaf size={40} color="var(--primary-green)" />
+            <div style={{ textAlign: "center", padding: "40px 0", background: "linear-gradient(145deg, var(--surface-light), var(--surface-strong))", borderRadius: "24px", border: "1px solid var(--border-light)", boxShadow: "0 8px 30px rgba(0,0,0,0.04)" }}>
+              <div style={{ width: "90px", height: "90px", background: "var(--primary-green-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto var(--sp-lg)", boxShadow: "0 4px 15px rgba(39, 174, 96, 0.2)" }}>
+                <LuLeaf size={44} color="var(--primary-green)" />
               </div>
-              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-dark)", marginBottom: "var(--sp-xs)" }}>{t("settings.about.app")}</h3>
-              <p style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "var(--sp-xl)" }}>{t("settings.about.version")}</p>
+              <h3 style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "var(--sp-xs)" }}>{t("settings.about.app")}</h3>
+              <div style={{ display: "inline-block", background: "var(--primary-green)", color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, marginBottom: "var(--sp-xl)" }}>
+                {t("settings.about.version")}
+              </div>
 
-              <p style={{ fontSize: "15px", color: "var(--text-dark)", maxWidth: "400px", margin: "0 auto", lineHeight: 1.6 }}>
+              <p style={{ fontSize: "16px", color: "var(--text-dark)", maxWidth: "480px", margin: "0 auto", lineHeight: 1.8 }}>
                 {t("settings.about.desc")}
               </p>
             </div>
           </div>
         );
       case "terms":
-      case "privacy":
         return (
           <div className="profile-tab-content animation-fade-in">
-            <h2>{activeTab === "terms" ? t("settings.terms.title") : t("settings.privacy.title")}</h2>
+            <h2>{t("settings.terms.title")}</h2>
             <p className="profile-tab-subtitle">{t("settings.terms.subtitle")}</p>
 
-            <div style={{ fontSize: "14px", color: "var(--text-dark)", lineHeight: 1.6, display: "flex", flexDirection: "column", gap: "var(--sp-lg)" }}>
+            <div style={{ fontSize: "14px", color: "var(--text-dark)", lineHeight: 1.6, display: "flex", flexDirection: "column", gap: "var(--sp-lg)", background: "var(--surface-light)", padding: "24px", borderRadius: "16px", border: "1px solid var(--border-light)" }}>
               <div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)" }}>{t("settings.terms.s1t")}</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)", color: "var(--primary-green)" }}>{t("settings.terms.s1t")}</h3>
                 <p>{t("settings.terms.s1d")}</p>
               </div>
               <div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)" }}>{t("settings.terms.s2t")}</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)", color: "var(--primary-green)" }}>{t("settings.terms.s2t")}</h3>
                 <p>{t("settings.terms.s2d")}</p>
               </div>
               <div>
-                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)" }}>{t("settings.terms.s3t")}</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: 700, marginBottom: "var(--sp-xs)", color: "var(--primary-green)" }}>{t("settings.terms.s3t")}</h3>
                 <p>{t("settings.terms.s3d")}</p>
               </div>
+            </div>
+          </div>
+        );
+      case "privacy":
+        return (
+          <div className="profile-tab-content animation-fade-in">
+            <h2>{t("settings.privacy.title")}</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "var(--sp-md)" }}>
+              <div style={{ padding: "8px", background: "var(--primary-green-soft)", borderRadius: "50%" }}>
+                <LuShield size={24} color="var(--primary-green)" />
+              </div>
+              <p className="profile-tab-subtitle" style={{ margin: 0, fontWeight: 600, color: "var(--primary-green)" }}>{t("settings.privacy.dataProtection")}</p>
+            </div>
+
+            <div style={{ fontSize: "15px", color: "var(--text-dark)", lineHeight: 1.8, background: "var(--surface-light)", padding: "32px", borderRadius: "16px", border: "1px solid var(--border-light)", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
+              <p>{t("settings.privacy.subtitle")}</p>
             </div>
           </div>
         );

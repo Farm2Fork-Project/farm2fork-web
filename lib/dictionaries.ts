@@ -264,7 +264,61 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "logout.title": "Log Out",
     "logout.confirm": "Are you sure you want to log out of your account?",
     "logout.cancel": "Cancel",
-    "logout.btn": "Log Out"
+    "logout.btn": "Log Out",
+
+    // Transporter Topbar
+    "topbar.shipments": "Shipments",
+
+    // Transporter Signup Step 1 & 2
+    "tsignup.title1": "Join as a",
+    "tsignup.title2": "Transporter",
+    "tsignup.subtitle": "Deliver fresh produce across the supply chain and earn with every delivery.",
+    "tsignup.header": "Create Transporter Account",
+    "tsignup.step1": "Step 1 of 2 — Personal Info",
+    "tsignup.step2": "Step 2 of 2 — Vehicle Info",
+    "tsignup.personalInfo": "Personal Information",
+    "tsignup.firstName": "First Name",
+    "tsignup.lastName": "Last Name",
+    "tsignup.email": "Email Address",
+    "tsignup.phone": "Phone Number",
+    "tsignup.password": "Password",
+    "tsignup.next": "Next Step →",
+    "tsignup.vehicleInfo": "Vehicle Information",
+    "tsignup.vehicleType": "Select Vehicle Type",
+    "tsignup.truck": "Truck",
+    "tsignup.pickup": "Pickup",
+    "tsignup.van": "Van",
+    "tsignup.license": "License Plate Number",
+    "tsignup.serviceArea": "Service Area (City / Region)",
+    "tsignup.back": "← Back",
+    "tsignup.create": "Create Account",
+
+    // Transporter Shipments Screen
+    "shipments.title": "My Shipments",
+    "shipments.subtitle": "Manage and update your active deliveries.",
+    "shipments.active": "Active",
+    "shipments.completed": "Completed",
+    "shipments.search": "Search shipments...",
+
+    // Transporter Shipment Screen
+    "tship.pageTitle": "My Shipments",
+    "tship.pageSubtitle": "Manage and update your active deliveries.",
+    "tship.assignedTab": "Assigned",
+    "tship.inTransitTab": "In Transit",
+    "tship.deliveredTab": "Delivered",
+    "tship.shipmentId": "Shipment ID",
+    "tship.assigned": "Assigned",
+    "tship.inTransit": "In Transit",
+    "tship.delivered": "Delivered",
+    "tship.confirmPickUp": "Confirm Pick Up",
+    "tship.markDelivered": "Mark Delivered",
+    "tship.viewDetails": "View Details",
+
+    // Transporter TopBar
+    "tTopBar.shipments": "Shipments",
+    "tTopBar.trace": "Trace",
+    "tTopBar.orders": "Orders",
+    "tTopBar.profile": "Profile"
   },
   ur: {
     // General
@@ -526,6 +580,40 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.modal.title": "لاگ آؤٹ کی تصدیق کریں",
     "settings.modal.desc": "کیا آپ واقعی اپنے اکاؤنٹ سے لاگ آؤٹ کرنا چاہتے ہیں؟",
     "settings.modal.cancel": "منسوخ کریں",
-    "settings.modal.logout": "لاگ آؤٹ"
+    "settings.modal.logout": "لاگ آؤٹ",
+
+    // Transporter Topbar
+    "topbar.shipments": "شپمنٹ",
+
+    // Transporter Signup Step 1 & 2
+    "tsignup.title1": "بطور",
+    "tsignup.title2": "ٹرانسپورٹر شامل ہوں",
+    "tsignup.subtitle": "سپلائی چین میں تازہ پیداوار پہنچائیں اور ہر ڈیلیوری پر کمائیں۔",
+    "tsignup.header": "ٹرانسپورٹر اکاؤنٹ بنائیں",
+    "tsignup.step1": "مرحلہ 1 از 2 — ذاتی معلومات",
+    "tsignup.step2": "مرحلہ 2 از 2 — گاڑی کی معلومات",
+    "tsignup.personalInfo": "ذاتی معلومات",
+    "tsignup.firstName": "پہلا نام",
+    "tsignup.lastName": "آخری نام",
+    "tsignup.email": "ای میل ایڈریس",
+    "tsignup.phone": "فون نمبر",
+    "tsignup.password": "پاس ورڈ",
+    "tsignup.next": "اگلا مرحلہ ←",
+    "tsignup.vehicleInfo": "گاڑی کی معلومات",
+    "tsignup.vehicleType": "گاڑی کی قسم منتخب کریں",
+    "tsignup.truck": "ٹرک",
+    "tsignup.pickup": "پک اپ",
+    "tsignup.van": "وین",
+    "tsignup.license": "لائسنس پلیٹ نمبر",
+    "tsignup.serviceArea": "سروس ایریا (شہر / علاقہ)",
+    "tsignup.back": "← واپس",
+    "tsignup.create": "اکاؤنٹ بنائیں",
+
+    // Transporter Shipments Screen
+    "shipments.title": "میری شپمنٹ",
+    "shipments.subtitle": "اپنی فعال ڈیلیوریز کا انتظام اور اپ ڈیٹ کریں۔",
+    "shipments.active": "فعال",
+    "shipments.completed": "مکمل",
+    "shipments.search": "شپمنٹ تلاش کریں..."
   }
 };

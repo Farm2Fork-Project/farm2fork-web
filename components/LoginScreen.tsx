@@ -1,23 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import {
-  LuLeaf,
-  LuEyeOff,
-  LuEye,
-} from "react-icons/lu";
-
+import { LuLeaf, LuEyeOff, LuEye } from "react-icons/lu";
 import { LoginScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function LoginScreen({ onLogin, onGoSignup }: LoginScreenProps) {
+export default function LoginScreen({ onLogin, onGoSignup, loginError }: LoginScreenProps) {
   const [showPw, setShowPw] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { t } = useLanguage();
 
   return (
     <div className="auth-wrapper">
       <div className="auth-card auth-card-narrow">
-        {/* Form */}
         <div className="auth-form-side">
           <h1>{t("login.title")}</h1>
 
@@ -28,6 +24,8 @@ export default function LoginScreen({ onLogin, onGoSignup }: LoginScreenProps) {
               className="auth-input"
               type="text"
               placeholder={t("login.email")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
           </div>
 
@@ -39,6 +37,9 @@ export default function LoginScreen({ onLogin, onGoSignup }: LoginScreenProps) {
                 className="auth-input"
                 type={showPw ? "text" : "password"}
                 placeholder={t("login.password")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && onLogin(email, password)}
               />
               <button
                 className="toggle-pw"
@@ -54,7 +55,21 @@ export default function LoginScreen({ onLogin, onGoSignup }: LoginScreenProps) {
             </div>
           </div>
 
-          <button className="auth-btn" onClick={onLogin} id="login-btn">
+          {loginError && (
+            <div style={{
+              background: "#FEE2E2",
+              color: "#C8463A",
+              borderRadius: "var(--radius-md)",
+              padding: "10px 14px",
+              fontSize: "13px",
+              fontWeight: 600,
+              border: "1px solid #FECACA",
+            }}>
+              {loginError}
+            </div>
+          )}
+
+          <button className="auth-btn" onClick={() => onLogin(email, password)} id="login-btn">
             {t("login.submit")}
           </button>
 
@@ -67,7 +82,7 @@ export default function LoginScreen({ onLogin, onGoSignup }: LoginScreenProps) {
 
           <div className="auth-divider">{t("login.or")}</div>
 
-          <button className="auth-guest-btn" onClick={onLogin}>
+          <button className="auth-guest-btn" onClick={() => onLogin("buyer@test.com", "test1234")}>
             {t("login.guest")}
           </button>
         </div>

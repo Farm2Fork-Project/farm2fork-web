@@ -1,5 +1,5 @@
 /* ───────── Shared Types ───────── */
-export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form";
+export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter";
 export type AppTab = "marketplace" | "scan" | "cart" | "orders" | "profile";
 
 /* ───────── Product Data ───────── */
@@ -42,8 +42,9 @@ export interface CartScreenProps {
 }
 
 export interface LoginScreenProps {
-  onLogin: () => void;
+  onLogin: (email: string, password: string) => void;
   onGoSignup: () => void;
+  loginError?: string;
 }
 
 export interface ProfileScreenProps {

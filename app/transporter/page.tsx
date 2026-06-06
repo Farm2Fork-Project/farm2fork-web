@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/transporter/TopBar";
 import ShipmentScreen from "@/components/transporter/ShipmentScreen";
 import TransporterSignup1Screen from "@/components/transporter/TransporterSignup1Screen";
@@ -25,21 +25,23 @@ function MainApp() {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
 
-  useState(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("signup") === "true") {
-        setAuthMode("signup1");
-      }
+  useEffect(() => {
+    if (searchParams.get("signup") === "true") {
+      setAuthMode("signup1");
+    } else if (typeof window !== "undefined" && localStorage.getItem("role") === "transporter") {
+      setIsLoggedIn(true);
+    } else {
+      router.push("/login");
     }
-  });
+  }, [searchParams, router]);
 
   if (!isLoggedIn) {
     if (authMode === "signup1") {
       return (
         <TransporterSignup1Screen
-          onBack={() => setAuthMode("login")}
+          onBack={() => router.push("/login")}
           onNext={() => setAuthMode("signup2")}
         />
       );
@@ -48,69 +50,14 @@ function MainApp() {
       return (
         <TransporterSignup2Screen
           onBack={() => setAuthMode("signup1")}
-          onSubmit={() => setIsLoggedIn(true)}
+          onSubmit={() => {
+            localStorage.setItem("role", "transporter");
+            setIsLoggedIn(true);
+          }}
         />
       );
     }
-    // Login screen — inline to avoid circular dependency
-    return (
-      <div className="auth-wrapper">
-        <div className="auth-card auth-card-narrow">
-          <div className="auth-form-side">
-            <h1>{t("login.title")}</h1>
-            <div className="auth-form-group">
-              <label htmlFor="t-login-email">{t("login.email")}</label>
-              <input id="t-login-email" className="auth-input" type="text"
-                placeholder="transporter@test.com"
-                value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="auth-form-group">
-              <label htmlFor="t-login-password">{t("login.password")}</label>
-              <div className="auth-input-wrapper">
-                <input id="t-login-password" className="auth-input"
-                  type={showPw ? "text" : "password"}
-                  placeholder={t("login.password")}
-                  value={password} onChange={(e) => setPassword(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      if (!email || !password) { setLoginError("Please enter email and password."); return; }
-                      if (email.toLowerCase() === TRANSPORTER_USER.email && password === TRANSPORTER_USER.password) {
-                        setIsLoggedIn(true);
-                      } else {
-                        setLoginError("Invalid email or password.");
-                      }
-                    }
-                  }}
-                />
-                <button className="toggle-pw" type="button" onClick={() => setShowPw(!showPw)}>
-                  {showPw ? "🙈" : "👁"}
-                </button>
-              </div>
-            </div>
-            {loginError && (
-              <div style={{ background: "#FEE2E2", color: "#C8463A", borderRadius: "var(--radius-md)", padding: "10px 14px", fontSize: "13px", fontWeight: 600, border: "1px solid #FECACA" }}>
-                {loginError}
-              </div>
-            )}
-            <button className="auth-btn" id="t-login-btn" onClick={() => {
-              setLoginError("");
-              if (!email || !password) { setLoginError("Please enter email and password."); return; }
-              if (email.toLowerCase() === TRANSPORTER_USER.email && password === TRANSPORTER_USER.password) {
-                setIsLoggedIn(true);
-              } else {
-                setLoginError("Invalid email or password.");
-              }
-            }}>{t("login.submit")}</button>
-            <div className="auth-footer">
-              {t("login.noAccount")}{" "}
-              <a href="#" onClick={(e) => { e.preventDefault(); setAuthMode("signup1"); }}>{t("login.signup")}</a>
-            </div>
-            <div className="auth-divider">{t("login.or")}</div>
-            <button className="auth-guest-btn" onClick={() => router.push("/")}>← Back to Buyer Login</button>
-          </div>
-        </div>
-      </div>
-    );
+    return null; // Will redirect via useEffect
   }
 
   const renderContent = () => {
@@ -136,7 +83,9 @@ function MainApp() {
 export default function TransporterPage() {
   return (
     <LanguageProvider>
-      <MainApp />
+      <Suspense fallback={<div>Loading...</div>}>
+        <MainApp />
+      </Suspense>
     </LanguageProvider>
   );
 }

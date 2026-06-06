@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { AuthScreen, AppTab } from "@/components/types";
 import LoginScreen from "@/components/LoginScreen";
 import SignUpRoleScreen from "@/components/SignUpRoleScreen";
@@ -19,14 +19,22 @@ import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
 // ── Mock users ──
 const USERS = [
   { email: "buyer@test.com", password: "test1234", role: "buyer" },
+  { email: "farmer@test.com", password: "test1234", role: "farmer" },
   { email: "transporter@test.com", password: "test1234", role: "transporter" },
   { email: "admin@test.com", password: "test1234", role: "admin" },
 ];
 
 function HomeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authScreen, setAuthScreen] = useState<AuthScreen>("landing");
+
+  useEffect(() => {
+    const auth = searchParams.get("auth");
+    if (auth === "signup") setAuthScreen("signup-role");
+    else if (auth === "login") setAuthScreen("login");
+  }, [searchParams]);
   const [activeTab, setActiveTab] = useState<AppTab>("marketplace");
   const [viewingProduct, setViewingProduct] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -73,6 +81,9 @@ function HomeContent() {
             if (user.role === "transporter") {
               localStorage.setItem("role", "transporter");
               router.push("/transporter");
+            } else if (user.role === "farmer") {
+              localStorage.setItem("role", "farmer");
+              router.push("/farmer");
             } else if (user.role === "admin") {
               localStorage.setItem("role", "admin");
               localStorage.setItem("userName", "Admin User");
@@ -97,6 +108,8 @@ function HomeContent() {
           onSelectRole={(role) => {
             if (role === "transporter") {
               router.push("/transporter?signup=true");
+            } else if (role === "farmer") {
+              router.push("/farmer?signup=true");
             } else {
               setAuthScreen("signup-form");
             }
@@ -169,7 +182,9 @@ function HomeContent() {
 export default function Home() {
   return (
     <LanguageProvider>
-      <HomeContent />
+      <Suspense fallback={<div>Loading...</div>}>
+        <HomeContent />
+      </Suspense>
     </LanguageProvider>
   );
 }

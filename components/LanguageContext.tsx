@@ -19,6 +19,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("en");
   const [fontSize, setFontSize] = useState<FontSize>("medium");
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const savedLang = localStorage.getItem("app_lang");
@@ -29,19 +30,24 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     if (savedFont === "small" || savedFont === "medium" || savedFont === "large") {
       setFontSize(savedFont);
     }
+    setIsLoaded(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("app_lang", language);
-  }, [language]);
+    if (isLoaded) {
+      localStorage.setItem("app_lang", language);
+    }
+  }, [language, isLoaded]);
 
   useEffect(() => {
-    localStorage.setItem("app_font_size", fontSize);
-    let scale = "1";
-    if (fontSize === "small") scale = "0.9";
-    if (fontSize === "large") scale = "1.15";
-    document.documentElement.style.setProperty("--font-scale", scale);
-  }, [fontSize]);
+    if (isLoaded) {
+      localStorage.setItem("app_font_size", fontSize);
+      let scale = "1";
+      if (fontSize === "small") scale = "0.9";
+      if (fontSize === "large") scale = "1.15";
+      document.documentElement.style.setProperty("--font-scale", scale);
+    }
+  }, [fontSize, isLoaded]);
 
   const t = (key: string) => {
     const dictionary = dictionaries[language];

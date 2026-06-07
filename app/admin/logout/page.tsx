@@ -28,7 +28,7 @@ export default function LogoutPage() {
         </div>
 
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button className="sidebar-report-btn" onClick={() => router.push('/')} style={{ minWidth: 180, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button className="sidebar-report-btn" onClick={() => router.push('/admin/login')} style={{ minWidth: 180, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             <RotateCcw size={16} />
             Back to Login
           </button>

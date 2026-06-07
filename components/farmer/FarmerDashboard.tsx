@@ -178,7 +178,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
   };
 
   return (
-    <div className="app-shell">
+    <div className="app-shell" dir={language === "ur" ? "rtl" : "ltr"}>
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-20 right-5 z-200 bg-emerald-800 text-white py-3 px-5 rounded-lg shadow-lg flex items-center gap-2.5 animate-in">
@@ -196,7 +196,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
           <div className="topbar-left">
             <div className="topbar-logo">
               <LuLeaf size={24} className="logo-icon" />
-              <h2>{language === "ur" ? "فارم 2 فورک" : "Farm2Fork"}</h2>
+              <h2>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</h2>
             </div>
           </div>
 
@@ -321,7 +321,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
               <div className="flex items-center justify-between pb-4 border-b border-gray-100 mb-6">
                 <div className="flex items-center gap-2 font-bold text-base text-[var(--primary-green)]">
                   <Tractor size={20} />
-                  <span>{language === "ur" ? "فارم 2 فورک" : "Farm2Fork"}</span>
+                  <span>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</span>
                 </div>
                 <button
                   className="text-gray-400 hover:text-gray-600 border-none bg-transparent cursor-pointer"

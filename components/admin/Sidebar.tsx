@@ -39,7 +39,7 @@ export default function Sidebar() {
     localStorage.removeItem('role')
     localStorage.removeItem('userName')
     localStorage.removeItem('avatarUrl')
-    router.push('/')
+    router.push('/admin/login')
   }
 
   return (

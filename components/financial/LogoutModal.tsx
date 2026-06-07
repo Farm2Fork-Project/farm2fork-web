@@ -9,33 +9,33 @@ export default function LogoutModal({ isOpen, onConfirm, onCancel }: LogoutModal
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-      <div className="bg-white border border-surface-medium rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div className="modal-overlay">
+      <div className="modal" style={{ maxWidth: '400px' }}>
 
         {/* Header */}
-        <div className="flex justify-between items-center mb-4 pb-2 border-b border-surface-medium">
-          <div className="flex items-center gap-2 text-error-red">
+        <div className="modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-sm)', color: 'var(--error-red)' }}>
             <LogOut className="w-5 h-5" />
-            <h3 className="text-base font-bold text-text-dark">Confirm Logout</h3>
+            <h2 style={{ margin: 0 }}>Confirm Logout</h2>
           </div>
-          <button onClick={onCancel} className="text-text-muted hover:text-text-dark cursor-pointer">
+          <button onClick={onCancel} className="modal-close">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="space-y-3 mb-6">
-          <p className="text-xs text-text-muted leading-relaxed">
+        <div style={{ marginBottom: 'var(--sp-xxl)' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
             Are you sure you want to sign out?
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 justify-end pt-3 border-t border-surface-medium">
+        <div className="modal-actions" style={{ justifyContent: 'flex-end' }}>
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-surface-medium rounded-xl text-xs font-bold text-text-dark hover:bg-slate-50 cursor-pointer"
+            className="modal-btn-cancel"
           >
             Cancel
           </button>
@@ -43,7 +43,7 @@ export default function LogoutModal({ isOpen, onConfirm, onCancel }: LogoutModal
           <button
             type="button"
             onClick={onConfirm}
-            className="px-4 py-2 bg-error-red hover:bg-red-700 text-white font-bold text-xs rounded-xl cursor-pointer shadow-sm"
+            className="modal-btn-danger"
           >
             Logout
           </button>

@@ -31,7 +31,6 @@ export default function ProductsPage() {
             <span className="stat-card-label">{label}</span>
             <div className="stat-card-row">
               <span className="stat-card-value">{value}</span>
-              <span className="stat-card-change" style={{ background: 'var(--secondary-blue-soft)', color: 'var(--secondary-blue)' }}>Static</span>
             </div>
           </div>
         ))}

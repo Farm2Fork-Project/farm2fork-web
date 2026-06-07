@@ -380,6 +380,7 @@ export default function FarmFeed() {
               <button
                 type="submit"
                 className="btn btn-primary w-full justify-center"
+                style={{ padding: "12px" }}
               >
                 {t("farmer.feed.post")}
               </button>
@@ -480,7 +481,7 @@ export default function FarmFeed() {
                 className="input py-3 text-sm flex-1"
                 required
               />
-              <button type="submit" className="btn btn-primary p-0 w-12 h-12 flex-shrink-0 justify-center items-center">
+              <button type="submit" className="btn btn-primary p-0 flex-shrink-0 justify-center items-center" style={{ width: "48px", height: "48px" }}>
                 <Send size={22} />
               </button>
             </form>

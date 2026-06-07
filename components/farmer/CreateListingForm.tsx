@@ -130,7 +130,7 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
               <div className="flex items-center gap-2 pb-2 border-b border-[var(--surface-medium)]">
                 <DollarSign size={14} className="text-[var(--primary-green)]" />
                 <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                  Pricing & Stock
+                  {t("farmer.create.pricingStock")}
                 </span>
               </div>
 
@@ -185,17 +185,18 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
             </div>
 
             {/* Actions Card */}
-            <div className="card shadow-sm flex flex-col gap-3">
+            <div className="card shadow-sm" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <button
                 type="submit"
-                className="btn btn-primary w-full justify-center shadow-md py-3 font-bold"
-                style={{ boxShadow: "0 4px 12px rgba(35, 107, 68, 0.2)" }}
+                className="btn btn-primary w-full justify-center shadow-md font-bold"
+                style={{ boxShadow: "0 4px 12px rgba(35, 107, 68, 0.2)", padding: "12px" }}
               >
                 <PlusCircle size={16} /> {t("farmer.create.publish")}
               </button>
               <button
                 type="button"
-                className="btn btn-secondary w-full justify-center py-3"
+                className="btn btn-secondary w-full justify-center"
+                style={{ padding: "12px" }}
                 onClick={onCancel}
               >
                 {t("farmer.create.cancel")}

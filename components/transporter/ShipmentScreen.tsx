@@ -72,7 +72,7 @@ export default function ShipmentScreen() {
             <div className="marketplace-search" style={{ margin: 0, width: "320px" }}>
               <input 
                 type="text" 
-                placeholder="Search by ID, Location..." 
+                placeholder={t("tship.searchPlaceholder")} 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -84,7 +84,7 @@ export default function ShipmentScreen() {
               onChange={(e) => setDateFilter(e.target.value)}
               style={{ height: "46px", borderRadius: "var(--radius-xl)" }}
             >
-              <option value="all">All Dates</option>
+              <option value="all">{t("tship.allDates")}</option>
               <option value="3/6/2026">3/6/2026</option>
               <option value="2/6/2026">2/6/2026</option>
             </select>
@@ -123,10 +123,10 @@ export default function ShipmentScreen() {
               <thead>
                 <tr>
                   <th>{t("tship.shipmentId")}</th>
-                  <th>Date</th>
-                  <th>Route Details</th>
-                  <th>Status & Time</th>
-                  <th style={{ textAlign: "right" }}>Actions</th>
+                  <th>{t("tship.colDate")}</th>
+                  <th>{t("tship.colRoute")}</th>
+                  <th>{t("tship.colStatus")}</th>
+                  <th style={{ textAlign: "right" }}>{t("tship.colActions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -187,8 +187,8 @@ export default function ShipmentScreen() {
         ) : (
           <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)" }}>
             <LuSearch size={48} color="var(--surface-strong)" style={{ marginBottom: "16px" }} />
-            <h3 style={{ fontSize: "18px", color: "var(--text-dark)", marginBottom: "8px", fontWeight: 700 }}>No shipments found</h3>
-            <p>We couldn't find any shipments matching your current filters.</p>
+            <h3 style={{ fontSize: "18px", color: "var(--text-dark)", marginBottom: "8px", fontWeight: 700 }}>{t("tship.noFoundTitle")}</h3>
+            <p>{t("tship.noFoundDesc")}</p>
           </div>
         )}
       </div>

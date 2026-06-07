@@ -65,7 +65,13 @@ function MainApp() {
       case "shipments": return <ShipmentScreen />;
       case "orders": return <TransporterOrdersScreen />;
       case "scan": return <ScanScreen />;
-      case "profile": return <TransporterProfileScreen onLogout={() => setIsLoggedIn(false)} />;
+      case "profile": return <TransporterProfileScreen onLogout={() => {
+        localStorage.removeItem("role");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("avatarUrl");
+        setIsLoggedIn(false);
+        router.push("/login");
+      }} />;
       default: return <div>Screen not found</div>;
     }
   };

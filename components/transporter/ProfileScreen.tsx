@@ -236,7 +236,7 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <LuShoppingCart size={28} />
             </div>
             <div>
-              <div className="profile-user-name">Signed in as Transporter</div>
+              <div className="profile-user-name">{t("tTopBar.signedIn")}</div>
               <div className="profile-user-email">transporter@test.com</div>
             </div>
           </div>

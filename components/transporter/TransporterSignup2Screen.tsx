@@ -103,17 +103,10 @@ export default function TransporterSignup2Screen({ onBack, onSubmit }: Transport
               onChange={(e) => setServiceArea(e.target.value)}
             />
             
-            <div style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
-              <button 
-                className="auth-guest-btn" 
-                style={{ flex: 1, borderColor: "var(--border-medium)" }}
-                onClick={onBack}
-              >
-                {t("tsignup.back")}
-              </button>
+            <div style={{ marginTop: "16px" }}>
               <button 
                 className="auth-btn" 
-                style={{ flex: 1, margin: 0 }}
+                style={{ width: "100%", margin: 0 }}
                 onClick={handleSubmit}
               >
                 {t("tsignup.create")}

@@ -63,13 +63,11 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
       <div className="app-main">
         <main className="app-content">
         
-        <div className="page-header" style={{ paddingBottom: 'var(--sp-md)', marginBottom: 'var(--sp-xl)' }}>
+        <div className="page-header">
           <div className="page-header-row">
             <div>
-              <h2 style={{ margin: 0, fontSize: 'calc(24px * var(--font-scale, 1))' }}>Settings</h2>
-              <p className="text-sm text-muted mt-xs">
-                Manage your user profile details, system preferences, and security notifications.
-              </p>
+              <h1>Settings</h1>
+              <p>Manage your user profile details, system preferences, and security notifications.</p>
             </div>
           </div>
         </div>

@@ -65,3 +65,72 @@ export interface TopBarProps {
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
 }
+
+/* ───────── Financial Partner Types ───────── */
+export interface LoanApplication {
+  id: string
+  applicant: string
+  farmName: string
+  location: string
+  amount: string
+  term: string
+  interestRate: string
+  revenue: string
+  creditScore: number
+  dti: string
+  riskProfile: 'Low' | 'Medium' | 'High'
+  status: 'Ledger Pending' | 'Ledger Approved' | 'Ledger Rejected' | 'Ledger Needs Docs'
+}
+
+export interface DashboardScreenProps {
+  onSelectLoan: (id: string) => void
+  onLogout: () => void
+  onNavigateToSettings: () => void
+}
+
+export interface LoanDetailScreenProps {
+  loanId: string
+  onBack: () => void
+  onNavigateToSettings: () => void
+}
+
+export interface SettingsScreenProps {
+  onBackToQueue: () => void
+  onLogout: () => void
+}
+
+export interface UserProfile {
+  fullName: string
+  email: string
+  role: string
+  currency: string
+  defaultRepaymentTerm: string
+  newAppAlerts: boolean
+  weeklySummaryAlerts: boolean
+  twoFactorAuth: boolean
+}
+
+export interface TopbarProps {
+  currentView: 'queue' | 'settings' | 'detail'
+  onNavigateToQueue: () => void
+  onNavigateToSettings: () => void
+  onLogout: () => void
+  title?: string
+  showSearch?: boolean
+  searchQuery?: string
+  onSearchChange?: (val: string) => void
+  onBack?: () => void
+  backLabel?: string
+  userName?: string
+  userRole?: string
+}
+
+export interface LogoutModalProps {
+  isOpen: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}
+
+export interface FinancialLoginScreenProps {
+  onLoginSuccess: () => void
+}

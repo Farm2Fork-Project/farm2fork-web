@@ -14,13 +14,10 @@ export default function UsersPage() {
       title="User Management"
       description="Search, filter, view, and deactivate user accounts."
       actions={
-        <>
-          <a className="btn btn-secondary" href="/logout">Logout</a>
-          <button className="btn btn-secondary">
-            <UserRound size={14} />
-            Export CSV
-          </button>
-        </>
+        <button className="btn btn-secondary">
+          <UserRound size={14} />
+          Export CSV
+        </button>
       }
     >
       <div className="grid-4" style={{ marginBottom: 'var(--sp-xl)' }}>

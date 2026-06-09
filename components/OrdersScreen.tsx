@@ -31,7 +31,8 @@ export default function OrdersScreen() {
       </div>
 
       {orderTab === "active" ? (
-        <div className="order-card" id="order-1001">
+        <div className="orders-grid">
+          <div className="order-card" id="order-1001">
           <div className="order-card-header">
             <div>
               <div className="order-card-id">{t("orders.orderIdPrefix")}ord_1001</div>
@@ -77,6 +78,49 @@ export default function OrdersScreen() {
             <div>
               <span className="loc-label">{t("orders.locationLabel")}</span>
               Building 14B, Gulberg III, Lahore, Punjab
+            </div>
+          </div>
+          </div>
+          <div className="order-card" id="order-1002">
+            <div className="order-card-header">
+              <div>
+                <div className="order-card-id">{t("orders.orderIdPrefix")}ord_1002</div>
+                <div className="order-card-date">4/6/2026</div>
+              </div>
+              <span className="order-status processing">{t("orders.statusProcessing")}</span>
+            </div>
+
+            <div className="order-items">
+              <div className="order-item-row">
+                <div>
+                  <span className="order-item-name">Premium Apples</span>
+                  <span className="order-item-qty"> x 2.0 kg</span>
+                </div>
+                <span className="order-item-price">Rs 800</span>
+              </div>
+            </div>
+
+            <div className="order-totals">
+              <div className="order-total-row">
+                <span>{t("cart.subtotal")}</span>
+                <span>Rs 800</span>
+              </div>
+              <div className="order-total-row">
+                <span>{t("orders.platformFee")}</span>
+                <span>Rs 40</span>
+              </div>
+              <div className="order-total-row grand">
+                <span>{t("orders.grandTotal")}</span>
+                <span>Rs 840</span>
+              </div>
+            </div>
+
+            <div className="order-location">
+              <LuMapPin size={16} className="loc-icon" />
+              <div>
+                <span className="loc-label">{t("orders.locationLabel")}</span>
+                DHA Phase 5, Lahore, Punjab
+              </div>
             </div>
           </div>
         </div>

@@ -21,7 +21,6 @@ export default function TopBar({ activeTab, setActiveTab }: TopBarProps) {
     { tab: "scan", icon: <LuQrCode size={18} />, label: t("topbar.trace") },
     { tab: "cart", icon: <LuShoppingCart size={18} />, label: t("topbar.cart") },
     { tab: "orders", icon: <LuClipboardList size={18} />, label: t("topbar.orders") },
-    { tab: "profile", icon: <LuUser size={18} />, label: t("topbar.profile") },
   ];
 
   return (
@@ -56,7 +55,11 @@ export default function TopBar({ activeTab, setActiveTab }: TopBarProps) {
           <span className="badge-dot" />
         </button>
 
-        <div className="topbar-user">
+        <div 
+          className="topbar-user" 
+          onClick={() => setActiveTab("profile")}
+          style={{ cursor: "pointer" }}
+        >
           <div className="topbar-avatar">B</div>
           <div className="topbar-user-info">
             <span className="topbar-user-name">Buyer</span>

@@ -70,7 +70,7 @@ export default function FarmerOrders({
       </div>
 
       {/* Orders List */}
-      <div className="space-y-6">
+      <div className="orders-grid">
         {filteredOrders.length === 0 ? (
           <div className="card py-16 text-center">
             <h3 className="text-lg font-bold text-[var(--text-dark)]">{t("farmer.orders.noOrders")}</h3>
@@ -162,23 +162,7 @@ export default function FarmerOrders({
                 </div>
               </div>
 
-              {/* Interactive Actions for active orders */}
-              {order.status === "Processing" && (
-                <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-[var(--surface-medium)]">
-                  <button
-                    className="btn btn-outline border-red-200 text-red-600 hover:bg-red-50 gap-1.5"
-                    onClick={() => onCancelOrder(order.id)}
-                  >
-                    <X size={15} /> {t("farmer.orders.reject")}
-                  </button>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => onCompleteOrder(order.id)}
-                  >
-                    <Check size={15} /> {t("farmer.orders.markCompleted")}
-                  </button>
-                </div>
-              )}
+              {/* Action buttons removed as requested */}
             </div>
           ))
         )}

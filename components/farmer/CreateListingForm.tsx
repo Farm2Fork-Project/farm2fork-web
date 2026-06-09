@@ -53,10 +53,10 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
       {/* Form with Desktop Two-Column Layout */}
       <form onSubmit={handleSubmit}>
-        <div className="create-web-layout">
+        <div className="flex flex-col gap-6 w-full">
 
           {/* Left Main Card: Produce Info & Context */}
-          <div className="card shadow-sm flex flex-col gap-6">
+          <div className="card shadow-sm flex flex-col gap-6 w-full">
             <div className="flex items-center gap-2 pb-3 border-b border-[var(--surface-medium)]">
               <Sparkles size={14} className="text-[var(--primary-green)]" />
               <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">

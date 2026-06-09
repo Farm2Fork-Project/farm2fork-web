@@ -152,10 +152,6 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
               </div>
               <p className="text-sm text-muted mt-xs">Verify creditworthiness score and authorize multi-sig token ledger release.</p>
             </div>
-            
-            <button onClick={onBack} className="btn btn-outline">
-              Back to Queue
-            </button>
           </div>
         </div>
 

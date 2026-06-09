@@ -31,52 +31,97 @@ export default function OrdersScreen() {
       </div>
 
       {orderTab === "active" ? (
-        <div className="order-card" id="order-1001">
-          <div className="order-card-header">
-            <div>
-              <div className="order-card-id">{t("orders.orderIdPrefix")}ord_1001</div>
-              <div className="order-card-date">3/6/2026</div>
-            </div>
-            <span className="order-status processing">{t("orders.statusProcessing")}</span>
-          </div>
-
-          <div className="order-items">
-            <div className="order-item-row">
+        <div className="orders-grid">
+          <div className="order-card" id="order-1001">
+            <div className="order-card-header">
               <div>
-                <span className="order-item-name">Organic Tomatoes</span>
-                <span className="order-item-qty"> x 10.0 kg</span>
+                <div className="order-card-id">{t("orders.orderIdPrefix")}ord_1001</div>
+                <div className="order-card-date">3/6/2026</div>
               </div>
-              <span className="order-item-price">Rs 1200</span>
+              <span className="order-status processing">{t("orders.statusProcessing")}</span>
             </div>
-            <div className="order-item-row">
+
+            <div className="order-items">
+              <div className="order-item-row">
+                <div>
+                  <span className="order-item-name">Organic Tomatoes</span>
+                  <span className="order-item-qty"> x 10.0 kg</span>
+                </div>
+                <span className="order-item-price">Rs 1200</span>
+              </div>
+              <div className="order-item-row">
+                <div>
+                  <span className="order-item-name">Fresh Spinach</span>
+                  <span className="order-item-qty"> x 5.0 kg</span>
+                </div>
+                <span className="order-item-price">Rs 400</span>
+              </div>
+            </div>
+
+            <div className="order-totals">
+              <div className="order-total-row">
+                <span>{t("cart.subtotal")}</span>
+                <span>Rs 1600</span>
+              </div>
+              <div className="order-total-row">
+                <span>{t("orders.platformFee")}</span>
+                <span>Rs 80</span>
+              </div>
+              <div className="order-total-row grand">
+                <span>{t("orders.grandTotal")}</span>
+                <span>Rs 1680</span>
+              </div>
+            </div>
+
+            <div className="order-location">
+              <LuMapPin size={16} className="loc-icon" />
               <div>
-                <span className="order-item-name">Fresh Spinach</span>
-                <span className="order-item-qty"> x 5.0 kg</span>
+                <span className="loc-label">{t("orders.locationLabel")}</span>
+                Building 14B, Gulberg III, Lahore, Punjab
               </div>
-              <span className="order-item-price">Rs 400</span>
             </div>
           </div>
 
-          <div className="order-totals">
-            <div className="order-total-row">
-              <span>{t("cart.subtotal")}</span>
-              <span>Rs 1600</span>
+          <div className="order-card" id="order-1002">
+            <div className="order-card-header">
+              <div>
+                <div className="order-card-id">{t("orders.orderIdPrefix")}ord_1002</div>
+                <div className="order-card-date">4/6/2026</div>
+              </div>
+              <span className="order-status processing">{t("orders.statusProcessing")}</span>
             </div>
-            <div className="order-total-row">
-              <span>{t("orders.platformFee")}</span>
-              <span>Rs 80</span>
-            </div>
-            <div className="order-total-row grand">
-              <span>{t("orders.grandTotal")}</span>
-              <span>Rs 1680</span>
-            </div>
-          </div>
 
-          <div className="order-location">
-            <LuMapPin size={16} className="loc-icon" />
-            <div>
-              <span className="loc-label">{t("orders.locationLabel")}</span>
-              Building 14B, Gulberg III, Lahore, Punjab
+            <div className="order-items">
+              <div className="order-item-row">
+                <div>
+                  <span className="order-item-name">Desi Onions</span>
+                  <span className="order-item-qty"> x 20.0 kg</span>
+                </div>
+                <span className="order-item-price">Rs 1200</span>
+              </div>
+            </div>
+
+            <div className="order-totals">
+              <div className="order-total-row">
+                <span>{t("cart.subtotal")}</span>
+                <span>Rs 1200</span>
+              </div>
+              <div className="order-total-row">
+                <span>{t("orders.platformFee")}</span>
+                <span>Rs 60</span>
+              </div>
+              <div className="order-total-row grand">
+                <span>{t("orders.grandTotal")}</span>
+                <span>Rs 1260</span>
+              </div>
+            </div>
+
+            <div className="order-location">
+              <LuMapPin size={16} className="loc-icon" />
+              <div>
+                <span className="loc-label">{t("orders.locationLabel")}</span>
+                House 34A, Block C, Phase 5 DHA, Lahore
+              </div>
             </div>
           </div>
         </div>

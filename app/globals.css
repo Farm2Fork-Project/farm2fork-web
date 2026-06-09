@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 /* ─── Design Tokens (from Flutter AppColors / AppSpacing / AppRadius) ─── */
@@ -49,7 +49,7 @@
   --card-offset: 6px;
 
   /* Font */
-  --font-primary: 'Open Sans', system-ui, -apple-system, sans-serif;
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 @theme inline {
@@ -2559,6 +2559,18 @@ body {
   border-radius: 2px 2px 0 0;
 }
 
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-lg);
+}
+
+@media (max-width: 768px) {
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .order-card {
   background: var(--white);
   border: 1px solid var(--surface-medium);
@@ -2948,6 +2960,142 @@ body {
 .scan-refresh-btn:hover {
   background: var(--surface-light);
   color: var(--text-dark);
+}
+
+/* ─── FB Feed Web Layout ─── */
+.fb-feed-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(auto, 600px) 280px;
+  gap: var(--sp-xxl);
+  align-items: start;
+  justify-content: center;
+}
+
+@media (max-width: 1100px) {
+  .fb-feed-layout {
+    grid-template-columns: 240px 1fr;
+  }
+  .fb-feed-right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .fb-feed-layout {
+    grid-template-columns: 1fr;
+  }
+  .fb-feed-left-sidebar {
+    display: none;
+  }
+}
+
+.fb-inline-composer {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: var(--sp-xxl);
+  margin-bottom: var(--sp-lg);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fb-inline-composer:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(35, 107, 68, 0.08);
+}
+
+.fb-inline-composer-header {
+  display: flex;
+  gap: var(--sp-md);
+  align-items: center;
+}
+
+.fb-inline-composer-input {
+  flex: 1;
+  background: var(--surface-light);
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 12px var(--sp-lg);
+  font-size: calc(14px * var(--font-scale, 1));
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.fb-inline-composer-input:hover {
+  background: rgba(35, 107, 68, 0.05);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.fb-inline-comments {
+  border-top: 1px solid var(--surface-medium);
+  padding-top: var(--sp-md);
+  margin-top: var(--sp-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+.fb-post-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+  border: none;
+}
+
+.fb-post-action-btn:hover {
+  background: var(--surface-light);
+  color: var(--text-dark);
+}
+
+.fb-post-action-btn.active {
+  color: var(--primary-green);
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.feed-sidebar-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: var(--sp-xxl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+}
+
+.fb-post-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: var(--sp-xxl) var(--sp-xxl) var(--sp-lg) var(--sp-xxl);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.fb-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(35, 107, 68, 0.08);
 }
 
 .qr-scanner-area {

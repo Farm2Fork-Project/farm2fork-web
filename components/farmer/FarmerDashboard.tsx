@@ -83,6 +83,19 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
       address: "Building 14B, Gulberg III, Lahore, Punjab",
     },
     {
+      id: "ord_1002",
+      date: "5/6/2026",
+      status: "Processing",
+      customerName: "Ayesha Ahmed",
+      items: [
+        { name: "Organic Tomatoes", quantity: 5.0, price: 120, unit: "kg" },
+      ],
+      subtotal: 600,
+      platformFee: 30,
+      grandTotal: 630,
+      address: "Sector F-7, Islamabad",
+    },
+    {
       id: "ord_1000",
       date: "1/6/2026",
       status: "Completed",
@@ -233,15 +246,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
               <span className="icon"><Rss size={18} /></span>
               <span className="label">{t("farmer.tab.feed")}</span>
             </a>
-            <a
-              href="#"
-              className={`topbar-link${activeTab === "profile" ? " active" : ""}`}
-              onClick={(e) => { e.preventDefault(); setActiveTab("profile"); }}
-            >
-              <span className="icon"><User size={18} /></span>
-              <span className="label">{t("farmer.tab.profile")}</span>
-            </a>
-          </nav>
+            </nav>
 
           <div className="topbar-right">
             {/* Search Trigger */}
@@ -296,7 +301,11 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
 
             {/* User Profile Card */}
-            <div className="topbar-user">
+            <div 
+              className="topbar-user" 
+              onClick={() => setActiveTab("profile")}
+              style={{ cursor: "pointer" }}
+            >
               <div className="topbar-avatar" style={{ background: "linear-gradient(135deg, var(--primary-green), #14492a)", color: "white", fontWeight: "bold" }}>F</div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{t("signupRole.farmerRole")}</span>

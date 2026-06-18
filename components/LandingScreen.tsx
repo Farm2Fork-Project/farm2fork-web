@@ -20,20 +20,28 @@ const scrollTo = (id: string) => {
 };
 
 export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenProps) {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
+
+  const isRtl = language === "ur";
 
   return (
-    <div className="market-landing" dir={language === "ur" ? "rtl" : "ltr"}>
+    <div className="market-landing" dir={isRtl ? "rtl" : "ltr"}>
       <header className="market-header">
         <button className="market-brand" onClick={() => scrollTo("home")} aria-label="Farm2Fork home">
           <span className="market-brand-mark"><LuLeaf size={22} /></span>
-          <span>Farm2Fork</span>
+          <span>{t("app.title")}</span>
         </button>
 
         <nav className="market-nav" aria-label="Main navigation">
-          <button onClick={() => scrollTo("how-it-works")}>How it works</button>
-          <button onClick={() => scrollTo("people")}>Who it&apos;s for</button>
-          <button onClick={() => scrollTo("traceability")}>Trace produce</button>
+          <button className="market-nav-item" onClick={() => scrollTo("how-it-works")}>
+            {t("landing.nav.howItWorks")}
+          </button>
+          <button className="market-nav-item" onClick={() => scrollTo("people")}>
+            {t("landing.nav.whosItFor")}
+          </button>
+          <button className="market-nav-item" onClick={() => scrollTo("traceability")}>
+            {t("landing.nav.traceProduce")}
+          </button>
         </nav>
 
         <div className="market-header-actions">
@@ -44,53 +52,71 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           >
             <LuGlobe size={17} /> {language === "en" ? "اردو" : "English"}
           </button>
-          <button className="market-signin" onClick={onLogin}>Sign in</button>
-          <button className="market-primary market-header-cta" onClick={onGetStarted}>Get started</button>
+          <button className="market-signin" onClick={onLogin}>
+            {t("landing.nav.signIn")}
+          </button>
+          <button className="market-primary market-header-cta" onClick={onGetStarted}>
+            {t("landing.getStarted")}
+          </button>
         </div>
       </header>
 
       <main id="home">
         <section className="market-hero">
           <div className="market-hero-copy">
-            <h1>A fairer market<br />starts <em>at the farm.</em></h1>
-            <p>Sell and source fresh produce directly, with clear prices, verified origins, and dependable delivery.</p>
+            <h1>
+              {t("landing.hero.title1")}
+              <br />
+              <em>{t("landing.hero.title2")}</em>
+            </h1>
+            <p>{t("landing.hero.desc")}</p>
             <div className="market-hero-actions">
-              <button className="market-primary" onClick={onGetStarted}>Get started <LuArrowRight size={18} /></button>
-              <button className="market-text-link" onClick={() => scrollTo("how-it-works")}>See how it works</button>
+              <button className="market-primary" onClick={onGetStarted}>
+                {t("landing.getStarted")}{" "}
+                <LuArrowRight 
+                  size={18} 
+                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+                />
+              </button>
+              <button className="market-text-link" onClick={() => scrollTo("how-it-works")}>
+                {t("landing.hero.seeHowItWorks")}
+              </button>
             </div>
             <div className="market-audience-strip" aria-label="Farm2Fork users">
-              <span><LuSprout /> Farmers</span>
-              <span><LuShoppingBasket /> Buyers</span>
-              <span><LuTruck /> Transport partners</span>
+              <span><LuSprout /> {t("landing.hero.farmers")}</span>
+              <span><LuShoppingBasket /> {t("landing.hero.buyers")}</span>
+              <span><LuTruck /> {t("landing.hero.transporters")}</span>
             </div>
           </div>
           <div className="market-hero-image" role="img" aria-label="Pakistani farmer with fresh produce at a local market">
             <div className="market-photo-caption">
-              <LuMapPin size={17} /> Direct from local farms
+              <LuMapPin size={17} /> {t("landing.hero.badge")}
             </div>
           </div>
         </section>
 
         <section id="how-it-works" className="market-process market-section">
           <div className="market-section-heading">
-            <p>Simple from the first listing</p>
-            <h2>From harvest to buyer, <em>without the guesswork.</em></h2>
+            <p>{t("landing.process.pretitle")}</p>
+            <h2>
+              {t("landing.process.title1")} <em>{t("landing.process.title2")}</em>
+            </h2>
           </div>
           <div className="market-process-row">
             <article>
               <span>01</span><LuSprout size={28} />
-              <h3>List what is ready</h3>
-              <p>Add your produce, quantity, and asking price in a few clear steps.</p>
+              <h3>{t("landing.process.step1.title")}</h3>
+              <p>{t("landing.process.step1.desc")}</p>
             </article>
             <article>
               <span>02</span><LuUsers size={28} />
-              <h3>Agree directly</h3>
-              <p>Buyers see the farm, quality details, and price before ordering.</p>
+              <h3>{t("landing.process.step2.title")}</h3>
+              <p>{t("landing.process.step2.desc")}</p>
             </article>
             <article>
               <span>03</span><LuTruck size={28} />
-              <h3>Move it with confidence</h3>
-              <p>A transport partner carries the order while each handoff is tracked.</p>
+              <h3>{t("landing.process.step3.title")}</h3>
+              <p>{t("landing.process.step3.desc")}</p>
             </article>
           </div>
         </section>
@@ -98,40 +124,98 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
         <section id="traceability" className="market-trace market-section">
           <div className="market-trace-copy">
             <LuScanLine className="market-large-icon" size={36} />
-            <h2>Every handoff, <em>recorded.</em></h2>
-            <p>A buyer can scan the Farm2Fork QR code and follow the produce from its farm record to collection, transport, and delivery.</p>
-            <button className="market-text-link" onClick={onLogin}>Open produce tracing <LuArrowRight size={17} /></button>
+            <h2>
+              {t("landing.trace.title1")} <em>{t("landing.trace.title2")}</em>
+            </h2>
+            <p>{t("landing.trace.desc")}</p>
+            <button className="market-text-link" onClick={onLogin}>
+              {t("landing.trace.btn")}{" "}
+              <LuArrowRight 
+                size={17} 
+                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+              />
+            </button>
           </div>
           <ol className="market-route" aria-label="Produce journey">
-            <li><span><LuSprout /></span><div><strong>Harvested</strong><small>Farm details recorded</small></div></li>
-            <li><span><LuShoppingBasket /></span><div><strong>Collected</strong><small>Order and quality checked</small></div></li>
-            <li><span><LuTruck /></span><div><strong>In transit</strong><small>Shipment progress updated</small></div></li>
-            <li><span><LuBadgeCheck /></span><div><strong>Delivered</strong><small>Journey ready to verify</small></div></li>
+            <li>
+              <span><LuSprout /></span>
+              <div>
+                <strong>{t("landing.trace.step1")}</strong>
+                <small>{t("landing.trace.step1.sub")}</small>
+              </div>
+            </li>
+            <li>
+              <span><LuShoppingBasket /></span>
+              <div>
+                <strong>{t("landing.trace.step2")}</strong>
+                <small>{t("landing.trace.step2.sub")}</small>
+              </div>
+            </li>
+            <li>
+              <span><LuTruck /></span>
+              <div>
+                <strong>{t("landing.trace.step3")}</strong>
+                <small>{t("landing.trace.step3.sub")}</small>
+              </div>
+            </li>
+            <li>
+              <span><LuBadgeCheck /></span>
+              <div>
+                <strong>{t("landing.trace.step4")}</strong>
+                <small>{t("landing.trace.step4.sub")}</small>
+              </div>
+            </li>
           </ol>
         </section>
 
         <section id="people" className="market-people market-section">
           <div className="market-section-heading">
-            <p>One market, three practical roles</p>
-            <h2>Built for the people who <em>move food.</em></h2>
+            <p>{t("landing.people.pretitle")}</p>
+            <h2>
+              {t("landing.people.title1")} <em>{t("landing.people.title2")}</em>
+            </h2>
           </div>
           <div className="market-people-list">
-            <article><LuSprout /><h3>For farmers</h3><p>List produce, get fair-price guidance, manage orders, and apply for financing.</p></article>
-            <article><LuShoppingBasket /><h3>For buyers</h3><p>Source fresh produce with clear origin, quality, and delivery information.</p></article>
-            <article><LuTruck /><h3>For transport partners</h3><p>Find assigned loads, follow clear routes, and update each delivery step.</p></article>
+            <article>
+              <LuSprout />
+              <h3>{t("landing.people.farmers.title")}</h3>
+              <p>{t("landing.people.farmers.desc")}</p>
+            </article>
+            <article>
+              <LuShoppingBasket />
+              <h3>{t("landing.people.buyers.title")}</h3>
+              <p>{t("landing.people.buyers.desc")}</p>
+            </article>
+            <article>
+              <LuTruck />
+              <h3>{t("landing.people.transporters.title")}</h3>
+              <p>{t("landing.people.transporters.desc")}</p>
+            </article>
           </div>
         </section>
 
         <section className="market-final-cta">
-          <div><h2>Ready to sell smarter or source better?</h2><p>Join a more transparent food market, built around the people doing the work.</p></div>
-          <button className="market-primary market-primary-light" onClick={onGetStarted}>Choose your role <LuArrowRight size={18} /></button>
+          <div>
+            <h2>{t("landing.cta.titleNew")}</h2>
+            <p>{t("landing.cta.desc")}</p>
+          </div>
+          <button className="market-primary market-primary-light" onClick={onGetStarted}>
+            {t("landing.cta.btn")}{" "}
+            <LuArrowRight 
+              size={18} 
+              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+            />
+          </button>
         </section>
       </main>
 
       <footer className="market-footer">
-        <div className="market-brand"><span className="market-brand-mark"><LuLeaf size={20} /></span><span>Farm2Fork</span></div>
-        <p>Transparent agriculture, from farm to fork.</p>
-        <span>Final Year Project · UCP</span>
+        <div className="market-brand">
+          <span className="market-brand-mark"><LuLeaf size={20} /></span>
+          <span>{t("app.title")}</span>
+        </div>
+        <p>{t("landing.footer.desc")}</p>
+        <span>{t("landing.footer.fyp")}</span>
       </footer>
     </div>
   );

@@ -417,7 +417,6 @@ export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSe
                       <td>
                         <div className="flex-between gap-sm" style={{ justifyContent: 'flex-start', marginBottom: '4px' }}>
                           <span className="font-bold text-dark">{loan.creditScore}</span>
-                          <span className="badge" style={{ background: 'var(--surface-strong)', color: 'var(--text-dark)' }}>FICO</span>
                         </div>
                         <span className={`badge ${
                           loan.riskProfile === 'Low' ? 'badge-soft-green' :

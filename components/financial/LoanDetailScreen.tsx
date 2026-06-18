@@ -202,7 +202,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
 
               <div className="grid-3 gap-lg mb-xl">
                 <div className="stat-card">
-                  <span className="stat-card-label block mb-sm">FICO Credit Score</span>
+                  <span className="stat-card-label block mb-sm">Credit Score</span>
                   <div className="stat-card-row">
                     <span className="stat-card-value">{loan.creditScore}</span>
                     <span className="text-xs font-bold text-muted">/ 850</span>
@@ -259,58 +259,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Card 3: Checklist / Document Verification */}
-            <div className="card">
-              <h3 className="card-title mb-md pb-md flex-between" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
-                <span className="flex items-center gap-sm">
-                  <FileText className="w-5 h-5 text-dark" />
-                  Documentary Verification Audit
-                </span>
-                <span className="text-xs text-muted font-normal">All docs are secured cryptographically</span>
-              </h3>
-
-              <div className="gap-sm flex flex-col">
-                {[
-                  { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of Sonoma Valley estate' },
-                  { key: 'taxReturns', title: 'Tax Filings & Audited Financials', desc: 'Last 2 consecutive years of declared income and capital assets' },
-                  { key: 'harvestLogs', title: 'Verified Harvest Yield Logs', desc: 'IoT sensor records of previous season crop metrics and weight logs' },
-                  { key: 'bankStatements', title: 'Primary Escrow Account Statements', desc: 'Cashflow analysis and credit transactional records' }
-                ].map((doc) => {
-                  const currentStatus = docsStatus[doc.key as keyof typeof docsStatus]
-                  return (
-                    <div key={doc.key} className="flex-between p-sm" style={{ border: '1px solid var(--surface-medium)', borderRadius: 'var(--radius-lg)' }}>
-                      <div>
-                        <h4 className="text-xs font-bold text-dark">{doc.title}</h4>
-                        <p className="text-[11px] text-muted mt-xs">{doc.desc}</p>
-                      </div>
-                      <div className="flex items-center gap-md">
-                        <span className={`badge ${
-                          currentStatus === 'Verified' ? 'badge-soft-green' : 'badge-soft-yellow'
-                        }`}>
-                          {currentStatus}
-                        </span>
-                        {currentStatus !== 'Verified' ? (
-                          <button 
-                            onClick={() => setDocsStatus({ ...docsStatus, [doc.key]: 'Verified' })}
-                            className="btn btn-outline"
-                            style={{ padding: '4px 10px', fontSize: '11px' }}
-                          >
-                            Mark Verified
-                          </button>
-                        ) : (
-                          <span className="w-5 h-5" style={{ color: 'var(--success)' }}>
-                            <Check className="w-5 h-5" />
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+            </div>          </div>
 
           {/* Right Column - Actions Card */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-xl)' }}>
@@ -385,6 +334,56 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
 
           </div>
 
+        </div>
+
+        {/* Card 3: Checklist / Document Verification (Full Width) */}
+        <div className="card" style={{ marginTop: 'var(--sp-xl)' }}>
+          <h3 className="card-title mb-md pb-md flex-between" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
+            <span className="flex items-center gap-sm">
+              <FileText className="w-5 h-5 text-dark" />
+              Documentary Verification Audit
+            </span>
+            <span className="text-xs text-muted font-normal">All docs are secured cryptographically</span>
+          </h3>
+
+          <div className="gap-sm flex flex-col">
+            {[
+              { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of Sonoma Valley estate' },
+              { key: 'taxReturns', title: 'Tax Filings & Audited Financials', desc: 'Last 2 consecutive years of declared income and capital assets' },
+              { key: 'harvestLogs', title: 'Verified Harvest Yield Logs', desc: 'IoT sensor records of previous season crop metrics and weight logs' },
+              { key: 'bankStatements', title: 'Primary Escrow Account Statements', desc: 'Cashflow analysis and credit transactional records' }
+            ].map((doc) => {
+              const currentStatus = docsStatus[doc.key as keyof typeof docsStatus]
+              return (
+                <div key={doc.key} className="flex-between p-sm" style={{ border: '1px solid var(--surface-medium)', borderRadius: 'var(--radius-lg)' }}>
+                  <div>
+                    <h4 className="text-xs font-bold text-dark">{doc.title}</h4>
+                    <p className="text-[11px] text-muted mt-xs">{doc.desc}</p>
+                  </div>
+                  <div className="flex items-center gap-md">
+                    <span className={`badge ${
+                      currentStatus === 'Verified' ? 'badge-soft-green' : 'badge-soft-yellow'
+                    }`}>
+                      {currentStatus}
+                    </span>
+                    {currentStatus !== 'Verified' ? (
+                      <button 
+                        onClick={() => setDocsStatus({ ...docsStatus, [doc.key]: 'Verified' })}
+                        className="btn btn-outline"
+                        style={{ padding: '4px 10px', fontSize: '11px' }}
+                      >
+                        Mark Verified
+                      </button>
+                    ) : (
+                      <span className="w-5 h-5" style={{ color: 'var(--success)' }}>
+                        <Check className="w-5 h-5" />
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
 
         </main>

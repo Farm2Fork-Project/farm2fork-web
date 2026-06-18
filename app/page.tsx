@@ -28,13 +28,28 @@ function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>("landing");
+  const [authScreen, setAuthScreen] = useState<AuthScreen>(() => {
+    const auth = searchParams.get("auth");
+    if (auth === "signup") return "signup-role";
+    if (auth === "login") return "login";
+    return "landing";
+  });
 
   useEffect(() => {
-    const auth = searchParams.get("auth");
-    if (auth === "signup") setAuthScreen("signup-role");
-    else if (auth === "login") setAuthScreen("login");
-  }, [searchParams]);
+    if (authScreen === "landing") return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setAuthScreen("landing");
+        router.replace("/");
+      }
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [authScreen, router]);
   const [activeTab, setActiveTab] = useState<AppTab>("marketplace");
   const [viewingProduct, setViewingProduct] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -52,17 +67,17 @@ function HomeContent() {
 
   /* ── Auth flow ── */
   if (!isLoggedIn) {
-    if (authScreen === "landing") {
-      return (
-        <LandingScreen
-          onGetStarted={() => setAuthScreen("signup-role")}
-          onLogin={() => setAuthScreen("login")}
-        />
-      );
-    }
+    const closeAuth = () => {
+      setLoginError("");
+      setAuthScreen("landing");
+      router.replace("/");
+    };
+
+    let authOverlay = null;
     if (authScreen === "login") {
-      return (
+      authOverlay = (
         <LoginScreen
+          onBackHome={closeAuth}
           onLogin={(email, password) => {
             setLoginError("");
             if (!email || !password) {
@@ -70,9 +85,7 @@ function HomeContent() {
               return;
             }
             const user = USERS.find(
-              (u) =>
-                u.email.toLowerCase() === email.toLowerCase() &&
-                u.password === password
+              (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
             );
             if (!user) {
               setLoginError("Invalid email or password.");
@@ -100,31 +113,39 @@ function HomeContent() {
           }}
         />
       );
-    }
-    if (authScreen === "signup-role") {
-      return (
+    } else if (authScreen === "signup-role") {
+      authOverlay = (
         <SignUpRoleScreen
+          onBackHome={closeAuth}
           onBack={() => setAuthScreen("login")}
           onSelectRole={(role) => {
-            if (role === "transporter") {
-              router.push("/transporter?signup=true");
-            } else if (role === "farmer") {
-              router.push("/farmer?signup=true");
-            } else {
-              setAuthScreen("signup-form");
-            }
+            if (role === "transporter") router.push("/transporter?signup=true");
+            else if (role === "farmer") router.push("/farmer?signup=true");
+            else setAuthScreen("signup-form");
+          }}
+        />
+      );
+    } else if (authScreen === "signup-form") {
+      authOverlay = (
+        <SignUpFormScreen
+          onBackHome={closeAuth}
+          onBack={() => setAuthScreen("signup-role")}
+          onSubmit={() => {
+            localStorage.setItem("role", "buyer");
+            setIsLoggedIn(true);
           }}
         />
       );
     }
+
     return (
-      <SignUpFormScreen
-        onBack={() => setAuthScreen("signup-role")}
-        onSubmit={() => {
-          localStorage.setItem("role", "buyer");
-          setIsLoggedIn(true);
-        }}
-      />
+      <>
+        <LandingScreen
+          onGetStarted={() => setAuthScreen("signup-role")}
+          onLogin={() => setAuthScreen("login")}
+        />
+        {authOverlay}
+      </>
     );
   }
 

@@ -54,6 +54,7 @@ function LoginPageContent() {
       onGoSignup={() => {
         router.push("/?auth=signup");
       }}
+      onBackHome={() => router.push("/")}
     />
   );
 }

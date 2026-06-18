@@ -6,23 +6,26 @@ import {
   LuTruck,
   LuChevronRight,
   LuArrowLeft,
+  LuX,
 } from "react-icons/lu";
 
 import { SignUpRoleScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function SignUpRoleScreen({ onBack, onSelectRole }: SignUpRoleScreenProps) {
+export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: SignUpRoleScreenProps) {
   const { t } = useLanguage();
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="role-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
           <div className="auth-card-narrow-header">
             <button className="back-btn" onClick={onBack} aria-label="Go back">
               <LuArrowLeft size={22} />
             </button>
-            <h1>{t("signupRole.header")}</h1>
+            <h1 id="role-heading">Choose how you&apos;ll use Farm2Fork</h1>
           </div>
 
           <p className="role-selection-title">{t("signupRole.want")}</p>

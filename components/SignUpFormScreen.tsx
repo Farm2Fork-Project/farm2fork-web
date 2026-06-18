@@ -5,12 +5,13 @@ import {
   LuEyeOff,
   LuEye,
   LuArrowLeft,
+  LuX,
 } from "react-icons/lu";
 
 import { SignUpFormScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function SignUpFormScreen({ onBack, onSubmit }: SignUpFormScreenProps) {
+export default function SignUpFormScreen({ onBack, onBackHome, onSubmit }: SignUpFormScreenProps) {
   const [showPw, setShowPw] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,14 +49,16 @@ export default function SignUpFormScreen({ onBack, onSubmit }: SignUpFormScreenP
   };
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="signup-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
           <div className="auth-card-narrow-header">
             <button className="back-btn" onClick={onBack} aria-label="Go back">
               <LuArrowLeft size={22} />
             </button>
-            <h1>{t("signupForm.header")}</h1>
+            <h1 id="signup-heading">Create your buyer account</h1>
           </div>
 
           {error && (

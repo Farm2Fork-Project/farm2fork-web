@@ -1,21 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { LuLeaf, LuEyeOff, LuEye } from "react-icons/lu";
+import { LuArrowLeft, LuEyeOff, LuEye, LuX } from "react-icons/lu";
 import { LoginScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function LoginScreen({ onLogin, onGoSignup, loginError }: LoginScreenProps) {
+export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginError }: LoginScreenProps) {
   const [showPw, setShowPw] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { t } = useLanguage();
 
   return (
-    <div className="auth-wrapper">
+    <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="login-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          <h1>{t("login.title")}</h1>
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
+          <div className="auth-heading"><span>Welcome back</span><h1 id="login-heading">Sign in to Farm2Fork</h1><p>Manage orders, listings, deliveries, and produce records from one place.</p></div>
 
           <div className="auth-form-group">
             <label htmlFor="login-email">{t("login.email")}</label>

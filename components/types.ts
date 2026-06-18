@@ -44,6 +44,7 @@ export interface CartScreenProps {
 export interface LoginScreenProps {
   onLogin: (email: string, password: string) => void;
   onGoSignup: () => void;
+  onBackHome?: () => void;
   loginError?: string;
 }
 
@@ -53,11 +54,13 @@ export interface ProfileScreenProps {
 
 export interface SignUpFormScreenProps {
   onBack: () => void;
+  onBackHome?: () => void;
   onSubmit: () => void;
 }
 
 export interface SignUpRoleScreenProps {
   onBack: () => void;
+  onBackHome?: () => void;
   onSelectRole: (role: string) => void;
 }
 

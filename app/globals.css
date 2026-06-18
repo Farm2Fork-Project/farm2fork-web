@@ -70,6 +70,7 @@
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -3500,40 +3501,25 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 80px 64px 120px 64px;
+  padding: 100px 32px 140px 32px;
   width: 100%;
-  max-width: 1400px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
 .landing-hero-grid {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 64px;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .landing-hero-text {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-}
-
-.landing-hero-badge {
-  background: rgba(52, 211, 153, 0.1);
-  color: #34D399;
-  padding: 6px var(--sp-lg);
-  border-radius: var(--radius-pill);
-  font-weight: 700;
-  font-size: calc(13px * var(--font-scale, 1));
-  margin-bottom: var(--sp-xxl);
-  border: 1px solid rgba(52, 211, 153, 0.2);
-  display: flex;
   align-items: center;
-  gap: var(--sp-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-align: center;
 }
 
 .landing-title {
@@ -3543,7 +3529,7 @@ body {
   line-height: 1.15;
   margin-bottom: var(--sp-xl);
   letter-spacing: -1.5px;
-  text-align: left;
+  text-align: center;
 }
 
 .landing-title span {
@@ -3556,13 +3542,16 @@ body {
   color: rgba(255, 255, 255, 0.7);
   line-height: 1.6;
   margin-bottom: 40px;
-  max-width: 580px;
-  text-align: left;
+  max-width: 680px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .landing-actions {
   display: flex;
   gap: var(--sp-lg);
+  justify-content: center;
 }
 
 .landing-btn-primary {
@@ -3948,6 +3937,7 @@ body {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   color: #E6EDF2;
   font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  direction: ltr;
 }
 
 .terminal-header {
@@ -4179,10 +4169,23 @@ body {
   text-align: center;
 }
 
-.stat-card {
+.landing-stat-card {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-xl) var(--sp-md);
+  backdrop-filter: blur(4px);
+  transition: all 0.3s ease;
+}
+
+.landing-stat-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(52, 211, 153, 0.25);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 .stat-value {
@@ -5834,3 +5837,79 @@ body {
 .mr-xs { margin-right: var(--sp-xs); }
 .ml-sm { margin-left: var(--sp-sm); }
 .mr-sm { margin-right: var(--sp-sm); }
+
+/* ─── Premium Toast Alert ─── */
+.toast-alert {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: rgba(35, 107, 68, 0.95);
+  backdrop-filter: blur(8px);
+  color: var(--white);
+  padding: 14px 20px;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 400px;
+  animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+[dir="rtl"] .toast-alert {
+  right: auto;
+  left: 24px;
+}
+
+.toast-alert-icon {
+  color: var(--accent-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-alert-message {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  flex-grow: 1;
+}
+
+.toast-alert-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+[dir="rtl"] .toast-alert-close {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.toast-alert-close:hover {
+  color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+

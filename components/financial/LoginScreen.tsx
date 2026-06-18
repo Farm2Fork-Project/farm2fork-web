@@ -6,8 +6,8 @@ import { FinancialLoginScreenProps } from '../types'
 
 
 export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProps) {
-  const [email, setEmail] = useState('partner.user@farm2fork.com')
-  const [password, setPassword] = useState('test1234')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,7 +28,7 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
         sessionStorage.setItem('partner_email', email)
         onLoginSuccess()
       } else {
-        setError('Invalid email or password. Use partner.user@farm2fork.com / test1234')
+        setError('Invalid email or password')
         setLoading(false)
       }
     }, 800)
@@ -78,6 +78,7 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
                   <input
                     type="email"
                     required
+                    placeholder="partner.user@farm2fork.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     style={{
@@ -121,6 +122,7 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
                   <input
                     type={showPassword ? "text" : "password"}
                     required
+                    placeholder="Enter password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     style={{

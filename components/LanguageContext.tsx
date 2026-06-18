@@ -54,6 +54,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return dictionary[key] || key;
   };
 
+  if (!isLoaded) {
+    return <div style={{ minHeight: "100vh", background: "#060F0A" }} />;
+  }
+
   return (
     <LanguageContext.Provider value={{ language, setLanguage, fontSize, setFontSize, t }}>
       {children}

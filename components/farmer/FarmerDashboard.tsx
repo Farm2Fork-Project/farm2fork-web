@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Tractor,
   ShoppingBag,
@@ -30,41 +30,63 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Shared Listings State
-  const [listings, setListings] = useState<Listing[]>([
-    {
-      id: "list_1",
-      name: "Organic Tomatoes",
-      category: "Vegetables",
-      grade: "A",
-      price: 120,
-      unit: "kg",
-      quantity: 200.0,
-      status: "Available",
-      description: "Fresh organic tomatoes harvested directly from Hassan Organic Farm in Multan. Grade A quality, perfectly ripe and juicy, excellent for cooking or salads.",
-    },
-    {
-      id: "list_2",
-      name: "Fresh Spinach",
-      category: "Vegetables",
-      grade: "A",
-      price: 80,
-      unit: "kg",
-      quantity: 150.0,
-      status: "Available",
-      description: "Organic spinach greens, handpicked early in the morning. Packed with nutrients and vitamins, washed and cleaned.",
-    },
-    {
-      id: "list_3",
-      name: "Desi Onions",
-      category: "Vegetables",
-      grade: "B",
-      price: 60,
-      unit: "kg",
-      quantity: 500.0,
-      status: "Available",
-      description: "Locally sourced Desi Onions, cured and dried to perfection for extended shelf life. Uniform size and strong flavor profile.",
-    },
-  ]);
+  const [listings, setListings] = useState<Listing[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("farmer_listings");
+      if (saved) {
+        try {
+          setListings(JSON.parse(saved));
+        } catch (e) {
+          console.error(e);
+        }
+      } else {
+        const initialListings = [
+          {
+            id: "list_1",
+            name: "Organic Tomatoes",
+            category: "Vegetables",
+            grade: "A",
+            price: 120,
+            unit: "kg",
+            quantity: 200.0,
+            status: "Available" as const,
+            description: "Fresh organic tomatoes harvested directly from Hassan Organic Farm in Multan. Grade A quality, perfectly ripe and juicy, excellent for cooking or salads.",
+          },
+          {
+            id: "list_2",
+            name: "Fresh Spinach",
+            category: "Vegetables",
+            grade: "A",
+            price: 80,
+            unit: "kg",
+            quantity: 150.0,
+            status: "Available" as const,
+            description: "Organic spinach greens, handpicked early in the morning. Packed with nutrients and vitamins, washed and cleaned.",
+          },
+          {
+            id: "list_3",
+            name: "Desi Onions",
+            category: "Vegetables",
+            grade: "B",
+            price: 60,
+            unit: "kg",
+            quantity: 500.0,
+            status: "Available" as const,
+            description: "Locally sourced Desi Onions, cured and dried to perfection for extended shelf life. Uniform size and strong flavor profile.",
+          },
+        ];
+        setListings(initialListings);
+        localStorage.setItem("farmer_listings", JSON.stringify(initialListings));
+      }
+    }
+  }, []);
+
+  const updateListings = (newListings: Listing[]) => {
+    setListings(newListings);
+    localStorage.setItem("farmer_listings", JSON.stringify(newListings));
+  };
 
   // Shared Orders State
   const [orders, setOrders] = useState<Order[]>([
@@ -127,18 +149,18 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
   // Listing Handlers
   const handleDeleteListing = (id: string) => {
-    setListings((prev) => prev.filter((item) => item.id !== id));
+    const updated = listings.filter((item) => item.id !== id);
+    updateListings(updated);
     showToast(t("farmer.toast.deleteSuccess"));
   };
 
   const handleToggleListingStatus = (id: string) => {
-    setListings((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === "Available" ? "Out of Stock" : "Available" }
-          : item
-      )
+    const updated = listings.map((item) =>
+      item.id === id
+        ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as any }
+        : item
     );
+    updateListings(updated);
     const item = listings.find((l) => l.id === id);
     const newStatus = item?.status === "Available" ? "Out of Stock" : "Available";
     showToast(t("farmer.toast.statusUpdate").replace("{status}", newStatus));
@@ -164,7 +186,8 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
       quantity: listingData.quantity,
       status: "Available",
     };
-    setListings([newListing, ...listings]);
+    const updated = [newListing, ...listings];
+    updateListings(updated);
     setActiveTab("listings");
     showToast(t("farmer.toast.createSuccess"));
   };
@@ -194,10 +217,12 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
     <div className="app-shell" dir={language === "ur" ? "rtl" : "ltr"}>
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-5 z-200 bg-emerald-800 text-white py-3 px-5 rounded-lg shadow-lg flex items-center gap-2.5 animate-in">
-          <CheckCircle size={18} className="text-emerald-300" />
-          <span className="text-sm font-semibold">{toastMessage}</span>
-          <button className="text-emerald-200 hover:text-white" onClick={() => setToastMessage(null)}>
+        <div className="toast-alert">
+          <div className="toast-alert-icon">
+            <CheckCircle size={18} />
+          </div>
+          <span className="toast-alert-message">{toastMessage}</span>
+          <button className="toast-alert-close" onClick={() => setToastMessage(null)}>
             <X size={14} />
           </button>
         </div>

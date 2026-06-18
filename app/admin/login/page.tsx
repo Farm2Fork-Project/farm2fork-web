@@ -44,7 +44,7 @@ export default function LoginPage() {
             </div>
             <input
               type="email"
-              defaultValue="admin@farm2fork.com"
+              placeholder="admin@farm2fork.com"
               required
               className="input"
               style={{
@@ -87,7 +87,7 @@ export default function LoginPage() {
             </div>
             <input
               type="password"
-              defaultValue="admin123"
+              placeholder="Enter password"
               required
               style={{
                 width: '100%',

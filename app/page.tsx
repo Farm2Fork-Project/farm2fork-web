@@ -36,7 +36,7 @@ function HomeContent() {
   });
 
   useEffect(() => {
-    if (authScreen === "landing") return;
+    if (isLoggedIn || authScreen === "landing") return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setAuthScreen("landing");
@@ -49,7 +49,7 @@ function HomeContent() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [authScreen, router]);
+  }, [authScreen, isLoggedIn, router]);
   const [activeTab, setActiveTab] = useState<AppTab>("marketplace");
   const [viewingProduct, setViewingProduct] = useState(false);
   const [loginError, setLoginError] = useState("");
@@ -104,6 +104,7 @@ function HomeContent() {
             } else {
               localStorage.setItem("role", "buyer");
               setIsLoggedIn(true);
+              setAuthScreen("landing");
             }
           }}
           loginError={loginError}
@@ -133,6 +134,7 @@ function HomeContent() {
           onSubmit={() => {
             localStorage.setItem("role", "buyer");
             setIsLoggedIn(true);
+            setAuthScreen("landing");
           }}
         />
       );

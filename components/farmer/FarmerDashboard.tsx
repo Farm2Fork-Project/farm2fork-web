@@ -323,7 +323,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                   color: "var(--text-main)"
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>Notifications</h4>
+                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{language === "ur" ? "اطلاعات" : "Notifications"}</h4>
                     <span 
                       onClick={() => {
                         markNotificationsRead();
@@ -331,7 +331,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                       }} 
                       style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}
                     >
-                      Mark all as read
+                      {language === "ur" ? "سب کو پڑھا ہوا نشان زد کریں" : "Mark all as read"}
                     </span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
@@ -343,11 +343,23 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                         </div>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>{idx === 0 ? "New Order" : "Quality Approved"}</strong>
+                            <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>
+                              {idx === 0 
+                                ? (language === "ur" ? "نیا آرڈر" : "New Order") 
+                                : (language === "ur" ? "معیار کی منظوری" : "Quality Approved")}
+                            </strong>
                             {!n.read && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary-green)", marginTop: "4px" }}></span>}
                           </div>
-                          <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>{n.text}</div>
-                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>{n.time}</div>
+                          <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>
+                            {language === "ur" 
+                              ? n.text.replace("New Order", "نیا آرڈر").replace("received from", "موصول ہوا از").replace("Quality Grade check for", "معیار کی جانچ برائے").replace("approved", "منظور شدہ")
+                              : n.text}
+                          </div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>
+                            {language === "ur"
+                              ? n.time.replace("hrs ago", "گھنٹے پہلے").replace("day ago", "دن پہلے")
+                              : n.time}
+                          </div>
                         </div>
                       </div>
                     ))}

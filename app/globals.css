@@ -7051,3 +7051,171 @@ body {
   to { transform: translateX(0); }
 }
 
+/* Urdu italics fix */
+[dir="rtl"] em,
+[dir="rtl"] i,
+[dir="rtl"] cite,
+[dir="rtl"] dfn,
+[dir="rtl"] var,
+[dir="rtl"] address,
+[dir="rtl"] .italic,
+[dir="rtl"] [class*="italic"] {
+  font-style: normal !important;
+}
+
+/* Limit app content width on desktop and center it */
+.app-content {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* Scan Screen Desktop Layout Styles */
+.scan-results-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--sp-xl);
+  margin-top: var(--sp-lg);
+  animation: fadeInUp 0.4s ease;
+}
+
+@media (min-width: 992px) {
+  .scan-results-container {
+    grid-template-columns: 320px 1fr;
+    gap: var(--sp-xxxl);
+    align-items: start;
+  }
+}
+
+.scan-product-sidebar {
+  width: 100%;
+}
+
+.scan-product-card {
+  background: var(--white);
+  border: 1px solid var(--surface-medium);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-xxl);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.scan-product-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.verified-icon-large {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-green-soft);
+  color: var(--primary-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-verified-badge {
+  background: var(--primary-green-soft);
+  color: var(--primary-green);
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scan-product-info h2 {
+  font-size: calc(20px * var(--font-scale, 1));
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: var(--sp-xs);
+}
+
+.scan-product-status {
+  font-size: calc(13px * var(--font-scale, 1));
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.scan-divider {
+  height: 1px;
+  background: var(--surface-medium);
+  margin: var(--sp-lg) 0;
+}
+
+.scan-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--sp-md);
+}
+
+.scan-detail-row:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: calc(11px * var(--font-scale, 1));
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: calc(14px * var(--font-scale, 1));
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.scan-timeline-container {
+  background: var(--white);
+  border: 1px solid var(--surface-medium);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-xxl);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.timeline-title {
+  font-size: calc(18px * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: var(--sp-xl);
+}
+
+.scan-timeline-container .scan-timeline {
+  max-width: none;
+  width: 100%;
+}
+
+/* RTL timeline overrides */
+[dir="rtl"] .scan-timeline {
+  padding-left: 0;
+  padding-right: 40px;
+}
+[dir="rtl"] .scan-timeline::before {
+  left: auto;
+  right: 16px;
+}
+[dir="rtl"] .scan-tl-dot {
+  left: auto;
+  right: -32px;
+}
+[dir="rtl"] .scan-tl-card {
+  margin-left: 0;
+  margin-right: var(--sp-lg);
+}
+
+/* RTL product card grade tag override */
+[dir="rtl"] .mp-card-grade {
+  left: auto;
+  right: var(--sp-sm);
+}
+
+

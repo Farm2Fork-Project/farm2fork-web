@@ -121,10 +121,10 @@ export default function FarmFeed() {
 
     const newFeedItem: FeedPost = {
       id: `feed_${Date.now()}`,
-      author: "Hassan (You)",
-      avatar: "H",
+      author: language === "ur" ? "حسن (آپ)" : "Hassan (You)",
+      avatar: language === "ur" ? "ح" : "H",
       avatarBg: "bg-[var(--primary-green-soft)] text-[var(--primary-green)]",
-      date: "Today",
+      date: language === "ur" ? "آج" : "Today",
       title: newPostTitle,
       content: newPostContent,
       tags: parsedTags.length > 0 ? parsedTags : ["General"],
@@ -158,9 +158,9 @@ export default function FarmFeed() {
 
     const newComment: Comment = {
       id: `c_${Date.now()}`,
-      author: "Hassan (You)",
-      avatar: "H",
-      date: "Just now",
+      author: language === "ur" ? "حسن (آپ)" : "Hassan (You)",
+      avatar: language === "ur" ? "ح" : "H",
+      date: language === "ur" ? "ابھی" : "Just now",
       content: text,
     };
 
@@ -229,9 +229,9 @@ export default function FarmFeed() {
             {/* User Profile Card */}
             <div className="card flex flex-col items-center text-center">
               <div className="w-20 h-20 rounded-full flex items-center justify-center font-bold text-3xl bg-[var(--primary-green)] text-white mb-4">
-                H
+                {language === "ur" ? "ح" : "H"}
               </div>
-              <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">Hassan</h3>
+              <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">{language === "ur" ? "حسن" : "Hassan"}</h3>
               <p className="text-sm text-gray-500 font-medium">@hassan_farm</p>
             </div>
 
@@ -245,7 +245,7 @@ export default function FarmFeed() {
                   }`}
               >
                 <Rss size={18} />
-                Community Feed
+                {t("feed.tab.community")}
               </button>
               <button
                 onClick={() => setActiveNavTab("liked")}
@@ -255,7 +255,7 @@ export default function FarmFeed() {
                   }`}
               >
                 <Heart size={18} />
-                Liked Posts
+                {t("feed.tab.liked")}
               </button>
             </nav>
           </div>
@@ -266,16 +266,16 @@ export default function FarmFeed() {
             <div className="card mb-6 !p-5">
               <div className="flex gap-4 items-center cursor-pointer" onClick={() => setComposerExpanded(true)}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[var(--primary-green)] text-white flex-shrink-0">
-                  H
+                  {language === "ur" ? "ح" : "H"}
                 </div>
                 {!composerExpanded ? (
                   <div className="flex-1 h-12 bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200 rounded-full pl-5 pr-4 flex items-center gap-4">
                     <Edit3 size={18} className="text-gray-400" />
-                    <span className="text-sm text-gray-500 truncate">{language === "en" ? "What's on your mind, Hassan?" : "آپ کے ذہن میں کیا ہے؟"}</span>
+                    <span className="text-sm text-gray-500 truncate">{t("feed.composer.placeholder")}</span>
                   </div>
                 ) : (
                   <span className="font-bold text-gray-900 ml-2 text-lg">
-                    {language === "en" ? "Create Post" : "پوسٹ بنائیں"}
+                    {t("feed.composer.title")}
                   </span>
                 )}
               </div>
@@ -284,14 +284,14 @@ export default function FarmFeed() {
                 <form onSubmit={(e) => { handleCreatePost(e); setComposerExpanded(false); }} className="flex flex-col gap-4 mt-4 pt-4 border-t border-[var(--surface-medium)] animate-in fade-in duration-200">
                   <input
                     type="text"
-                    placeholder={t("farmer.feed.postTitlePlaceholder")}
+                    placeholder={t("feed.composer.titlePlaceholder")}
                     value={newPostTitle}
                     onChange={(e) => setNewPostTitle(e.target.value)}
                     className="input border-none bg-[var(--surface-light)] text-sm font-bold"
                     required
                   />
                   <textarea
-                    placeholder={t("farmer.feed.postContentPlaceholder")}
+                    placeholder={t("feed.composer.contentPlaceholder")}
                     value={newPostContent}
                     onChange={(e) => setNewPostContent(e.target.value)}
                     className="input border-none bg-[var(--surface-light)] resize-none text-sm"
@@ -300,17 +300,17 @@ export default function FarmFeed() {
                   />
                   <input
                     type="text"
-                    placeholder={t("farmer.feed.postTags") + " (comma separated)"}
+                    placeholder={t("feed.composer.tagsPlaceholder")}
                     value={newPostTags}
                     onChange={(e) => setNewPostTags(e.target.value)}
                     className="input border-none bg-[var(--surface-light)] text-xs"
                   />
                   <div className="flex justify-end gap-2 mt-2">
                     <button type="button" onClick={() => setComposerExpanded(false)} className="btn bg-transparent text-[var(--text-muted)] hover:bg-[var(--surface-light)] text-sm px-4">
-                      Cancel
+                      {t("feed.composer.cancel")}
                     </button>
                     <button type="submit" className="btn btn-primary text-sm px-6">
-                      Post
+                      {t("feed.composer.post")}
                     </button>
                   </div>
                 </form>
@@ -331,8 +331,8 @@ export default function FarmFeed() {
                 >
                   <Rss size={24} color="var(--primary-green)" />
                 </div>
-                <h3 className="text-base font-bold text-[var(--text-dark)] mb-1">No posts yet</h3>
-                <p className="text-sm text-[var(--text-muted)]">Be the first to share an update with the community.</p>
+                <h3 className="text-base font-bold text-[var(--text-dark)] mb-1">{t("feed.post.noPosts")}</h3>
+                <p className="text-sm text-[var(--text-muted)]">{t("feed.post.noPostsDesc")}</p>
               </div>
             ) : (
               filteredPosts.map((post) => (
@@ -342,7 +342,7 @@ export default function FarmFeed() {
                 >
                   {/* Post Author Header */}
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg bg-[var(--primary-green-soft)] text-[var(--primary-green-dark)] flex-shrink-0">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${post.avatarBg || "bg-[var(--primary-green-soft)] text-[var(--primary-green-dark)]"}`}>
                       {post.avatar}
                     </div>
                     <div>
@@ -384,7 +384,7 @@ export default function FarmFeed() {
                       <Heart size={14} className="text-red-500 fill-red-500" /> {post.likes}
                     </span>
                     <span>
-                      {post.commentsCount} {post.commentsCount === 1 ? "Comment" : "Comments"}
+                      {t("feed.post.commentsCount").replace("{count}", String(post.commentsCount))}
                     </span>
                   </div>
 
@@ -396,14 +396,14 @@ export default function FarmFeed() {
                       onClick={() => handleLike(post.id)}
                     >
                       <Heart size={18} className={post.likedByUser ? "fill-[var(--primary-green)] text-[var(--primary-green)]" : ""} />
-                      <span>Like</span>
+                      <span>{post.likedByUser ? t("feed.post.liked") : t("feed.post.like")}</span>
                     </button>
                     <button
                       className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl text-[15px] font-bold text-gray-500 bg-transparent cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-95 border-none hover:bg-gray-50 hover:text-gray-900 ml-2"
                       onClick={() => toggleComments(post.id)}
                     >
                       <MessageSquare size={20} />
-                      <span>Comment</span>
+                      <span>{t("feed.post.comment")}</span>
                     </button>
                   </div>
 
@@ -427,11 +427,11 @@ export default function FarmFeed() {
                       )}
                       <form onSubmit={(e) => handleAddComment(e, post.id)} className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs bg-[var(--primary-green)] text-white flex-shrink-0">
-                          H
+                          {language === "ur" ? "ح" : "H"}
                         </div>
                         <input
                           type="text"
-                          placeholder="Write a comment..."
+                          placeholder={t("feed.post.writeComment")}
                           className="input flex-1 rounded-full bg-gray-50 border-gray-200 focus:bg-white m-0"
                           style={{ height: "40px", padding: "0 16px" }}
                           value={newCommentTexts[post.id] || ""}

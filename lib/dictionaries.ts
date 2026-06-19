@@ -539,7 +539,26 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.toast.statusUpdate": "Listing status updated to {status}.",
     "farmer.toast.createSuccess": "Listing published successfully.",
     "farmer.toast.orderCompleted": "Order #{id} completed successfully.",
-    "farmer.toast.orderCancelled": "Order #{id} cancelled successfully."
+    "farmer.toast.orderCancelled": "Order #{id} cancelled successfully.",
+
+    // Social feed keys
+    "feed.tab.community": "Community Feed",
+    "feed.tab.liked": "Liked Posts",
+    "feed.composer.placeholder": "What's on your mind, Hassan?",
+    "feed.composer.title": "Create Post",
+    "feed.composer.titlePlaceholder": "What's on your mind?",
+    "feed.composer.contentPlaceholder": "Share your thoughts or ask a question...",
+    "feed.composer.tagsPlaceholder": "Add tags...",
+    "feed.composer.cancel": "Cancel",
+    "feed.composer.post": "Post",
+    "feed.post.noPosts": "No posts yet",
+    "feed.post.noPostsDesc": "Be the first to share an update with the community.",
+    "feed.post.like": "Like",
+    "feed.post.liked": "Liked",
+    "feed.post.comment": "Comment",
+    "feed.post.comments": "Comments",
+    "feed.post.writeComment": "Write a comment...",
+    "feed.post.commentsCount": "{count} Comments"
   },
   ur: {
     // General
@@ -662,8 +681,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "signupRole.want": "میں چاہتا ہوں...",
     "signupRole.buyerRole": "خریدار",
     "signupRole.buyerDescText": "تازہ پیداوار خریدیں، QR کوڈ اسکین کریں، اور اپنے آرڈرز کو ٹریک کریں۔",
-    "signupRole.farmerRole": "کسان",
-    "signupRole.farmerDescText": "پیداوار کی فہرستوں، آرڈرز، اور کمیونٹی اپ ڈیٹس کا نظم کریں۔",
+    "signupRole.farmerRole": "کاشتکار",
+    "signupRole.farmerDescText": "اپنی فصلوں، آرڈرز اور کسان چوپال کی سرگرمیوں کا انتظام کریں۔",
     "signupRole.transporterRole": "ٹرانسپورٹر",
     "signupRole.transporterDescText": "شپمنٹ کے کام دیکھیں اور ڈیلیوری کی پیشرفت کو اپ ڈیٹ کریں۔",
     "signupRole.already": "کیا آپ کا پہلے سے اکاؤنٹ ہے؟",
@@ -679,8 +698,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "signupForm.create": "اکاؤنٹ بنائیں",
 
     // Top Bar
-    "topbar.marketplace": "ہوم",
-    "topbar.trace": "ٹریس",
+    "topbar.marketplace": "منڈی",
+    "topbar.trace": "فصل کا سفر",
     "topbar.cart": "ٹوکری",
     "topbar.orders": "آرڈرز",
     "topbar.profile": "پروفائل",
@@ -693,7 +712,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "grade.B": "بی",
 
     // Marketplace Screen
-    "marketplace.title": "مارکیٹ پلیس",
+    "marketplace.title": "منڈی",
     "marketplace.subtitle": "کھیت سے سیدھا آپ کے دروازے تک تازہ پیداوار۔",
     "marketplace.search": "مصنوعات، فارم تلاش کریں...",
     "marketplace.all": "سب",
@@ -773,7 +792,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "orders.noCompleted": "ابھی تک کوئی مکمل آرڈر نہیں۔",
 
     // Scan Screen
-    "scan.title": "پیداوار کو ٹریس کریں",
+    "scan.title": "فصل کا سفر ٹریک کریں",
     "scan.subtitle": "اپنے کھانے کی مکمل تاریخ دیکھنے کے لیے فارم ٹو فورک QR کوڈ اسکین کریں۔",
     "scan.instruction": "اپنے کیمرے کو QR کوڈ کی طرف اشارہ کریں",
     "scan.button": "اسکین کی نقل کریں",
@@ -781,10 +800,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "scan.searchBtn": "تلاش کریں",
     "scan.desc": "پروڈکٹ کی اصل، کسان، آرڈر کا سفر، شپمنٹ اپ ڈیٹس، اور بلاک چین ریکارڈز کی تصدیق کے لیے پروڈکٹ کی آئی ڈی درج کریں۔",
     "scan.back": "تلاش پر واپس جائیں",
-    "scan.traceTitle": "ٹریس",
+    "scan.traceTitle": "فصل کا سفر",
     "scan.verified": "تصدیق شدہ بلاک چین ٹریس لیجر",
     "scanResult.event1": "مصنوعات کی فہرست",
-    "scanResult.role1": "کسان",
+    "scanResult.role1": "کاشتکار",
     "scanResult.event2": "ادائیگی کی تصدیق ہو گئی",
     "scanResult.role2": "خریدار",
     "scanResult.event3": "شپمنٹ ڈسپیچ (پک اپ)",
@@ -860,7 +879,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     
     "settings.about.title": "فارم ٹو فورک کے بارے میں",
     "settings.about.subtitle": "آپ کو براہ راست مقامی کسانوں سے جوڑنا۔",
-    "settings.about.app": "فارم ٹو فورک خریدار ایپ",
+    "settings.about.app": "فارم ٹو فورک",
     "settings.about.version": "ورژن 1.0.0",
     "settings.about.desc": "فارم ٹو فورک ایک ایگری ٹیک پہل ہے جو مقامی کسانوں کو بااختیار بنانے، شکاری درمیانی لوگوں کو نظرانداز کرنے، اور خریداروں کے لیے تازہ پیداوار پیدا کرنے کے لیے بنائی گئی ہے۔ شفاف بلاک چین گریڈ لیجر ریکارڈز کے ذریعے لین دین کو محفوظ بنا کر، ہم براہ راست، قابل اعتماد، اور موثر سپلائی نیٹ ورک بناتے ہیں۔",
     
@@ -1022,7 +1041,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.orders.markCompleted": "مکمل نشان زد کریں",
 
     // Farmer Signup
-    "farmerSignup.title": "کسان اکاؤنٹ بنائیں",
+    "farmerSignup.title": "کاشتکار اکاؤنٹ بنائیں",
     "farmerSignup.step1": "مرحلہ 1 از 2 — ذاتی معلومات",
     "farmerSignup.step2": "مرحلہ 2 از 2 — فارم کی معلومات",
     "farmerSignup.personalInfo": "ذاتی معلومات",
@@ -1043,15 +1062,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "crops.vegetables": "سبزیاں",
 
     // Farmer Dashboard
-    "farmer.tab.listings": "فہرستیں",
-    "farmer.tab.create": "نیا بنائیں",
+    "farmer.tab.listings": "میری فصلیں",
+    "farmer.tab.create": "پیداوار درج کریں",
     "farmer.tab.orders": "آرڈرز",
-    "farmer.tab.feed": "کمیونٹی",
+    "farmer.tab.feed": "کسان چوپال",
     "farmer.tab.profile": "پروفائل",
 
-    "farmer.listings.title": "میری فہرستیں",
-    "farmer.listings.subtitle": "اپنی فعال مصنوعات اور انوینٹری کا نظم کریں",
-    "farmer.listings.searchPlaceholder": "اپنی فہرستیں تلاش کریں...",
+    "farmer.listings.title": "میری فصلیں",
+    "farmer.listings.subtitle": "اپنی فعال پیداوار اور انوینٹری کا انتظام کریں۔",
+    "farmer.listings.searchPlaceholder": "اپنی فصلیں تلاش کریں...",
     "farmer.listings.farmName": "گرین ایکرز فارم",
     "farmer.listings.farmLocation": "پنجاب، پاکستان",
     "farmer.listings.rating": "درجہ بندی",
@@ -1059,22 +1078,41 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.listings.salesCount": "1,204",
     "farmer.listings.filterCategory": "زمرہ کے لحاظ سے فلٹر کریں",
     "farmer.listings.showingCount": "{count} مصنوعات دکھا رہا ہے",
-    "farmer.listings.addProduct": "پروڈکٹ شامل کریں",
+    "farmer.listings.addProduct": "فصل شامل کریں",
     "farmer.listings.noProducts": "کوئی مصنوعات نہیں ملیں۔",
     "farmer.listings.noProductsDesc": "اپنی تلاش یا فلٹرز کو ایڈجسٹ کرنے کی کوشش کریں۔",
     "farmer.listings.grade": "گریڈ {grade}",
     "farmer.listings.soldOut": "فروخت ہو گیا",
     "farmer.listings.stock": "{stock} {unit} اسٹاک میں",
     "farmer.listings.priceUnit": "روپے {price}",
-    "farmer.listings.deleteTitle": "فہرست حذف کریں؟",
-    "farmer.listings.deleteDesc": "کیا آپ واقعی اس فہرست کو حذف کرنا چاہتے ہیں؟ یہ عمل ناقابل واپسی ہے۔",
+    "farmer.listings.deleteTitle": "پیداوار حذف کریں؟",
+    "farmer.listings.deleteDesc": "کیا آپ واقعی اس پیداوار کو حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں لیا جا سکتا۔",
     "farmer.listings.cancel": "منسوخ کریں",
     "farmer.listings.delete": "حذف کریں",
-    "farmer.listings.detailTitle": "فہرست کی تفصیلات",
+    "farmer.listings.detailTitle": "پیداوار کی تفصیلات",
     "farmer.toast.deleteSuccess": "فہرست کامیابی سے حذف کر دی گئی۔",
     "farmer.toast.statusUpdate": "فہرست کی حیثیت کامیابی سے {status} کر دی گئی۔",
     "farmer.toast.createSuccess": "فہرست کامیابی سے شائع کر دی گئی۔",
     "farmer.toast.orderCompleted": "آرڈر #{id} کامیابی سے مکمل ہو گیا۔",
-    "farmer.toast.orderCancelled": "آرڈر #{id} منسوخ کر دیا گیا۔"
+    "farmer.toast.orderCancelled": "آرڈر #{id} منسوخ کر دیا گیا۔",
+
+    // Urdu Social feed keys
+    "feed.tab.community": "کسان چوپال",
+    "feed.tab.liked": "پسندیدہ پوسٹس",
+    "feed.composer.placeholder": "حسن، آپ کے ذہن میں کیا ہے؟",
+    "feed.composer.title": "پوسٹ بنائیں",
+    "feed.composer.titlePlaceholder": "موضوع کا عنوان لکھیں...",
+    "feed.composer.contentPlaceholder": "اپنے خیالات شیئر کریں یا سوال پوچھیں...",
+    "feed.composer.tagsPlaceholder": "ٹیگز شامل کریں...",
+    "feed.composer.cancel": "منسوخ کریں",
+    "feed.composer.post": "پوسٹ کریں",
+    "feed.post.noPosts": "ابھی تک کوئی پوسٹ نہیں ہے",
+    "feed.post.noPostsDesc": "کمیونٹی کے ساتھ معلومات شیئر کرنے والے پہلے کاشتکار بنیں۔",
+    "feed.post.like": "پسند کریں",
+    "feed.post.liked": "پسند کیا",
+    "feed.post.comment": "تبصرہ",
+    "feed.post.comments": "تبصرے",
+    "feed.post.writeComment": "تبصرہ لکھیں...",
+    "feed.post.commentsCount": "{count} تبصرے"
   }
 };

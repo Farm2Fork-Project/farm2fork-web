@@ -158,6 +158,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "marketplace.vegetables": "Vegetables",
     "marketplace.fruits": "Fruits",
     "marketplace.grains": "Grains",
+    "marketplace.dairy": "Dairy",
     "marketplace.addCart": "Add to Cart",
     "marketplace.direct": "Direct from Farms",
     "marketplace.harvest": "Fresh Harvest Season",

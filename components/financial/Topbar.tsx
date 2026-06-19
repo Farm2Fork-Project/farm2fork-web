@@ -112,7 +112,9 @@ export default function Topbar({
           </div>
 
           <button 
-            onClick={() => setShowLogoutModal(true)}
+            onClick={() => {
+              if (onLogout) onLogout()
+            }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: 'var(--radius-md)', backgroundColor: '#FDECEC', color: 'var(--error-red)', border: 'none', cursor: 'pointer' }}
             title="Logout"
           >
@@ -122,37 +124,6 @@ export default function Topbar({
 
       </div>
     </header>
-
-    {/* Logout Confirmation Modal */}
-    {showLogoutModal && (
-      <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', padding: '16px' }}>
-        <div className="card" style={{ maxWidth: '400px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-          <div className="flex-between mb-md pb-sm" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
-            <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>Confirm Logout</h3>
-          </div>
-          <div className="py-md">
-            <p className="text-sm text-dark font-medium">Are you sure you want to end your current session?</p>
-            <p className="text-xs text-muted mt-xs">Unsaved changes in active forms may be lost.</p>
-          </div>
-          <div className="flex-between gap-sm pt-md mt-sm" style={{ borderTop: '1px solid var(--surface-medium)', justifyContent: 'flex-end' }}>
-            <button type="button" onClick={() => setShowLogoutModal(false)} className="btn btn-outline">
-              Cancel
-            </button>
-            <button 
-              type="button" 
-              onClick={() => {
-                setShowLogoutModal(false)
-                if (onLogout) onLogout()
-              }} 
-              className="btn btn-primary" 
-              style={{ backgroundColor: 'var(--error-red)' }}
-            >
-              Confirm Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
     </>
   )
 }

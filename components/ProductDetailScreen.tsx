@@ -12,13 +12,15 @@ import {
   LuPackage,
   LuCircleCheckBig,
 } from "react-icons/lu";
-import { ProductDetailScreenProps } from "./types";
+import { PRODUCTS, ProductDetailScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
 
-export default function ProductDetailScreen({ onBack }: ProductDetailScreenProps) {
+export default function ProductDetailScreen({ productId, onBack }: ProductDetailScreenProps) {
   const [qty, setQty] = useState(1);
   const { t } = useLanguage();
+  
+  const product = PRODUCTS.find(p => p.id === productId) || PRODUCTS[0];
 
   return (
     <>
@@ -35,17 +37,17 @@ export default function ProductDetailScreen({ onBack }: ProductDetailScreenProps
         {/* Info */}
         <div className="pd-info">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <h1>{t("product.title")}</h1>
+            <h1>{product.name}</h1>
             <span className="badge badge-soft-green">{t("product.available")}</span>
           </div>
-          <div className="pd-price">{t("product.price")}</div>
+          <div className="pd-price">{product.price.toLocaleString()} {t("marketplace.currency")} <span>/ {t(`unit.${product.unit}`)}</span></div>
 
           <div className="pd-tags">
             <span className="pd-tag">
-              <LuCircleCheckBig size={14} /> {t("product.grade")}
+              <LuCircleCheckBig size={14} /> {t(`grade.${product.grade}`)}
             </span>
             <span className="pd-tag">
-              <LuPackage size={14} /> 200 kg
+              <LuPackage size={14} /> 200 {t(`unit.${product.unit}`)}
             </span>
           </div>
 
@@ -63,8 +65,8 @@ export default function ProductDetailScreen({ onBack }: ProductDetailScreenProps
             <div className="pd-farmer-row">
               <div className="pd-farmer-avatar">A</div>
               <div>
-                <div className="pd-farmer-name">Ali Hassan</div>
-                <div className="pd-farmer-farm">Hassan Organic Farm</div>
+                <div className="pd-farmer-name">{product.farm}</div>
+                <div className="pd-farmer-farm">{product.farm}</div>
               </div>
               <div className="pd-farmer-rating">
                 <LuStar size={16} /> 4.8

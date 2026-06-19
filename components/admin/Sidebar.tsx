@@ -84,14 +84,21 @@ export default function Sidebar() {
           >
             Generate Report
           </button>
-          <button
+          <div
             onClick={() => setShowLogout(true)}
-            className="sidebar-bottom-link"
-            style={{ width: '100%', background: 'none', border: 'none', textAlign: 'left', cursor: 'pointer', fontFamily: 'inherit' }}
+            className="sidebar-link hover:-translate-y-[1px] hover:brightness-110 transition-all duration-200"
+            style={{ 
+              cursor: 'pointer', 
+              marginTop: '12px', 
+              color: '#ffffff',
+              backgroundColor: '#ef4444',
+              border: 'none',
+              fontWeight: 600
+            }}
           >
-            <span className="icon"><LogOut size={16} /></span>
+            <span className="icon" style={{ color: '#ffffff' }}><LogOut size={18} /></span>
             Logout
-          </button>
+          </div>
         </div>
       </aside>
 

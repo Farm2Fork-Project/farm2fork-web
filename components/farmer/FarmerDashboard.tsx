@@ -274,11 +274,6 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
             </nav>
 
           <div className="topbar-right">
-            {/* Search Trigger */}
-            <button className="topbar-icon-btn md:block hidden" aria-label="Search" style={{ background: "none", border: "none", cursor: "pointer" }}>
-              <Search size={18} />
-            </button>
-
             {/* Notification bell and dropdown */}
             <div className="relative" style={{ display: "flex", alignItems: "center" }}>
               <button
@@ -288,9 +283,8 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                 }}
                 className="topbar-icon-btn"
                 aria-label="Notifications"
-                style={{ background: "none", border: "none", cursor: "pointer" }}
               >
-                <Bell size={20} />
+                <Bell size={19} />
                 {unreadNotificationsCount > 0 && (
                   <span className="badge-dot" />
                 )}
@@ -298,25 +292,47 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
               {/* Notifications Popover */}
               {notificationsOpen && (
-                <div className="absolute right-0 top-11 w-72 bg-white rounded-xl shadow-lg border border-[var(--surface-medium)] p-3 z-150 animate-in" style={{ zIndex: 150, right: 0 }}>
-                  <div className="flex items-center justify-between pb-2 border-b border-gray-100 mb-2">
-                    <span className="text-xs font-bold text-gray-800">Notifications</span>
-                    <button
-                      onClick={() => setNotificationsOpen(false)}
-                      className="text-gray-400 hover:text-gray-600 border-none bg-transparent cursor-pointer"
+                <div style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  marginTop: "12px",
+                  backgroundColor: "var(--white)",
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "12px",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                  width: "360px",
+                  zIndex: 150,
+                  padding: "16px",
+                  color: "var(--text-main)"
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>Notifications</h4>
+                    <span 
+                      onClick={() => {
+                        markNotificationsRead();
+                        setNotificationsOpen(false);
+                      }} 
+                      style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}
                     >
-                      <X size={14} />
-                    </button>
+                      Mark all as read
+                    </span>
                   </div>
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className={`p-2.5 rounded-lg text-xs leading-relaxed ${n.read ? "bg-white text-gray-600" : "bg-emerald-50 text-emerald-950 font-semibold"
-                          }`}
-                      >
-                        <p>{n.text}</p>
-                        <span className="text-[10px] text-gray-400 mt-1 block font-medium">{n.time}</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
+                    
+                    {notifications.map((n, idx) => (
+                      <div key={n.id} style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", background: n.read ? "transparent" : "rgba(34, 197, 94, 0.05)", cursor: "pointer" }}>
+                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: idx === 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: idx === 0 ? "var(--primary-green)" : "#3b82f6", flexShrink: 0 }}>
+                          {idx === 0 ? <ShoppingBag size={20} /> : <CheckCircle size={20} />}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>{idx === 0 ? "New Order" : "Quality Approved"}</strong>
+                            {!n.read && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary-green)", marginTop: "4px" }}></span>}
+                          </div>
+                          <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>{n.text}</div>
+                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>{n.time}</div>
+                        </div>
                       </div>
                     ))}
                   </div>

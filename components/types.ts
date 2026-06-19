@@ -34,6 +34,7 @@ export interface MarketplaceScreenProps {
 }
 
 export interface ProductDetailScreenProps {
+  productId: number;
   onBack: () => void;
 }
 

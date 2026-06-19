@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart, MessageSquare, Tag, Plus, Send, X, Rss, Edit3 } from "lucide-react";
+import { Heart, MessageSquare, Tag, Plus, SendHorizontal, X, Rss, Edit3 } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 
 export interface Comment {
@@ -84,6 +84,7 @@ export default function FarmFeed() {
   ]);
 
   const [activeTagFilter, setActiveTagFilter] = useState<string | null>(null);
+  const [activeNavTab, setActiveNavTab] = useState<"community" | "liked">("community");
   const [newPostTitle, setNewPostTitle] = useState("");
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostTags, setNewPostTags] = useState("");
@@ -173,7 +174,7 @@ export default function FarmFeed() {
       }
       return post;
     }));
-    
+
     setNewCommentTexts(prev => ({ ...prev, [postId]: "" }));
   };
 
@@ -187,9 +188,9 @@ export default function FarmFeed() {
           content: "سندھ میں ابتدائی گرمی کی لہروں کی وجہ سے، ہر 3 دن بعد ہلکا پانی دینا یقینی بنائیں۔ گریڈ اے کوالٹی کی برآمدات کے لیے نامیاتی کیڑے مار ادویات پر توجہ دیں!",
           tags: ["آم", "کھیتی_باڑی_مشورہ", "نامیاتی"],
           comments: post.comments.map(c => {
-             if (c.id === "c_1") return { ...c, author: "رحیم یار", content: "فاطمہ، آپ کا بہت شکریہ، یہ مشورہ بہت بروقت ہے۔ میرپورخاص میں ہمارے باغات میں پہلے ہی زیادہ درجہ حرارت دیکھا جا رہا ہے۔" };
-             if (c.id === "c_2") return { ...c, author: "زینب شاہ", content: "آپ خاص طور پر برآمدات کے لیے کون سی کیڑے مار دوا تجویز کرتی ہیں؟ نیم کے تیل کا آمیزہ؟" };
-             return c;
+            if (c.id === "c_1") return { ...c, author: "رحیم یار", content: "فاطمہ، آپ کا بہت شکریہ، یہ مشورہ بہت بروقت ہے۔ میرپورخاص میں ہمارے باغات میں پہلے ہی زیادہ درجہ حرارت دیکھا جا رہا ہے۔" };
+            if (c.id === "c_2") return { ...c, author: "زینب شاہ", content: "آپ خاص طور پر برآمدات کے لیے کون سی کیڑے مار دوا تجویز کرتی ہیں؟ نیم کے تیل کا آمیزہ؟" };
+            return c;
           })
         };
       }
@@ -201,8 +202,8 @@ export default function FarmFeed() {
           content: "اس سیزن میں باسمتی چاول (1121) کی قیمتوں میں استحکام کی توقع کریں۔ یہاں براہ راست لسٹنگ مڈل مین کے کٹوتی کو 20 فیصد تک کم کر رہی ہے!",
           tags: ["مارکیٹ_رجحانات", "چاول", "براہ_راست_مارکیٹ"],
           comments: post.comments.map(c => {
-             if (c.id === "c_3") return { ...c, author: "علی رضا", content: "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔" };
-             return c;
+            if (c.id === "c_3") return { ...c, author: "علی رضا", content: "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔" };
+            return c;
           })
         };
       }
@@ -210,9 +211,9 @@ export default function FarmFeed() {
     return post;
   });
 
-  const filteredPosts = activeTagFilter
-    ? translatedPosts.filter((post) => post.tags.includes(activeTagFilter))
-    : translatedPosts;
+  const filteredPosts = translatedPosts
+    .filter((post) => activeNavTab === "liked" ? post.likedByUser : true)
+    .filter((post) => activeTagFilter ? post.tags.includes(activeTagFilter) : true);
 
   // Extract all unique tags
   const allTags = Array.from(new Set(translatedPosts.flatMap((p) => p.tags)));
@@ -235,12 +236,24 @@ export default function FarmFeed() {
             </div>
 
             {/* Navigation Menu */}
-            <nav className="flex flex-col gap-1 mt-2">
-              <button className="flex items-center gap-3 text-sm font-semibold py-3 px-4 rounded-xl bg-[var(--primary-green-soft)] text-[var(--primary-green-dark)] border-none text-left cursor-pointer transition-colors">
+            <nav className="flex flex-col gap-2 mt-2">
+              <button
+                onClick={() => setActiveNavTab("community")}
+                className={`flex items-center gap-3 text-sm py-3 px-4 rounded-xl text-left cursor-pointer transition-all border ${activeNavTab === "community"
+                  ? "bg-[rgba(35,107,68,0.08)] text-[var(--primary-green)] border-[rgba(35,107,68,0.12)] font-bold"
+                  : "bg-transparent text-gray-500 border-transparent hover:bg-[rgba(35,107,68,0.04)] hover:text-[var(--primary-green)] font-semibold"
+                  }`}
+              >
                 <Rss size={18} />
                 Community Feed
               </button>
-              <button className="flex items-center gap-3 text-sm font-semibold py-3 px-4 rounded-xl bg-transparent text-gray-600 hover:bg-gray-100 border-none text-left cursor-pointer transition-colors">
+              <button
+                onClick={() => setActiveNavTab("liked")}
+                className={`flex items-center gap-3 text-sm py-3 px-4 rounded-xl text-left cursor-pointer transition-all border ${activeNavTab === "liked"
+                  ? "bg-[rgba(35,107,68,0.08)] text-[var(--primary-green)] border-[rgba(35,107,68,0.12)] font-bold"
+                  : "bg-transparent text-gray-500 border-transparent hover:bg-[rgba(35,107,68,0.04)] hover:text-[var(--primary-green)] font-semibold"
+                  }`}
+              >
                 <Heart size={18} />
                 Liked Posts
               </button>
@@ -256,9 +269,9 @@ export default function FarmFeed() {
                   H
                 </div>
                 {!composerExpanded ? (
-                  <div className="flex-1 bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200 rounded-full px-5 py-3 flex items-center gap-3">
+                  <div className="flex-1 h-12 bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200 rounded-full pl-5 pr-4 flex items-center gap-4">
                     <Edit3 size={18} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">{language === "en" ? "What's on your mind, Hassan?" : "آپ کے ذہن میں کیا ہے؟"}</span>
+                    <span className="text-sm text-gray-500 truncate">{language === "en" ? "What's on your mind, Hassan?" : "آپ کے ذہن میں کیا ہے؟"}</span>
                   </div>
                 ) : (
                   <span className="font-bold text-gray-900 ml-2 text-lg">
@@ -266,7 +279,7 @@ export default function FarmFeed() {
                   </span>
                 )}
               </div>
-              
+
               {composerExpanded && (
                 <form onSubmit={(e) => { handleCreatePost(e); setComposerExpanded(false); }} className="flex flex-col gap-4 mt-4 pt-4 border-t border-[var(--surface-medium)] animate-in fade-in duration-200">
                   <input
@@ -378,9 +391,8 @@ export default function FarmFeed() {
                   {/* Action Bar */}
                   <div className="flex items-center justify-between border-t border-gray-100 pt-2 mt-2">
                     <button
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-colors border-none ${
-                        post.likedByUser ? "text-[var(--primary-green)] bg-[var(--primary-green-soft)]" : "text-gray-500 bg-transparent hover:bg-gray-50 hover:text-gray-900"
-                      }`}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold cursor-pointer transition-colors border-none ${post.likedByUser ? "text-[var(--primary-green)] bg-[var(--primary-green-soft)]" : "text-gray-500 bg-transparent hover:bg-gray-50 hover:text-gray-900"
+                        }`}
                       onClick={() => handleLike(post.id)}
                     >
                       <Heart size={18} className={post.likedByUser ? "fill-[var(--primary-green)] text-[var(--primary-green)]" : ""} />
@@ -417,15 +429,16 @@ export default function FarmFeed() {
                         <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs bg-[var(--primary-green)] text-white flex-shrink-0">
                           H
                         </div>
-                        <input 
-                          type="text" 
-                          placeholder="Write a comment..." 
-                          className="flex-1 bg-gray-50 border border-gray-200 rounded-full px-4 py-2 text-sm text-gray-700 outline-none transition-colors focus:bg-white focus:border-[#236B44]"
+                        <input
+                          type="text"
+                          placeholder="Write a comment..."
+                          className="input flex-1 rounded-full bg-gray-50 border-gray-200 focus:bg-white m-0"
+                          style={{ height: "40px", padding: "0 16px" }}
                           value={newCommentTexts[post.id] || ""}
-                          onChange={(e) => setNewCommentTexts(prev => ({...prev, [post.id]: e.target.value}))}
+                          onChange={(e) => setNewCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
                         />
-                        <button type="submit" disabled={!newCommentTexts[post.id]?.trim()} className="bg-[var(--primary-green)] text-white hover:bg-[var(--primary-green-dark)] rounded-full p-2 disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 flex items-center justify-center cursor-pointer transition-colors border-none">
-                          <Send size={16} className="ml-0.5" />
+                        <button type="submit" disabled={!newCommentTexts[post.id]?.trim()} className="bg-[var(--primary-green)] text-white hover:bg-[var(--primary-green-dark)] rounded-full w-10 h-10 flex-shrink-0 disabled:opacity-50 disabled:bg-gray-200 disabled:text-gray-400 flex items-center justify-center cursor-pointer transition-colors border-none">
+                          <SendHorizontal size={18} />
                         </button>
                       </form>
                     </div>
@@ -443,7 +456,7 @@ export default function FarmFeed() {
                   <Tag size={16} className="text-[var(--primary-green)]" />
                   <span>{t("farmer.feed.filterTags")}</span>
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3 pt-1">
                   <button
                     onClick={() => setActiveTagFilter(null)}
                     className={`py-1.5 px-4 rounded-full text-sm font-semibold border cursor-pointer transition-colors ${activeTagFilter === null

@@ -226,7 +226,7 @@ export default function FarmerListings({
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 40, borderLeft: "1px solid rgba(255,255,255,0.2)", paddingLeft: 40 }}>
+          <div style={{ display: "flex", gap: 40, borderInlineStart: "1px solid rgba(255,255,255,0.2)", paddingInlineStart: 40 }}>
             <div>
               <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.rating")}</p>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -292,7 +292,7 @@ export default function FarmerListings({
             display: "flex",
             alignItems: "center",
             gap: 4,
-            marginRight: 16
+            marginInlineEnd: 16
           }}
         >
           <Plus size={14} strokeWidth={3} /> {t("farmer.listings.addProduct")}

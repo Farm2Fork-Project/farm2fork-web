@@ -162,7 +162,24 @@ export default function FarmerOrders({
                 </div>
               </div>
 
-              {/* Action buttons removed as requested */}
+              {order.status === "Processing" && (
+                <div style={{ display: "flex", gap: "12px", marginTop: "16px", paddingTop: "16px", borderTop: "1px solid var(--surface-medium)" }}>
+                  <button
+                    className="btn btn-danger"
+                    style={{ flex: 1, justifyContent: "center" }}
+                    onClick={() => onCancelOrder(order.id)}
+                  >
+                    <X size={16} /> {t("farmer.orders.reject")}
+                  </button>
+                  <button
+                    className="btn btn-success"
+                    style={{ flex: 1, justifyContent: "center" }}
+                    onClick={() => onCompleteOrder(order.id)}
+                  >
+                    <Check size={16} /> {t("farmer.orders.markCompleted")}
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}

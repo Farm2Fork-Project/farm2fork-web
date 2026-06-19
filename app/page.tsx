@@ -51,7 +51,7 @@ function HomeContent() {
     };
   }, [authScreen, isLoggedIn, router]);
   const [activeTab, setActiveTab] = useState<AppTab>("marketplace");
-  const [viewingProduct, setViewingProduct] = useState(false);
+  const [viewingProductId, setViewingProductId] = useState<number | null>(null);
   const [loginError, setLoginError] = useState("");
   const { language } = useLanguage();
 
@@ -153,12 +153,12 @@ function HomeContent() {
 
   /* ── Main buyer app ── */
   const renderContent = () => {
-    if (activeTab === "marketplace" && viewingProduct) {
-      return <ProductDetailScreen onBack={() => setViewingProduct(false)} />;
+    if (activeTab === "marketplace" && viewingProductId !== null) {
+      return <ProductDetailScreen productId={viewingProductId} onBack={() => setViewingProductId(null)} />;
     }
     switch (activeTab) {
       case "marketplace":
-        return <MarketplaceScreen onViewProduct={() => setViewingProduct(true)} />;
+        return <MarketplaceScreen onViewProduct={(id) => setViewingProductId(id)} />;
       case "scan":
         return <ScanScreen />;
       case "cart":
@@ -166,7 +166,7 @@ function HomeContent() {
           <CartScreen
             onShopNow={() => {
               setActiveTab("marketplace");
-              setViewingProduct(false);
+              setViewingProductId(null);
             }}
           />
         );
@@ -193,7 +193,7 @@ function HomeContent() {
           activeTab={activeTab}
           setActiveTab={(tab) => {
             setActiveTab(tab);
-            setViewingProduct(false);
+            setViewingProductId(null);
           }}
         />
         <main className="app-content">{renderContent()}</main>

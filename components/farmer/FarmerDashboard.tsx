@@ -231,7 +231,23 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
       <div className="app-main">
         {/* Unified TopBar Navigation matching buyer/transporter layout */}
         <header className="topbar">
-          <div className="topbar-left">
+          <div className="topbar-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="topbar-menu-btn"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--text-dark)"
+              }}
+              aria-label="Toggle menu"
+            >
+              <Menu size={22} />
+            </button>
             <div className="topbar-logo">
               <LuLeaf size={24} className="logo-icon" />
               <h2>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</h2>

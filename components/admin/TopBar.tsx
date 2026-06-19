@@ -1,13 +1,13 @@
 'use client'
 
 import React, { useEffect, useState, useRef } from 'react'
-import { Search, Bell, HelpCircle, UserPlus, AlertTriangle, Activity, FileText, LifeBuoy, Mail } from 'lucide-react'
+import { Menu, Search, Bell, HelpCircle, UserPlus, AlertTriangle, Activity, FileText, LifeBuoy, Mail } from 'lucide-react'
 import Image from 'next/image'
 import SupportTicketModal from './SupportTicketModal'
 import AdminDocsModal from './AdminDocsModal'
 import EngineeringContactModal from './EngineeringContactModal'
 
-export default function TopBar() {
+export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const [name, setName] = useState('Ali')
   const [role, setRole] = useState('Admin')
   const [avatarUrl, setAvatarUrl] = useState('/admin-avatar.svg')
@@ -44,6 +44,22 @@ export default function TopBar() {
 
   return (
     <header className="topbar">
+      <button
+        onClick={onToggleSidebar}
+        className="topbar-menu-btn"
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          padding: '4px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--text-dark)'
+        }}
+        aria-label="Toggle menu"
+      >
+        <Menu size={22} />
+      </button>
       <div className="topbar-search">
         <span className="search-icon"><Search size={16} /></span>
         <input type="text" placeholder="Search products, insights, or regions…" />

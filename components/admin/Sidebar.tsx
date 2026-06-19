@@ -15,6 +15,7 @@ import {
   Leaf,
   LogOut,
   MessageSquare,
+  X
 } from 'lucide-react'
 import GenerateReportModal from './GenerateReportModal'
 
@@ -29,7 +30,7 @@ const navItems = [
   { id: 'config', href: '/admin/config', title: 'System Config', icon: SlidersHorizontal },
 ]
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname() || '/'
   const router = useRouter()
   const [showReport, setShowReport] = useState(false)
@@ -44,14 +45,30 @@ export default function Sidebar() {
 
   return (
     <>
-      <aside className="sidebar">
+      <aside className={`sidebar${isOpen ? ' open' : ''}`}>
         {/* Logo */}
-        <div className="sidebar-logo">
-          <h1>
-            <Leaf size={22} />
-            Farm2Fork
-          </h1>
-          <p>Supply Chain Admin</p>
+        <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Leaf size={22} />
+              Farm2Fork
+            </h1>
+            <p>Supply Chain Admin</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="sidebar-close-btn"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#ffffff',
+              padding: '4px'
+            }}
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation */}

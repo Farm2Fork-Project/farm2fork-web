@@ -9,6 +9,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const [role, setRole] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     try {
@@ -28,10 +29,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading || role !== 'admin') return null
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <Sidebar />
+    <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 999
+          }}
+        />
+      )}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <TopBar />
+        <TopBar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
         <main style={{ flex: 1, padding: '24px 32px', overflowY: 'auto' }}>{children}</main>
       </div>
     </div>

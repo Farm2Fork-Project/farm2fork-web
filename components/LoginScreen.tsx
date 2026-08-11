@@ -5,7 +5,13 @@ import { LuArrowLeft, LuEyeOff, LuEye, LuX } from "react-icons/lu";
 import { LoginScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginError }: LoginScreenProps) {
+export default function LoginScreen({
+  onLogin,
+  onGoSignup,
+  onBackHome,
+  loginError,
+  isSubmitting = false,
+}: LoginScreenProps) {
   const [showPw, setShowPw] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +34,7 @@ export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginErro
               placeholder={t("login.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
@@ -42,6 +49,7 @@ export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginErro
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && onLogin(email, password)}
+                disabled={isSubmitting}
               />
               <button
                 className="toggle-pw"
@@ -71,8 +79,8 @@ export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginErro
             </div>
           )}
 
-          <button className="auth-btn" onClick={() => onLogin(email, password)} id="login-btn">
-            {t("login.submit")}
+          <button className="auth-btn" disabled={isSubmitting} onClick={() => onLogin(email, password)} id="login-btn">
+            {isSubmitting ? "Signing in…" : t("login.submit")}
           </button>
 
           <div className="auth-footer">
@@ -81,12 +89,6 @@ export default function LoginScreen({ onLogin, onGoSignup, onBackHome, loginErro
               {t("login.signup")}
             </a>
           </div>
-
-          <div className="auth-divider">{t("login.or")}</div>
-
-          <button className="auth-guest-btn" onClick={() => onLogin("buyer@test.com", "test1234")}>
-            {t("login.guest")}
-          </button>
         </div>
       </div>
     </div>

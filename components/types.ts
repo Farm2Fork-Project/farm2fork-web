@@ -43,10 +43,11 @@ export interface CartScreenProps {
 }
 
 export interface LoginScreenProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string, password: string) => void | Promise<void>;
   onGoSignup: () => void;
   onBackHome?: () => void;
   loginError?: string;
+  isSubmitting?: boolean;
 }
 
 export interface ProfileScreenProps {

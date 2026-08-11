@@ -1,47 +1,48 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { AuthScreen, AppTab } from "@/components/types";
+import type { AuthScreen } from "@/components/types";
+import LandingScreen from "@/components/LandingScreen";
 import LoginScreen from "@/components/LoginScreen";
 import SignUpRoleScreen from "@/components/SignUpRoleScreen";
-import SignUpFormScreen from "@/components/SignUpFormScreen";
-import LandingScreen from "@/components/LandingScreen";
-import TopBar from "@/components/TopBar";
-import MarketplaceScreen from "@/components/MarketplaceScreen";
-import ProductDetailScreen from "@/components/ProductDetailScreen";
-import CartScreen from "@/components/CartScreen";
-import OrdersScreen from "@/components/OrdersScreen";
-import ProfileScreen from "@/components/ProfileScreen";
-import ScanScreen from "@/components/ScanScreen";
-import { LanguageProvider, useLanguage } from "@/components/LanguageContext";
-
-// ── Mock users ──
-const USERS = [
-  { email: "buyer@test.com", password: "test1234", role: "buyer" },
-  { email: "farmer@test.com", password: "test1234", role: "farmer" },
-  { email: "transporter@test.com", password: "test1234", role: "transporter" },
-  { email: "admin@test.com", password: "test1234", role: "admin" },
-];
+import { LanguageProvider } from "@/components/LanguageContext";
+import { BuyerApp } from "@/components/buyer/BuyerApp";
+import { ApiClient } from "@/lib/api/client.ts";
+import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
+import { type BuyerSession, webSession } from "@/lib/auth/web-session.ts";
 
 function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const repository = useMemo(
+    () => new BuyerRepository({ client: new ApiClient() }),
+    [],
+  );
+  const [session, setSession] = useState<BuyerSession | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>(() => {
-    const auth = searchParams.get("auth");
-    if (auth === "signup") return "signup-role";
-    if (auth === "login") return "login";
-    return "landing";
+    return searchParams.get("auth") === "login" ? "login" : "landing";
   });
+  const [loginError, setLoginError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const closeAuth = useCallback(() => {
+    setLoginError("");
+    setAuthScreen("landing");
+    router.replace("/");
+  }, [router]);
 
   useEffect(() => {
-    if (isLoggedIn || authScreen === "landing") return;
+    setSession(webSession.read());
+    setIsCheckingSession(false);
+  }, []);
+
+  useEffect(() => {
+    if (session || authScreen === "landing") return;
+
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setAuthScreen("landing");
-        router.replace("/");
-      }
+      if (event.key === "Escape") closeAuth();
     };
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeOnEscape);
@@ -49,163 +50,76 @@ function HomeContent() {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [authScreen, isLoggedIn, router]);
-  const [activeTab, setActiveTab] = useState<AppTab>("marketplace");
-  const [viewingProductId, setViewingProductId] = useState<number | null>(null);
-  const [loginError, setLoginError] = useState("");
-  const { language } = useLanguage();
+  }, [authScreen, closeAuth, session]);
 
-  useState(() => {
-    // Initial check (non-blocking / client-safe)
-    if (typeof window !== "undefined") {
-      const role = localStorage.getItem("role");
-      if (role === "buyer") {
-        setIsLoggedIn(true);
-      }
+  async function login(email: string, password: string) {
+    if (!email || !password) {
+      setLoginError("Please enter your email and password.");
+      return;
     }
-  });
 
-  /* ── Auth flow ── */
-  if (!isLoggedIn) {
-    const closeAuth = () => {
-      setLoginError("");
+    setIsSubmitting(true);
+    setLoginError("");
+    try {
+      const nextSession = await repository.login({ email, password });
+      setSession(nextSession);
       setAuthScreen("landing");
-      router.replace("/");
-    };
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "Could not sign in.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-    let authOverlay = null;
-    if (authScreen === "login") {
-      authOverlay = (
+  function logout() {
+    webSession.clear();
+    setSession(null);
+    setAuthScreen("login");
+  }
+
+  if (isCheckingSession) return <p>Loading…</p>;
+
+  if (session) {
+    return <BuyerApp onLogout={logout} repository={repository} session={session} />;
+  }
+
+  return (
+    <>
+      <LandingScreen
+        onGetStarted={() => setAuthScreen("signup-role")}
+        onLogin={() => setAuthScreen("login")}
+      />
+      {authScreen === "login" ? (
         <LoginScreen
-          onBackHome={closeAuth}
-          onLogin={(email, password) => {
-            setLoginError("");
-            if (!email || !password) {
-              setLoginError("Please enter your email and password.");
-              return;
-            }
-            const user = USERS.find(
-              (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-            );
-            if (!user) {
-              setLoginError("Invalid email or password.");
-              return;
-            }
-            if (user.role === "transporter") {
-              localStorage.setItem("role", "transporter");
-              router.push("/transporter");
-            } else if (user.role === "farmer") {
-              localStorage.setItem("role", "farmer");
-              router.push("/farmer");
-            } else if (user.role === "admin") {
-              localStorage.setItem("role", "admin");
-              localStorage.setItem("userName", "Admin User");
-              router.push("/admin/dashboard");
-            } else {
-              localStorage.setItem("role", "buyer");
-              setIsLoggedIn(true);
-              setAuthScreen("landing");
-            }
-          }}
+          isSubmitting={isSubmitting}
           loginError={loginError}
+          onBackHome={closeAuth}
           onGoSignup={() => {
             setLoginError("");
             setAuthScreen("signup-role");
           }}
+          onLogin={login}
         />
-      );
-    } else if (authScreen === "signup-role") {
-      authOverlay = (
+      ) : null}
+      {authScreen === "signup-role" ? (
         <SignUpRoleScreen
-          onBackHome={closeAuth}
           onBack={() => setAuthScreen("login")}
-          onSelectRole={(role) => {
-            if (role === "transporter") router.push("/transporter?signup=true");
-            else if (role === "farmer") router.push("/farmer?signup=true");
-            else setAuthScreen("signup-form");
-          }}
-        />
-      );
-    } else if (authScreen === "signup-form") {
-      authOverlay = (
-        <SignUpFormScreen
           onBackHome={closeAuth}
-          onBack={() => setAuthScreen("signup-role")}
-          onSubmit={() => {
-            localStorage.setItem("role", "buyer");
-            setIsLoggedIn(true);
-            setAuthScreen("landing");
+          onSelectRole={(role) => {
+            if (role === "buyer") setAuthScreen("login");
+            else if (role === "farmer") router.push("/farmer?signup=true");
+            else if (role === "transporter") router.push("/transporter?signup=true");
           }}
         />
-      );
-    }
-
-    return (
-      <>
-        <LandingScreen
-          onGetStarted={() => setAuthScreen("signup-role")}
-          onLogin={() => setAuthScreen("login")}
-        />
-        {authOverlay}
-      </>
-    );
-  }
-
-  /* ── Main buyer app ── */
-  const renderContent = () => {
-    if (activeTab === "marketplace" && viewingProductId !== null) {
-      return <ProductDetailScreen productId={viewingProductId} onBack={() => setViewingProductId(null)} />;
-    }
-    switch (activeTab) {
-      case "marketplace":
-        return <MarketplaceScreen onViewProduct={(id) => setViewingProductId(id)} />;
-      case "scan":
-        return <ScanScreen />;
-      case "cart":
-        return (
-          <CartScreen
-            onShopNow={() => {
-              setActiveTab("marketplace");
-              setViewingProductId(null);
-            }}
-          />
-        );
-      case "orders":
-        return <OrdersScreen />;
-      case "profile":
-        return (
-          <ProfileScreen
-            onLogout={() => {
-              localStorage.removeItem("role");
-              setIsLoggedIn(false);
-              setAuthScreen("login");
-              setActiveTab("marketplace");
-            }}
-          />
-        );
-    }
-  };
-
-  return (
-    <div className="app-shell" dir={language === "ur" ? "rtl" : "ltr"}>
-      <div className="app-main">
-        <TopBar
-          activeTab={activeTab}
-          setActiveTab={(tab) => {
-            setActiveTab(tab);
-            setViewingProductId(null);
-          }}
-        />
-        <main className="app-content">{renderContent()}</main>
-      </div>
-    </div>
+      ) : null}
+    </>
   );
 }
 
 export default function Home() {
   return (
     <LanguageProvider>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<p>Loading…</p>}>
         <HomeContent />
       </Suspense>
     </LanguageProvider>

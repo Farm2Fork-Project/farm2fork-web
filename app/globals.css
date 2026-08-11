@@ -7218,4 +7218,49 @@ body {
   right: var(--sp-sm);
 }
 
+/* Buyer API checkout */
+.checkout-panel {
+  margin-top: var(--sp-xl);
+  padding: var(--sp-xl);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  background: var(--surface-light);
+  display: grid;
+  gap: var(--sp-md);
+}
 
+.checkout-panel h3,
+.checkout-panel p {
+  margin: 0;
+}
+
+.checkout-panel label {
+  display: grid;
+  gap: var(--sp-xs);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.checkout-panel input,
+.checkout-panel select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 var(--sp-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text-dark);
+}
+
+.checkout-address-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-md);
+}
+
+@media (max-width: 640px) {
+  .checkout-address-grid {
+    grid-template-columns: 1fr;
+  }
+}

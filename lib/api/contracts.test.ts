@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 import { toBuyerProduct } from "./contracts.ts";
 
 test("toBuyerProduct preserves backend data without inventing farmer profile fields", () => {
@@ -18,7 +17,7 @@ test("toBuyerProduct preserves backend data without inventing farmer profile fie
       updatedAt: '2026-08-12T00:00:00.000Z',
     });
 
-    assert.deepEqual(product, {
+    expect(product).toEqual({
       id: '66a000000000000000000001',
       farmerId: '66a000000000000000000002',
       name: 'Roma Tomatoes',
@@ -29,8 +28,8 @@ test("toBuyerProduct preserves backend data without inventing farmer profile fie
       qualityGrade: 'A',
       status: 'active',
     });
-    assert.equal("farmName" in product, false);
-    assert.equal("rating" in product, false);
-    assert.equal("location" in product, false);
-    assert.equal("sales" in product, false);
+    expect(product).not.toHaveProperty("farmName");
+    expect(product).not.toHaveProperty("rating");
+    expect(product).not.toHaveProperty("location");
+    expect(product).not.toHaveProperty("sales");
 });

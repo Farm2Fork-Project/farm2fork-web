@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 import { WEB_SESSION_KEY, webSession } from "./web-session.ts";
 
 class MemoryStorage {
@@ -38,9 +37,9 @@ test("webSession saves, reads, and clears an exact buyer session", () => {
 
   webSession.save(session);
 
-  assert.equal(storage.getItem(WEB_SESSION_KEY), JSON.stringify(session));
-  assert.deepEqual(webSession.read(), session);
+  expect(storage.getItem(WEB_SESSION_KEY)).toBe(JSON.stringify(session));
+  expect(webSession.read()).toEqual(session);
 
   webSession.clear();
-  assert.equal(webSession.read(), null);
+  expect(webSession.read()).toBeNull();
 });

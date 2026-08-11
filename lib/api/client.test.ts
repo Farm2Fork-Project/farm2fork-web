@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 import { ApiError } from "./contracts.ts";
 import { ApiClient } from "./client.ts";
 
@@ -18,11 +17,11 @@ test("ApiClient attaches the buyer bearer token and accepts JSON", async () => {
 
   await client.request<{ id: string }>("/products/product-1");
 
-  assert.equal(requests.length, 1);
-  assert.equal(requests[0].url, "http://localhost:3000/api/products/product-1");
+  expect(requests).toHaveLength(1);
+  expect(requests[0].url).toBe("http://localhost:3000/api/products/product-1");
   const headers = new Headers(requests[0].init?.headers);
-  assert.equal(headers.get("Accept"), "application/json");
-  assert.equal(headers.get("Authorization"), "Bearer buyer-token");
+  expect(headers.get("Accept")).toBe("application/json");
+  expect(headers.get("Authorization")).toBe("Bearer buyer-token");
 });
 
 test("ApiClient clears the session and normalizes a 401 response", async () => {
@@ -40,17 +39,12 @@ test("ApiClient clears the session and normalizes a 401 response", async () => {
       }),
   });
 
-  await assert.rejects(
-    () => client.request("/products"),
-    (error: unknown) => {
-      assert.ok(error instanceof ApiError);
-      assert.equal(error.status, 401);
-      assert.equal(error.message, "Your session has expired.");
-      assert.deepEqual(error.body, { message: "Invalid access token" });
-      return true;
-    },
+  await expect(client.request("/products")).rejects.toMatchObject(
+    new ApiError(401, "Your session has expired.", {
+      message: "Invalid access token",
+    }),
   );
-  assert.equal(clears, 1);
+  expect(clears).toBe(1);
 });
 
 test("ApiClient normalizes a non-JSON 503 response", async () => {
@@ -59,14 +53,7 @@ test("ApiClient normalizes a non-JSON 503 response", async () => {
     fetchFn: async () => new Response("Service unavailable", { status: 503 }),
   });
 
-  await assert.rejects(
-    () => client.request("/products"),
-    (error: unknown) => {
-      assert.ok(error instanceof ApiError);
-      assert.equal(error.status, 503);
-      assert.equal(error.message, "Request failed with status 503.");
-      assert.equal(error.body, "Service unavailable");
-      return true;
-    },
+  await expect(client.request("/products")).rejects.toMatchObject(
+    new ApiError(503, "Request failed with status 503.", "Service unavailable"),
   );
 });

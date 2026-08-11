@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 import {
   addCartItem,
   groupCartItemsByFarmer,
@@ -19,7 +18,7 @@ const product = {
 };
 
 test("addCartItem rejects quantities below one", () => {
-  assert.throws(() => addCartItem([], product, 0), /at least one/i);
+  expect(() => addCartItem([], product, 0)).toThrow(/at least one/i);
 });
 
 test("cart grouping keeps farmer groups separate and order payloads omit farmer ids", () => {
@@ -30,22 +29,25 @@ test("cart grouping keeps farmer groups separate and order payloads omit farmer 
   ];
 
   const groups = groupCartItemsByFarmer(items);
-  assert.deepEqual(
+  expect(
     groups.map((group) => ({
       farmerId: group.farmerId,
       productIds: group.items.map((item) => item.productId),
     })),
+  ).toEqual(
     [
       { farmerId: "f1", productIds: ["p1", "p3"] },
       { farmerId: "f2", productIds: ["p2"] },
     ],
   );
 
-  assert.deepEqual(toCreateOrderRequest(groups[0], {
-    street: "12 Mall Road",
-    city: "Lahore",
-    province: "Punjab",
-  }), {
+  expect(
+    toCreateOrderRequest(groups[0], {
+      street: "12 Mall Road",
+      city: "Lahore",
+      province: "Punjab",
+    }),
+  ).toEqual({
     items: [
       { productId: "p1", quantity: 2 },
       { productId: "p3", quantity: 3 },

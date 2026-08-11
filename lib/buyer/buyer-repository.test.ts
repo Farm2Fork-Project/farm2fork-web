@@ -1,5 +1,4 @@
-import assert from "node:assert/strict";
-import test from "node:test";
+import { expect, test } from "vitest";
 import { ApiError } from "../api/contracts.ts";
 import { BuyerRepository } from "./buyer-repository.ts";
 
@@ -23,7 +22,7 @@ test("BuyerRepository creates an order without client-calculated totals or farme
     },
   });
 
-  assert.deepEqual(calls, [
+  expect(calls).toEqual([
     {
       path: "/orders",
       options: {
@@ -65,13 +64,8 @@ test("BuyerRepository rejects non-buyer logins before saving a session", async (
     },
   });
 
-  await assert.rejects(
-    () => repository.login({ email: "farmer@example.com", password: "password" }),
-    (error: unknown) => {
-      assert.ok(error instanceof ApiError);
-      assert.equal(error.status, 403);
-      return true;
-    },
-  );
-  assert.equal(saved, 0);
+  await expect(
+    repository.login({ email: "farmer@example.com", password: "password" }),
+  ).rejects.toMatchObject(new ApiError(403, "This account cannot access the buyer application."));
+  expect(saved).toBe(0);
 });

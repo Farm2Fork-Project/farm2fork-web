@@ -126,16 +126,16 @@ const secured = [
   ['/shipments/{id}/status', 'patch'],
 ] as const;
 
-expect(document.paths['/api/v1/auth/login'].post?.security).toBeUndefined();
+expect(document.paths['/api/auth/login'].post?.security).toBeUndefined();
 for (const [path, method] of secured) {
-  expect(document.paths[`/api/v1${path}`][method]?.security).toEqual([
+  expect(document.paths[`/api${path}`][method]?.security).toEqual([
     { 'JWT-auth': [] },
   ]);
 }
 ```
 
-Also assert that `GET /api/v1/health`, all public auth routes, and
-`POST /api/v1/payments/webhook/{gateway}` are public; that the document has
+Also assert that `GET /api/health`, all public auth routes, and
+`POST /api/payments/webhook/{gateway}` are public; that the document has
 the `Health`, `Auth`, `Marketplace`, `Orders`, `Payments`, and `Shipments`
 tags; and that the documented `PaymentResponseDto` schema has no `gatewayRef`.
 
@@ -663,7 +663,7 @@ rg -q 'NEXT_PUBLIC_API_BASE_URL' "$config_file"
 
 - [ ] **Step 2: Run the assertion to verify it fails**
 
-Run: `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api/v1 bash test/docker-config.sh`
+Run: `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api bash test/docker-config.sh`
 
 Expected: FAIL because no Dockerfile, Compose service, example environment, or
 verification script exists.
@@ -700,7 +700,7 @@ the Docker service hostname—is the public API base URL.
 Run:
 
 ```bash
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api/v1 bash test/docker-config.sh
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api bash test/docker-config.sh
 pnpm test
 pnpm run lint
 pnpm run build
@@ -742,7 +742,7 @@ CI=true pnpm exec jest --runInBand
 pnpm test
 pnpm run lint
 pnpm run build
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api/v1 bash test/docker-config.sh
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api bash test/docker-config.sh
 ```
 
 State explicitly that browser UI QA, the user-initiated normal

@@ -16,8 +16,8 @@ orders and payments without inventing backend data or simulating settlement.
 
 ### Included
 
-- Existing-buyer email/password login through `POST /api/v1/auth/login`.
-- Session validation through `GET /api/v1/auth/me`.
+- Existing-buyer email/password login through `POST /api/auth/login`.
+- Session validation through `GET /api/auth/me`.
 - Buyer-only real API surfaces: marketplace, product detail, cart, checkout,
   order list, payment initiation, and payment status.
 - One browser-session cart that groups line items by `farmerId` before checkout.
@@ -83,8 +83,9 @@ location, or sales count.
 
 ## Buyer API Contract
 
-All paths below use the configured API prefix (`/api/v1` in the current
-backend). Every endpoint except login requires `Authorization: Bearer <token>`.
+All paths below use the configured API prefix (`/api` in the current backend).
+`API_VERSION=v1` is OpenAPI metadata; it is not part of the route prefix. Every
+endpoint except login requires `Authorization: Bearer <token>`.
 
 | Web action | Endpoint | Request | Result used by web |
 |---|---|---|---|

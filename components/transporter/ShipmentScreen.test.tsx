@@ -1,7 +1,7 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
-import type { ApiShipment } from "@/lib/api/contracts.ts";
+import { ApiError, type ApiShipment } from "@/lib/api/contracts.ts";
 import { LanguageProvider } from "./LanguageContext";
 import ShipmentScreen from "./ShipmentScreen";
 
@@ -93,4 +93,63 @@ test("ShipmentScreen requires a note and renders the persisted next shipment sta
   });
   expect(await screen.findByText("Picked up")).toBeVisible();
   expect(screen.getByText(/Collected at farm gate/)).toBeVisible();
+});
+
+test("ShipmentScreen refreshes availability after a claim conflict without adding a shipment", async () => {
+  const listAvailable = vi
+    .fn()
+    .mockResolvedValueOnce([
+      {
+        orderId: "order-1",
+        pickupCity: "Multan",
+        pickupProvince: "Punjab",
+        deliveryCity: "Lahore",
+        deliveryProvince: "Punjab",
+        itemCount: 3,
+        createdAt: "2026-08-12T00:00:00.000Z",
+      },
+    ])
+    .mockResolvedValueOnce([]);
+
+  render(
+    <LanguageProvider>
+      <ShipmentScreen
+        repository={{
+          listAvailable,
+          listShipments: vi.fn().mockResolvedValue([]),
+          claim: vi.fn().mockRejectedValue(new ApiError(409, "Delivery is no longer available")),
+          updateStatus: vi.fn(),
+        }}
+      />
+    </LanguageProvider>,
+  );
+
+  await userEvent.click(await screen.findByRole("button", { name: "Claim delivery" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Delivery is no longer available");
+  await waitFor(() => expect(listAvailable).toHaveBeenCalledTimes(2));
+  expect(screen.queryByText("Farm Road 1, Multan, Punjab")).not.toBeInTheDocument();
+});
+
+test("ShipmentScreen preserves note and status after a rejected delivery update", async () => {
+  render(
+    <LanguageProvider>
+      <ShipmentScreen
+        repository={{
+          listAvailable: vi.fn().mockResolvedValue([]),
+          listShipments: vi.fn().mockResolvedValue([{ ...claimedShipment, status: "in_transit" }]),
+          claim: vi.fn(),
+          updateStatus: vi.fn().mockRejectedValue(new Error("Invalid status transition")),
+        }}
+      />
+    </LanguageProvider>,
+  );
+
+  await userEvent.click(await screen.findByRole("button", { name: "My shipments" }));
+  await userEvent.type(await screen.findByLabelText("Delivery note"), "Reached customer address");
+  await userEvent.click(screen.getByRole("button", { name: "Mark Delivered" }));
+
+  expect(await screen.findByRole("alert")).toHaveTextContent("Invalid status transition");
+  expect(screen.getByDisplayValue("Reached customer address")).toBeVisible();
+  expect(screen.getByText("In transit")).toBeVisible();
 });

@@ -136,3 +136,22 @@ resolved; no synthetic accounts will be created against Atlas.
    `localStorage.role` flag or mock credentials.
 5. The documented scope is delivered through small, related commits without a
    push or direct commit to `main`.
+
+## Implementation Status
+
+Implemented on `feature/web-buyer-api-integration`:
+
+- `7623180`: generalized the browser session to buyer, farmer, and transporter
+  roles while rejecting admin sessions.
+- `51fd82b`: added the role-aware auth repository and buyer role guard.
+- `8b081ac`: connected farmer registration, login, session restoration, and
+  logout to the backend API.
+- `b9d4530`: connected transporter two-step registration, login, session
+  restoration, and logout to the backend API.
+- `3f8dee5`: connected farmer product creation and own-listing retrieval to
+  the marketplace API.
+
+Focused tests and production builds were run after each implementation slice.
+Final verification completed on 2026-08-12: 14 test files / 24 tests passed,
+the Next.js production build passed, and the Docker image built with
+`NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api`.

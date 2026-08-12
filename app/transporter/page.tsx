@@ -15,13 +15,18 @@ import LoginScreen from "@/components/LoginScreen";
 import { ApiClient } from "@/lib/api/client.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
+import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 
 function TransporterApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
-  const repository = useMemo(
+  const authRepository = useMemo(
     () => new RoleAuthRepository({ client: new ApiClient() }),
+    [],
+  );
+  const shipmentRepository = useMemo(
+    () => new ShipmentRepository({ client: new ApiClient() }),
     [],
   );
   const [session, setSession] = useState<WebSession | null>(null);
@@ -53,7 +58,7 @@ function TransporterApp() {
       };
     }
 
-    repository.getCurrentUser("transporter")
+    authRepository.getCurrentUser("transporter")
       .then((user) => {
         if (active) setSession({ accessToken: restored.accessToken, user });
       })
@@ -67,7 +72,7 @@ function TransporterApp() {
     return () => {
       active = false;
     };
-  }, [isSignup, repository]);
+  }, [authRepository, isSignup]);
 
   async function login(email: string, password: string) {
     if (!email || !password) {
@@ -77,7 +82,7 @@ function TransporterApp() {
     setIsSubmitting(true);
     setAuthError("");
     try {
-      setSession(await repository.login({ email, password }, "transporter"));
+      setSession(await authRepository.login({ email, password }, "transporter"));
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not sign in.");
     } finally {
@@ -99,7 +104,7 @@ function TransporterApp() {
     setIsSubmitting(true);
     setAuthError("");
     try {
-      setSession(await repository.registerTransporter({ ...draft, ...input }));
+      setSession(await authRepository.registerTransporter({ ...draft, ...input }));
       router.replace("/transporter");
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not create your transporter account.");
@@ -144,7 +149,7 @@ function TransporterApp() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "shipments": return <ShipmentScreen />;
+      case "shipments": return <ShipmentScreen repository={shipmentRepository} />;
       case "orders": return <TransporterOrdersScreen />;
       case "scan": return <ScanScreen />;
       case "profile": return <TransporterProfileScreen onLogout={logout} />;

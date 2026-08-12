@@ -1,61 +1,88 @@
 "use client";
 
-import { useState } from "react";
-import { LuStore, LuMapPin, LuSearch, LuChevronRight, LuTruck } from "react-icons/lu";
+import { useEffect, useMemo, useState } from "react";
+import { LuMapPin, LuSearch, LuStore, LuTruck } from "react-icons/lu";
+import type { ApiAvailableDelivery, ApiShipment } from "@/lib/api/contracts.ts";
+import { ApiError } from "@/lib/api/contracts.ts";
+import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 import { useLanguage } from "./LanguageContext";
 
-const initialShipments = [
-  {
-    id: "ship_3001",
-    date: "3/6/2026",
-    status: "assigned",
-    pickup: "Hassan Organic Farm, Multan Road, Multan",
-    destination: "Building 14B, Gulberg III, Lahore",
-    assignedTime: "11:44"
-  },
-  {
-    id: "ship_3002",
-    date: "2/6/2026",
-    status: "delivered",
-    pickup: "Sindh Mango Estate, VIP Road, Hyderabad",
-    destination: "Building 14B, Gulberg III, Lahore",
-    assignedTime: "15:44",
-    deliveredTime: "19:30"
-  }
-];
+type ShipmentRepositoryPort = Pick<
+  ShipmentRepository,
+  "claim" | "listAvailable" | "listShipments" | "updateStatus"
+>;
 
-export default function ShipmentScreen() {
-  const [tab, setTab] = useState<"assigned" | "in-transit" | "delivered">("assigned");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
-  const [shipments, setShipments] = useState(initialShipments);
+type ShipmentTab = "available" | "mine";
+
+export default function ShipmentScreen({
+  repository,
+}: {
+  repository: ShipmentRepositoryPort;
+}) {
   const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState<ShipmentTab>("available");
+  const [available, setAvailable] = useState<ApiAvailableDelivery[] | null>(null);
+  const [shipments, setShipments] = useState<ApiShipment[] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [claimingOrderId, setClaimingOrderId] = useState<string | null>(null);
 
-  const handleAction = (id: string, currentStatus: string) => {
-    setShipments(prev => prev.map(s => {
-      if (s.id === id) {
-        if (currentStatus === "assigned") {
-          return { ...s, status: "in-transit" };
-        } else if (currentStatus === "in-transit") {
-          const now = new Date();
-          const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-          return { ...s, status: "delivered", deliveredTime: timeStr };
+  useEffect(() => {
+    let active = true;
+
+    Promise.all([repository.listAvailable(), repository.listShipments()])
+      .then(([availableDeliveries, ownedShipments]) => {
+        if (!active) return;
+        setAvailable(availableDeliveries);
+        setShipments(ownedShipments);
+        setLoadError(null);
+      })
+      .catch((error: unknown) => {
+        if (active) setLoadError(toErrorMessage(error));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [repository]);
+
+  const visibleShipments = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return shipments ?? [];
+
+    return (shipments ?? []).filter((shipment) =>
+      [shipment.id, shipment.orderId, formatAddress(shipment.pickupAddress), formatAddress(shipment.deliveryAddress)]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedQuery),
+    );
+  }, [searchQuery, shipments]);
+
+  async function claimDelivery(orderId: string) {
+    setActionError(null);
+    setClaimingOrderId(orderId);
+
+    try {
+      const shipment = await repository.claim(orderId);
+      setAvailable((current) => current?.filter((delivery) => delivery.orderId !== orderId) ?? []);
+      setShipments((current) => replaceShipment(current ?? [], shipment));
+      setActiveTab("mine");
+    } catch (error) {
+      setActionError(toErrorMessage(error));
+      if (error instanceof ApiError && error.status === 409) {
+        try {
+          setAvailable(await repository.listAvailable());
+        } catch (refreshError) {
+          setActionError(toErrorMessage(refreshError));
         }
       }
-      return s;
-    }));
-  };
+    } finally {
+      setClaimingOrderId(null);
+    }
+  }
 
-  const filteredShipments = shipments.filter((shipment) => {
-    const matchesTab = shipment.status === tab;
-    const matchesSearch = 
-      shipment.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.pickup.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shipment.destination.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesDate = dateFilter === "all" || shipment.date === dateFilter;
-
-    return matchesTab && matchesSearch && matchesDate;
-  });
+  const isLoading = available === null || shipments === null;
 
   return (
     <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -67,131 +94,146 @@ export default function ShipmentScreen() {
             </h1>
             <p style={{ marginTop: "4px" }}>{t("tship.pageSubtitle")}</p>
           </div>
-
-          <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+          {activeTab === "mine" ? (
             <div className="marketplace-search" style={{ margin: 0, width: "320px" }}>
-              <input 
-                type="text" 
-                placeholder={t("tship.searchPlaceholder")} 
+              <input
+                aria-label={t("tship.searchPlaceholder")}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t("tship.searchPlaceholder")}
+                type="search"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <LuSearch size={20} className="search-icon" />
+              <LuSearch className="search-icon" size={20} />
             </div>
-            <select 
-              className="select" 
-              value={dateFilter} 
-              onChange={(e) => setDateFilter(e.target.value)}
-              style={{ height: "46px", borderRadius: "var(--radius-xl)" }}
-            >
-              <option value="all">{t("tship.allDates")}</option>
-              <option value="3/6/2026">3/6/2026</option>
-              <option value="2/6/2026">2/6/2026</option>
-            </select>
-          </div>
+          ) : null}
         </div>
       </div>
 
       <div style={{ display: "flex", gap: "16px", marginBottom: "24px", borderBottom: "1px solid var(--surface-medium)", paddingBottom: "16px" }}>
-        <button 
-          className={`btn ${tab === "assigned" ? "btn-primary" : "btn-outline"}`} 
-          onClick={() => setTab("assigned")}
-          style={{ borderRadius: "var(--radius-pill)" }}
-        >
-          {t("tship.assignedTab")}
+        <button className={`btn ${activeTab === "available" ? "btn-primary" : "btn-outline"}`} onClick={() => setActiveTab("available")} type="button">
+          {t("tship.availableTab")}
         </button>
-        <button 
-          className={`btn ${tab === "in-transit" ? "btn-primary" : "btn-outline"}`} 
-          onClick={() => setTab("in-transit")}
-          style={{ borderRadius: "var(--radius-pill)" }}
-        >
-          {t("tship.inTransitTab")}
-        </button>
-        <button 
-          className={`btn ${tab === "delivered" ? "btn-primary" : "btn-outline"}`} 
-          onClick={() => setTab("delivered")}
-          style={{ borderRadius: "var(--radius-pill)" }}
-        >
-          {t("tship.deliveredTab")}
+        <button className={`btn ${activeTab === "mine" ? "btn-primary" : "btn-outline"}`} onClick={() => setActiveTab("mine")} type="button">
+          {t("tship.myShipmentsTab")}
         </button>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.03)" }}>
-        {filteredShipments.length > 0 ? (
-          <div style={{ overflowX: "auto" }}>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>{t("tship.shipmentId")}</th>
-                  <th>{t("tship.colDate")}</th>
-                  <th>{t("tship.colRoute")}</th>
-                  <th>{t("tship.colStatus")}</th>
-                  <th style={{ textAlign: "right" }}>{t("tship.colActions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredShipments.map((shipment) => (
-                  <tr key={shipment.id}>
-                    <td style={{ fontWeight: 600, color: "var(--primary-green-dark)" }}>
-                      {shipment.id}
-                    </td>
-                    <td>
-                      <span style={{ fontWeight: 500 }}>{shipment.date}</span>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-                          <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "var(--surface-medium)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <LuStore size={14} color="var(--primary-green)" />
-                          </div>
-                          <span style={{ fontWeight: 600, color: "var(--text-dark)" }}>{shipment.pickup}</span>
-                        </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px" }}>
-                          <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "var(--surface-medium)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <LuMapPin size={14} color="var(--error-red)" />
-                          </div>
-                          <span style={{ fontWeight: 600, color: "var(--text-dark)" }}>{shipment.destination}</span>
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "6px", alignItems: "flex-start" }}>
-                        <span className={`badge ${shipment.status === "assigned" ? "badge-soft-yellow" : shipment.status === "in-transit" ? "badge-soft-blue" : "badge-soft-green"}`}>
-                          {shipment.status === "assigned" ? t("tship.assigned") : shipment.status === "in-transit" ? t("tship.inTransit") : t("tship.delivered")}
-                        </span>
-                        <span style={{ fontSize: "12px", color: "var(--text-muted)", fontWeight: 600, display: "flex", alignItems: "center", gap: "4px" }}>
-                          {shipment.status === "assigned" || shipment.status === "in-transit" ? shipment.assignedTime : shipment.deliveredTime}
-                        </span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right" }}>
-                      {shipment.status === "assigned" ? (
-                        <button className="btn btn-primary" style={{ padding: "8px 20px" }} onClick={() => handleAction(shipment.id, shipment.status)}>
-                          {t("tship.confirmPickUp")}
-                        </button>
-                      ) : shipment.status === "in-transit" ? (
-                        <button className="btn btn-primary" style={{ padding: "8px 20px" }} onClick={() => handleAction(shipment.id, shipment.status)}>
-                          {t("tship.markDelivered")}
-                        </button>
-                      ) : (
-                        <button className="btn btn-outline" style={{ padding: "8px 16px" }}>
-                          {t("tship.viewDetails")} <LuChevronRight />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)" }}>
-            <LuSearch size={48} color="var(--surface-strong)" style={{ marginBottom: "16px" }} />
-            <h3 style={{ fontSize: "18px", color: "var(--text-dark)", marginBottom: "8px", fontWeight: 700 }}>{t("tship.noFoundTitle")}</h3>
-            <p>{t("tship.noFoundDesc")}</p>
-          </div>
-        )}
-      </div>
+      {loadError ? <p role="alert">{loadError}</p> : null}
+      {actionError ? <p role="alert">{actionError}</p> : null}
+      {isLoading && !loadError ? <p>{t("tship.loading")}</p> : null}
+
+      {activeTab === "available" && available ? (
+        <AvailableDeliveries
+          claimingOrderId={claimingOrderId}
+          deliveries={available}
+          onClaim={claimDelivery}
+          t={t}
+        />
+      ) : null}
+      {activeTab === "mine" && shipments ? (
+        <OwnedShipments shipments={visibleShipments} t={t} />
+      ) : null}
     </div>
   );
+}
+
+function AvailableDeliveries({
+  claimingOrderId,
+  deliveries,
+  onClaim,
+  t,
+}: {
+  claimingOrderId: string | null;
+  deliveries: ApiAvailableDelivery[];
+  onClaim: (orderId: string) => void;
+  t: (key: string) => string;
+}) {
+  if (deliveries.length === 0) return <EmptyState text={t("tship.noAvailable")} />;
+
+  return (
+    <section aria-label={t("tship.availableTab")} className="orders-grid">
+      {deliveries.map((delivery) => (
+        <article className="order-card" key={delivery.orderId}>
+          <div className="order-card-header">
+            <div>
+              <div className="order-card-id">{t("tship.deliveryOrder")} {delivery.orderId}</div>
+              <div className="order-card-date">{new Date(delivery.createdAt).toLocaleDateString()}</div>
+            </div>
+            <span className="order-status processing">{delivery.itemCount} {t("tship.items")}</span>
+          </div>
+          <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <LuStore color="var(--primary-green)" size={16} />
+            {formatRedactedRoute(delivery)}
+          </p>
+          <p className="order-card-date">{t("tship.addressPrivate")}</p>
+          <button
+            className="btn btn-primary"
+            disabled={claimingOrderId !== null}
+            onClick={() => onClaim(delivery.orderId)}
+            type="button"
+          >
+            {claimingOrderId === delivery.orderId ? t("tship.claiming") : t("tship.claim")}
+          </button>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function OwnedShipments({
+  shipments,
+  t,
+}: {
+  shipments: ApiShipment[];
+  t: (key: string) => string;
+}) {
+  if (shipments.length === 0) return <EmptyState text={t("tship.noFoundDesc")} />;
+
+  return (
+    <section aria-label={t("tship.myShipmentsTab")} className="orders-grid">
+      {shipments.map((shipment) => (
+        <article className="order-card" key={shipment.id}>
+          <div className="order-card-header">
+            <div>
+              <div className="order-card-id">{t("tship.shipmentId")} {shipment.id}</div>
+              <div className="order-card-date">{t("tship.deliveryOrder")} {shipment.orderId}</div>
+            </div>
+            <span className="order-status processing">{shipment.status}</span>
+          </div>
+          <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <LuStore color="var(--primary-green)" size={16} />
+            {formatAddress(shipment.pickupAddress)}
+          </p>
+          <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <LuMapPin color="var(--error-red)" size={16} />
+            {formatAddress(shipment.deliveryAddress)}
+          </p>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return <p className="cart-empty">{text}</p>;
+}
+
+function formatRedactedRoute(delivery: ApiAvailableDelivery): string {
+  return `${delivery.pickupCity}, ${delivery.pickupProvince} → ${delivery.deliveryCity}, ${delivery.deliveryProvince}`;
+}
+
+function formatAddress(address: ApiShipment["pickupAddress"]): string {
+  return [address.street, address.city, address.province, address.zip]
+    .filter((part): part is string => Boolean(part))
+    .join(", ");
+}
+
+function replaceShipment(shipments: ApiShipment[], next: ApiShipment): ApiShipment[] {
+  const existingIndex = shipments.findIndex((shipment) => shipment.id === next.id);
+  if (existingIndex < 0) return [next, ...shipments];
+  return shipments.map((shipment) => shipment.id === next.id ? next : shipment);
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : "Something went wrong. Please try again.";
 }

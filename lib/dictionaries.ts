@@ -416,6 +416,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "tship.colActions": "ACTIONS",
     "tship.noFoundTitle": "No shipments found",
     "tship.noFoundDesc": "We couldn't find any shipments matching your current filters.",
+    "tship.availableTab": "Available deliveries",
+    "tship.myShipmentsTab": "My shipments",
+    "tship.deliveryOrder": "Order",
+    "tship.items": "items",
+    "tship.addressPrivate": "Full addresses are available after you claim this delivery.",
+    "tship.claim": "Claim delivery",
+    "tship.claiming": "Claiming…",
+    "tship.loading": "Loading deliveries…",
+    "tship.noAvailable": "No paid deliveries are available to claim right now.",
 
     // Transporter TopBar
     "tTopBar.shipments": "Shipments",
@@ -971,6 +980,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "tship.colActions": "اعمال",
     "tship.noFoundTitle": "کوئی شپمنٹ نہیں ملی",
     "tship.noFoundDesc": "آپ کے موجودہ فلٹرز سے مماثل کوئی شپمنٹ نہیں مل سکی۔",
+    "tship.availableTab": "دستیاب ڈیلیوریز",
+    "tship.myShipmentsTab": "میری شپمنٹس",
+    "tship.deliveryOrder": "آرڈر",
+    "tship.items": "اشیا",
+    "tship.addressPrivate": "مکمل پتے ڈیلیوری کلیم کرنے کے بعد دستیاب ہوں گے۔",
+    "tship.claim": "ڈیلیوری کلیم کریں",
+    "tship.claiming": "کلیم کی جا رہی ہے…",
+    "tship.loading": "ڈیلیوریز لوڈ ہو رہی ہیں…",
+    "tship.noAvailable": "اس وقت کلیم کرنے کے لیے کوئی ادا شدہ ڈیلیوری دستیاب نہیں ہے۔",
 
     // Transporter TopBar
     "tTopBar.shipments": "شپمنٹ",

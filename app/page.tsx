@@ -12,7 +12,11 @@ import { BuyerApp } from "@/components/buyer/BuyerApp";
 import { ApiClient } from "@/lib/api/client.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
-import { type BuyerSession, webSession } from "@/lib/auth/web-session.ts";
+import {
+  type BuyerSession,
+  type WebSession,
+  webSession,
+} from "@/lib/auth/web-session.ts";
 
 function HomeContent() {
   const router = useRouter();
@@ -38,7 +42,8 @@ function HomeContent() {
   }, [router]);
 
   useEffect(() => {
-    setSession(webSession.read());
+    const restoredSession = webSession.read();
+    setSession(isBuyerSession(restoredSession) ? restoredSession : null);
     setIsCheckingSession(false);
   }, []);
 
@@ -132,6 +137,10 @@ function HomeContent() {
       ) : null}
     </>
   );
+}
+
+function isBuyerSession(session: WebSession | null): session is BuyerSession {
+  return session?.user.role === "buyer";
 }
 
 export default function Home() {

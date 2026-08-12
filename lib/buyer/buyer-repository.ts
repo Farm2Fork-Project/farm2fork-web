@@ -1,7 +1,6 @@
 import type { ApiRequestOptions } from "../api/client.ts";
 import {
   ApiError,
-  type ApiAuthResult,
   type ApiAuthUser,
   type ApiOrder,
   type ApiPage,
@@ -18,6 +17,7 @@ import {
   type BuyerSession,
   webSession,
 } from "../auth/web-session.ts";
+import { RoleAuthRepository } from "../auth/role-auth-repository.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
@@ -50,6 +50,7 @@ export type PaymentQuery = PaginationQuery & {
 export class BuyerRepository {
   private readonly client: ApiRequester;
   private readonly session: BuyerSessionStore;
+  private readonly auth: RoleAuthRepository;
 
   constructor({
     client,
@@ -60,30 +61,19 @@ export class BuyerRepository {
   }) {
     this.client = client;
     this.session = session;
+    this.auth = new RoleAuthRepository({ client, session });
   }
 
   async login(input: { email: string; password: string }): Promise<BuyerSession> {
-    const result = await this.client.request<ApiAuthResult>("/auth/login", {
-      method: "POST",
-      body: input,
-    });
-    const session = toBuyerSession(result);
-    this.session.save(session);
-    return session;
+    return toBuyerSession(await this.auth.login(input, "buyer"));
   }
 
   async registerBuyer(input: RegisterBuyerRequest): Promise<BuyerSession> {
-    const result = await this.client.request<ApiAuthResult>("/auth/register/buyer", {
-      method: "POST",
-      body: input,
-    });
-    const session = toBuyerSession(result);
-    this.session.save(session);
-    return session;
+    return toBuyerSession(await this.auth.registerBuyer(input));
   }
 
   async getCurrentBuyer(): Promise<BuyerSession["user"]> {
-    return toBuyerUser(await this.client.request<ApiAuthUser>("/auth/me"));
+    return toBuyerUser(await this.auth.getCurrentUser("buyer"));
   }
 
   async listProducts(query: ProductQuery = {}): Promise<ApiPage<BuyerProduct>> {
@@ -128,11 +118,8 @@ export class BuyerRepository {
   }
 }
 
-function toBuyerSession(result: ApiAuthResult): BuyerSession {
-  return {
-    accessToken: result.accessToken,
-    user: toBuyerUser(result.user),
-  };
+function toBuyerSession(session: { accessToken: string; user: ApiAuthUser }): BuyerSession {
+  return { accessToken: session.accessToken, user: toBuyerUser(session.user) };
 }
 
 function toBuyerUser(user: ApiAuthUser): BuyerSession["user"] {

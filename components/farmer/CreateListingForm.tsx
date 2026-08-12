@@ -3,17 +3,13 @@
 import React, { useState } from "react";
 import { PlusCircle, Leaf, Sparkles, DollarSign, Package } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import type {
+  CreateFarmerProductRequest,
+  FarmerProductUnit,
+} from "@/lib/api/contracts.ts";
 
 interface CreateListingFormProps {
-  onSubmit: (listingData: {
-    name: string;
-    category: string;
-    grade: string;
-    description: string;
-    price: number;
-    unit: string;
-    quantity: number;
-  }) => void;
+  onSubmit: (listingData: CreateFarmerProductRequest) => Promise<void>;
   onCancel: () => void;
 }
 
@@ -23,23 +19,37 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
   const [category, setCategory] = useState("Vegetables");
   const [grade, setGrade] = useState("A");
   const [price, setPrice] = useState("");
-  const [unit, setUnit] = useState("kg");
+  const [unit, setUnit] = useState<FarmerProductUnit>("kg");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price || !quantity) return;
 
-    onSubmit({
-      name,
-      category,
-      grade,
-      description,
-      price: parseFloat(price),
-      unit,
-      quantity: parseFloat(quantity),
-    });
+    setError("");
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        name: name.trim(),
+        category: category.toLowerCase(),
+        ...(description.trim() ? { description: description.trim() } : {}),
+        price: parseFloat(price),
+        quantity: parseFloat(quantity),
+        unit,
+        qualityGrade: grade as "A" | "B" | "C",
+      });
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Could not publish this listing.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -53,6 +63,7 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
       {/* Two-Column Form Layout */}
       <form onSubmit={handleSubmit}>
+        {error ? <div className="auth-error" role="alert">{error}</div> : null}
         <div className="flex flex-col md:flex-row gap-6 w-full items-start">
           
           {/* Left Column: Produce Specifications */}
@@ -66,10 +77,11 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
             {/* Title */}
             <div className="flex flex-col w-full gap-2">
-              <label className="text-xs font-bold text-gray-700 tracking-wide">
+              <label htmlFor="farmer-product-name" className="text-xs font-bold text-gray-700 tracking-wide">
                 {t("farmer.create.itemTitle")} <span className="text-red-500">*</span>
               </label>
               <input
+                id="farmer-product-name"
                 type="text"
                 required
                 placeholder={t("farmer.create.itemTitlePlaceholder")}
@@ -82,8 +94,9 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
             {/* Category & Grade */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="flex flex-col w-full gap-2">
-                <label className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.category")}</label>
+                <label htmlFor="farmer-product-category" className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.category")}</label>
                 <select 
+                  id="farmer-product-category"
                   value={category} 
                   onChange={(e) => setCategory(e.target.value)} 
                   className="select w-full py-2.5 px-4 text-sm rounded-lg border-gray-200 focus:border-[var(--primary-green)] bg-white"
@@ -95,8 +108,9 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
                 </select>
               </div>
               <div className="flex flex-col w-full gap-2">
-                <label className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.grade")}</label>
+                <label htmlFor="farmer-product-grade" className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.grade")}</label>
                 <select 
+                  id="farmer-product-grade"
                   value={grade} 
                   onChange={(e) => setGrade(e.target.value)} 
                   className="select w-full py-2.5 px-4 text-sm rounded-lg border-gray-200 focus:border-[var(--primary-green)] bg-white"
@@ -110,8 +124,9 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
             {/* Summary Context */}
             <div className="flex flex-col w-full gap-2">
-              <label className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.desc")}</label>
+              <label htmlFor="farmer-product-description" className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.desc")}</label>
               <textarea
+                id="farmer-product-description"
                 rows={8}
                 placeholder={t("farmer.create.descPlaceholder")}
                 value={description}
@@ -135,10 +150,11 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
               {/* Price */}
               <div className="flex flex-col w-full gap-2">
-                <label className="text-xs font-bold text-gray-700 tracking-wide">
+                <label htmlFor="farmer-product-price" className="text-xs font-bold text-gray-700 tracking-wide">
                   {t("farmer.create.price")} <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="farmer-product-price"
                   type="number" required min="1" placeholder="0"
                   value={price} onChange={(e) => setPrice(e.target.value)}
                   className="input w-full py-2.5 px-4 text-sm rounded-lg border-gray-200 focus:border-[var(--primary-green)] bg-white"
@@ -147,26 +163,28 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
 
               {/* Selling Unit */}
               <div className="flex flex-col w-full gap-2">
-                <label className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.sellingUnit")}</label>
+                <label htmlFor="farmer-product-unit" className="text-xs font-bold text-gray-700 tracking-wide">{t("farmer.create.sellingUnit")}</label>
                 <select 
+                  id="farmer-product-unit"
                   value={unit} 
-                  onChange={(e) => setUnit(e.target.value)} 
+                  onChange={(e) => setUnit(e.target.value as FarmerProductUnit)}
                   className="select w-full py-2.5 px-4 text-sm rounded-lg border-gray-200 focus:border-[var(--primary-green)] bg-white"
                 >
                   <option value="kg">{t("farmer.create.unit.kg")}</option>
-                  <option value="g">{t("farmer.create.unit.g")}</option>
-                  <option value="liter">{t("farmer.create.unit.liter")}</option>
+                  <option value="ton">Ton</option>
+                  <option value="litre">{t("farmer.create.unit.liter")}</option>
                   <option value="dozen">{t("farmer.create.unit.dozen")}</option>
-                  <option value="mound">{t("farmer.create.unit.mound")}</option>
+                  <option value="piece">Piece</option>
                 </select>
               </div>
 
               {/* Stock Volume */}
               <div className="flex flex-col w-full gap-2">
-                <label className="text-xs font-bold text-gray-700 tracking-wide">
+                <label htmlFor="farmer-product-quantity" className="text-xs font-bold text-gray-700 tracking-wide">
                   {t("farmer.create.stock")} <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="farmer-product-quantity"
                   type="number" required min="0.1" step="any"
                   placeholder={t("farmer.create.stockPlaceholder")}
                   value={quantity} onChange={(e) => setQuantity(e.target.value)}
@@ -181,14 +199,16 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
                 type="button"
                 className="btn flex-1 py-3 bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 font-bold rounded-lg transition-colors text-sm"
                 onClick={onCancel}
+                disabled={isSubmitting}
               >
                 {t("farmer.create.cancel")}
               </button>
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="btn btn-primary flex-1 py-3 flex items-center justify-center gap-2 font-bold shadow-sm hover:shadow-md rounded-lg transition-all text-sm border-none bg-[#1F6E43] text-white hover:bg-[#185534]"
               >
-                <PlusCircle size={16} /> {t("farmer.create.publish")}
+                <PlusCircle size={16} /> {isSubmitting ? "Publishing…" : t("farmer.create.publish")}
               </button>
             </div>
             

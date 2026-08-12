@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Tractor,
   ShoppingBag,
@@ -21,6 +21,9 @@ import FarmFeed from "./FarmFeed";
 import FarmerProfile from "./ProfileScreen";
 import { useLanguage } from "./LanguageContext";
 import { LuLeaf } from "react-icons/lu";
+import { ApiClient } from "@/lib/api/client.ts";
+import type { ApiProduct, CreateFarmerProductRequest } from "@/lib/api/contracts.ts";
+import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "profile";
 
@@ -28,65 +31,28 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Shared Listings State
   const [listings, setListings] = useState<Listing[]>([]);
+  const [listingError, setListingError] = useState("");
+  const repository = useMemo(
+    () => new FarmerRepository({ client: new ApiClient() }),
+    [],
+  );
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("farmer_listings");
-      if (saved) {
-        try {
-          setListings(JSON.parse(saved));
-        } catch (e) {
-          console.error(e);
+    let active = true;
+    repository.listMyProducts()
+      .then((response) => {
+        if (active) setListings(response.data.map(toListing));
+      })
+      .catch((error) => {
+        if (active) {
+          setListingError(error instanceof Error ? error.message : "Could not load your listings.");
         }
-      } else {
-        const initialListings = [
-          {
-            id: "list_1",
-            name: "Organic Tomatoes",
-            category: "Vegetables",
-            grade: "A",
-            price: 120,
-            unit: "kg",
-            quantity: 200.0,
-            status: "Available" as const,
-            description: "Fresh organic tomatoes harvested directly from Hassan Organic Farm in Multan. Grade A quality, perfectly ripe and juicy, excellent for cooking or salads.",
-          },
-          {
-            id: "list_2",
-            name: "Fresh Spinach",
-            category: "Vegetables",
-            grade: "A",
-            price: 80,
-            unit: "kg",
-            quantity: 150.0,
-            status: "Available" as const,
-            description: "Organic spinach greens, handpicked early in the morning. Packed with nutrients and vitamins, washed and cleaned.",
-          },
-          {
-            id: "list_3",
-            name: "Desi Onions",
-            category: "Vegetables",
-            grade: "B",
-            price: 60,
-            unit: "kg",
-            quantity: 500.0,
-            status: "Available" as const,
-            description: "Locally sourced Desi Onions, cured and dried to perfection for extended shelf life. Uniform size and strong flavor profile.",
-          },
-        ];
-        setListings(initialListings);
-        localStorage.setItem("farmer_listings", JSON.stringify(initialListings));
-      }
-    }
-  }, []);
-
-  const updateListings = (newListings: Listing[]) => {
-    setListings(newListings);
-    localStorage.setItem("farmer_listings", JSON.stringify(newListings));
-  };
+      });
+    return () => {
+      active = false;
+    };
+  }, [repository]);
 
   // Shared Orders State
   const [orders, setOrders] = useState<Order[]>([
@@ -149,45 +115,24 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
   // Listing Handlers
   const handleDeleteListing = (id: string) => {
-    const updated = listings.filter((item) => item.id !== id);
-    updateListings(updated);
+    setListings((current) => current.filter((item) => item.id !== id));
     showToast(t("farmer.toast.deleteSuccess"));
   };
 
   const handleToggleListingStatus = (id: string) => {
-    const updated = listings.map((item) =>
+    setListings((current) => current.map((item) =>
       item.id === id
         ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as any }
         : item
-    );
-    updateListings(updated);
+    ));
     const item = listings.find((l) => l.id === id);
     const newStatus = item?.status === "Available" ? "Out of Stock" : "Available";
     showToast(t("farmer.toast.statusUpdate").replace("{status}", newStatus));
   };
 
-  const handleCreateListing = (listingData: {
-    name: string;
-    category: string;
-    grade: string;
-    description: string;
-    price: number;
-    unit: string;
-    quantity: number;
-  }) => {
-    const newListing: Listing = {
-      id: `list_${Date.now()}`,
-      name: listingData.name,
-      category: listingData.category,
-      grade: listingData.grade,
-      description: listingData.description,
-      price: listingData.price,
-      unit: listingData.unit,
-      quantity: listingData.quantity,
-      status: "Available",
-    };
-    const updated = [newListing, ...listings];
-    updateListings(updated);
+  const handleCreateListing = async (listingData: CreateFarmerProductRequest) => {
+    const created = await repository.createProduct(listingData);
+    setListings((current) => [toListing(created), ...current]);
     setActiveTab("listings");
     showToast(t("farmer.toast.createSuccess"));
   };
@@ -227,6 +172,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
           </button>
         </div>
       )}
+      {listingError ? <div className="auth-error" role="alert">{listingError}</div> : null}
 
       <div className="app-main">
         {/* Unified TopBar Navigation matching buyer/transporter layout */}
@@ -522,4 +468,18 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
       </div>
     </div>
   );
+}
+
+function toListing(product: ApiProduct): Listing {
+  return {
+    id: product.id,
+    name: product.name,
+    category: product.category.charAt(0).toUpperCase() + product.category.slice(1),
+    grade: product.qualityGrade ?? "A",
+    description: product.description ?? "",
+    price: product.price,
+    unit: product.unit,
+    quantity: product.quantity,
+    status: product.status === "active" ? "Available" : "Out of Stock",
+  };
 }

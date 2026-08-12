@@ -74,6 +74,19 @@ export interface ApiProduct {
   updatedAt: string;
 }
 
+export type FarmerProductUnit = 'kg' | 'ton' | 'dozen' | 'piece' | 'litre';
+export type FarmerProductQualityGrade = 'A' | 'B' | 'C';
+
+export interface CreateFarmerProductRequest {
+  name: string;
+  category: string;
+  description?: string;
+  price: number;
+  quantity: number;
+  unit: FarmerProductUnit;
+  qualityGrade?: FarmerProductQualityGrade;
+}
+
 export interface BuyerProduct {
   id: string;
   farmerId: string;

@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LuMapPin, LuSearch, LuStore, LuTruck } from "react-icons/lu";
-import type { ApiAvailableDelivery, ApiShipment } from "@/lib/api/contracts.ts";
+import type {
+  ApiAvailableDelivery,
+  ApiShipment,
+  ShipmentStatus,
+} from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 import { useLanguage } from "./LanguageContext";
@@ -13,6 +17,12 @@ type ShipmentRepositoryPort = Pick<
 >;
 
 type ShipmentTab = "available" | "mine";
+
+const NEXT_NORMAL_STATUS: Partial<Record<ShipmentStatus, ShipmentStatus>> = {
+  assigned: "picked_up",
+  picked_up: "in_transit",
+  in_transit: "delivered",
+};
 
 export default function ShipmentScreen({
   repository,
@@ -27,6 +37,8 @@ export default function ShipmentScreen({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [claimingOrderId, setClaimingOrderId] = useState<string | null>(null);
+  const [notesByShipmentId, setNotesByShipmentId] = useState<Record<string, string>>({});
+  const [pendingShipmentId, setPendingShipmentId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -82,6 +94,30 @@ export default function ShipmentScreen({
     }
   }
 
+  async function updateShipmentStatus(id: string, status: ShipmentStatus) {
+    const note = (notesByShipmentId[id] ?? "").trim();
+    if (!note) {
+      setActionError(t("tship.noteRequired"));
+      return;
+    }
+    if (note.length > 500) {
+      setActionError(t("tship.noteTooLong"));
+      return;
+    }
+
+    setActionError(null);
+    setPendingShipmentId(id);
+    try {
+      const shipment = await repository.updateStatus(id, { status, note });
+      setShipments((current) => replaceShipment(current ?? [], shipment));
+      setNotesByShipmentId((current) => ({ ...current, [id]: "" }));
+    } catch (error) {
+      setActionError(toErrorMessage(error));
+    } finally {
+      setPendingShipmentId(null);
+    }
+  }
+
   const isLoading = available === null || shipments === null;
 
   return (
@@ -131,7 +167,14 @@ export default function ShipmentScreen({
         />
       ) : null}
       {activeTab === "mine" && shipments ? (
-        <OwnedShipments shipments={visibleShipments} t={t} />
+        <OwnedShipments
+          notesByShipmentId={notesByShipmentId}
+          onNoteChange={(id, note) => setNotesByShipmentId((current) => ({ ...current, [id]: note }))}
+          onUpdateStatus={updateShipmentStatus}
+          pendingShipmentId={pendingShipmentId}
+          shipments={visibleShipments}
+          t={t}
+        />
       ) : null}
     </div>
   );
@@ -181,9 +224,17 @@ function AvailableDeliveries({
 }
 
 function OwnedShipments({
+  notesByShipmentId,
+  onNoteChange,
+  onUpdateStatus,
+  pendingShipmentId,
   shipments,
   t,
 }: {
+  notesByShipmentId: Record<string, string>;
+  onNoteChange: (id: string, note: string) => void;
+  onUpdateStatus: (id: string, status: ShipmentStatus) => void;
+  pendingShipmentId: string | null;
   shipments: ApiShipment[];
   t: (key: string) => string;
 }) {
@@ -198,7 +249,7 @@ function OwnedShipments({
               <div className="order-card-id">{t("tship.shipmentId")} {shipment.id}</div>
               <div className="order-card-date">{t("tship.deliveryOrder")} {shipment.orderId}</div>
             </div>
-            <span className="order-status processing">{shipment.status}</span>
+            <span className="order-status processing">{statusLabel(t, shipment.status)}</span>
           </div>
           <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <LuStore color="var(--primary-green)" size={16} />
@@ -208,9 +259,70 @@ function OwnedShipments({
             <LuMapPin color="var(--error-red)" size={16} />
             {formatAddress(shipment.deliveryAddress)}
           </p>
+          <ShipmentActions
+            note={notesByShipmentId[shipment.id] ?? ""}
+            onNoteChange={(note) => onNoteChange(shipment.id, note)}
+            onUpdateStatus={(status) => onUpdateStatus(shipment.id, status)}
+            pending={pendingShipmentId === shipment.id}
+            shipment={shipment}
+            t={t}
+          />
+          {shipment.statusHistory.length > 0 ? (
+            <ol style={{ margin: "16px 0 0", paddingLeft: "20px" }}>
+              {shipment.statusHistory.map((entry) => (
+                <li key={`${entry.status}-${entry.timestamp}`}>
+                  {statusLabel(t, entry.status)} · {new Date(entry.timestamp).toLocaleString()}
+                  {entry.note ? ` — ${entry.note}` : ""}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </article>
       ))}
     </section>
+  );
+}
+
+function ShipmentActions({
+  note,
+  onNoteChange,
+  onUpdateStatus,
+  pending,
+  shipment,
+  t,
+}: {
+  note: string;
+  onNoteChange: (note: string) => void;
+  onUpdateStatus: (status: ShipmentStatus) => void;
+  pending: boolean;
+  shipment: ApiShipment;
+  t: (key: string) => string;
+}) {
+  const nextStatus = NEXT_NORMAL_STATUS[shipment.status];
+  if (!nextStatus) return null;
+
+  const noteId = `shipment-note-${shipment.id}`;
+  const disabled = pending || !note.trim() || note.trim().length > 500;
+
+  return (
+    <div style={{ display: "grid", gap: "8px", marginTop: "16px" }}>
+      <label htmlFor={noteId}>{t("tship.deliveryNote")}</label>
+      <textarea
+        id={noteId}
+        maxLength={500}
+        onChange={(event) => onNoteChange(event.target.value)}
+        placeholder={t("tship.deliveryNotePlaceholder")}
+        value={note}
+      />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        <button className="btn btn-primary" disabled={disabled} onClick={() => onUpdateStatus(nextStatus)} type="button">
+          {pending ? t("tship.updating") : normalActionLabel(t, nextStatus)}
+        </button>
+        <button className="btn btn-outline" disabled={disabled} onClick={() => onUpdateStatus("failed")} type="button">
+          {t("tship.markFailed")}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -232,6 +344,14 @@ function replaceShipment(shipments: ApiShipment[], next: ApiShipment): ApiShipme
   const existingIndex = shipments.findIndex((shipment) => shipment.id === next.id);
   if (existingIndex < 0) return [next, ...shipments];
   return shipments.map((shipment) => shipment.id === next.id ? next : shipment);
+}
+
+function statusLabel(t: (key: string) => string, status: ShipmentStatus): string {
+  return t(`tship.status.${status}`);
+}
+
+function normalActionLabel(t: (key: string) => string, status: ShipmentStatus): string {
+  return t(`tship.action.${status}`);
 }
 
 function toErrorMessage(error: unknown): string {

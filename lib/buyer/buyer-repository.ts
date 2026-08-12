@@ -11,6 +11,7 @@ import {
   type CreateOrderRequest,
   type InitiatePaymentResponse,
   type PaymentGateway,
+  type RegisterBuyerRequest,
   toBuyerProduct,
 } from "../api/contracts.ts";
 import {
@@ -63,6 +64,16 @@ export class BuyerRepository {
 
   async login(input: { email: string; password: string }): Promise<BuyerSession> {
     const result = await this.client.request<ApiAuthResult>("/auth/login", {
+      method: "POST",
+      body: input,
+    });
+    const session = toBuyerSession(result);
+    this.session.save(session);
+    return session;
+  }
+
+  async registerBuyer(input: RegisterBuyerRequest): Promise<BuyerSession> {
+    const result = await this.client.request<ApiAuthResult>("/auth/register/buyer", {
       method: "POST",
       body: input,
     });

@@ -14,6 +14,21 @@ export interface ApiAuthResult {
   user: ApiAuthUser;
 }
 
+export type BuyerBusinessType =
+  | 'individual'
+  | 'retailer'
+  | 'restaurant'
+  | 'wholesaler';
+
+export interface RegisterBuyerRequest {
+  businessName: string;
+  businessType: BuyerBusinessType;
+  cnic: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
 export interface ApiProduct {
   id: string;
   farmerId: string;

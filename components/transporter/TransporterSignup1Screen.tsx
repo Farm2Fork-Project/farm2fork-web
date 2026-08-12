@@ -2,43 +2,51 @@
 
 import { useState } from "react";
 import { LuArrowLeft, LuEyeOff, LuEye, LuTruck } from "react-icons/lu";
+import type { RegisterTransporterRequest } from "@/lib/api/contracts.ts";
 import { useLanguage } from "./LanguageContext";
+
+export type TransporterPersonalInput = Pick<
+  RegisterTransporterRequest,
+  "email" | "password" | "phone" | "cnic"
+>;
 
 export interface TransporterSignup1ScreenProps {
   onBack: () => void;
-  onNext: () => void;
+  onNext: (input: TransporterPersonalInput) => void;
 }
+
+const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
 
 export default function TransporterSignup1Screen({ onBack, onNext }: TransporterSignup1ScreenProps) {
   const { t } = useLanguage();
-  const [showPw, setShowPw] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [cnic, setCnic] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const handleNext = () => {
+  function handleNext() {
     setError("");
-    if (!firstName.trim() || !lastName.trim()) {
-      setError("First and Last name are required.");
-      return;
-    }
     if (!email.trim() || !email.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
+    if (!CNIC_PATTERN.test(cnic.trim())) {
+      setError("Please enter a valid Pakistani CNIC.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
-    onNext();
-  };
+    onNext({
+      email: email.trim(),
+      password,
+      cnic: cnic.trim(),
+      ...(phone.trim() ? { phone: phone.trim() } : {}),
+    });
+  }
 
   return (
     <div className="auth-wrapper">
@@ -46,98 +54,38 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
             <LuTruck size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
-            <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px", lineHeight: 1.2 }}>
-              {t("tsignup.title1")} <br/>{t("tsignup.title2")}
-            </h1>
-            <p style={{ fontSize: "18px", opacity: 0.9, lineHeight: 1.6, maxWidth: "320px" }}>
-              {t("tsignup.subtitle")}
-            </p>
+            <h1>{t("tsignup.title1")}<br />{t("tsignup.title2")}</h1>
+            <p>{t("tsignup.subtitle")}</p>
           </div>
         </div>
-
         <div className="auth-form-side" style={{ padding: "48px" }}>
-          
-          <div style={{ display: "flex", alignItems: "center", marginBottom: "32px" }}>
-            <button className="back-btn" onClick={onBack} aria-label="Go back" style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
-              <LuArrowLeft size={24} color="var(--text-dark)" />
-            </button>
-            <h2 style={{ fontSize: "24px", fontWeight: 800, marginLeft: "16px", color: "var(--text-dark)" }}>
-              {t("tsignup.header")}
-            </h2>
+          <button className="back-btn" onClick={onBack} aria-label="Go back" type="button"><LuArrowLeft size={24} /></button>
+          <h2>{t("tsignup.header")}</h2>
+          {error ? <div className="auth-error" role="alert">{error}</div> : null}
+          <p>{t("tsignup.step1")}</p>
+          <div className="progress-bar"><div className="progress-bar-fill" style={{ width: "50%" }} /></div>
+          <div className="auth-form-group">
+            <label htmlFor="transporter-email">Email</label>
+            <input id="transporter-email" className="auth-input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
           </div>
-
-          {error && (
-            <div style={{ color: "#d32f2f", backgroundColor: "#ffebee", padding: "10px", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #ffcdd2" }}>
-              {error}
-            </div>
-          )}
-
-          <div style={{ marginBottom: "32px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", fontWeight: 600, color: "var(--primary-green)", marginBottom: "12px" }}>
-              <span>{t("tsignup.step1")}</span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: "50%" }}></div>
-            </div>
+          <div className="auth-form-group">
+            <label htmlFor="transporter-phone">Phone (optional)</label>
+            <input id="transporter-phone" className="auth-input" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
           </div>
-
-          <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-dark)" }}>{t("tsignup.personalInfo")}</h3>
-            
-            <div style={{ display: "flex", gap: "16px" }}>
-              <input
-                type="text"
-                className="auth-input"
-                placeholder={t("tsignup.firstName")}
-                style={{ flex: 1 }}
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-              <input
-                type="text"
-                className="auth-input"
-                placeholder={t("tsignup.lastName")}
-                style={{ flex: 1 }}
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-            </div>
-            <input
-              type="text"
-              className="auth-input"
-              placeholder={t("tsignup.email")}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="text"
-              className="auth-input"
-              placeholder={t("tsignup.phone")}
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            
+          <div className="auth-form-group">
+            <label htmlFor="transporter-cnic">CNIC</label>
+            <input id="transporter-cnic" className="auth-input" placeholder="35202-1234567-1" value={cnic} onChange={(event) => setCnic(event.target.value)} />
+          </div>
+          <div className="auth-form-group">
+            <label htmlFor="transporter-password">Password</label>
             <div className="auth-input-wrapper">
-              <input
-                type={showPw ? "text" : "password"}
-                className="auth-input"
-                placeholder={t("tsignup.password")}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button type="button" className="toggle-pw" onClick={() => setShowPw(!showPw)}>
-                {showPw ? <LuEye size={20} /> : <LuEyeOff size={20} />}
+              <input id="transporter-password" className="auth-input" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} />
+              <button type="button" className="toggle-pw" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
+                {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
               </button>
             </div>
-
-            <button 
-              className="auth-btn" 
-              style={{ marginTop: "16px" }}
-              onClick={handleNext}
-            >
-              {t("tsignup.next")}
-            </button>
           </div>
+          <button className="auth-btn" type="button" onClick={handleNext}>{t("tsignup.next")}</button>
         </div>
       </div>
     </div>

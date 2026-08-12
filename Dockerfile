@@ -4,7 +4,14 @@ RUN corepack enable
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=farm2fork-web-pnpm-store,target=/pnpm/store \
+    pnpm fetch --frozen-lockfile --store-dir=/pnpm/store \
+      --fetch-timeout=120000 \
+      --fetch-retries=5 \
+      --fetch-retry-factor=2 \
+      --fetch-retry-mintimeout=10000 \
+      --fetch-retry-maxtimeout=120000 \
+    && pnpm install --offline --frozen-lockfile --store-dir=/pnpm/store
 
 FROM deps AS build
 COPY . .

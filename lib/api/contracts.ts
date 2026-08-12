@@ -168,6 +168,56 @@ export interface ApiPayment {
   updatedAt: string;
 }
 
+export type ShipmentStatus =
+  | "assigned"
+  | "picked_up"
+  | "in_transit"
+  | "delivered"
+  | "failed";
+
+export interface ApiShipmentAddress {
+  street?: string;
+  city?: string;
+  province?: string;
+  zip?: string;
+}
+
+export interface ApiShipmentStatusHistory {
+  status: ShipmentStatus;
+  timestamp: string;
+  note?: string;
+  updatedBy?: string;
+}
+
+export interface ApiShipment {
+  id: string;
+  orderId: string;
+  transporterId: string;
+  status: ShipmentStatus;
+  pickupAddress: ApiShipmentAddress;
+  deliveryAddress: ApiShipmentAddress;
+  statusHistory: ApiShipmentStatusHistory[];
+  estimatedDelivery?: string;
+  actualDelivery?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiAvailableDelivery {
+  orderId: string;
+  pickupCity: string;
+  pickupProvince: string;
+  deliveryCity: string;
+  deliveryProvince: string;
+  itemCount: number;
+  createdAt: string;
+}
+
+export interface UpdateShipmentStatusRequest {
+  status: ShipmentStatus;
+  note: string;
+}
+
 export interface InitiatePaymentResponse {
   payment: ApiPayment;
 }

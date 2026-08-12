@@ -1,92 +1,119 @@
 "use client";
 
 import React, { useState } from "react";
-import { useLanguage } from "./LanguageContext";
 import { LuLeaf, LuArrowLeft, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
+import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
+import { useLanguage } from "./LanguageContext";
 
 interface FarmerSignupProps {
-  onComplete: () => void;
+  onSubmit: (input: RegisterFarmerRequest) => Promise<void>;
   onBack?: () => void;
 }
 
-export default function FarmerSignup({ onComplete, onBack }: FarmerSignupProps) {
-  const { t } = useLanguage();
-  const [step, setStep] = useState(1);
-  const [showPw, setShowPw] = useState(false);
-  const [error, setError] = useState("");
+const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
+const cropOptions = ["wheat", "rice", "cotton", "sugarcane", "maize", "vegetables"];
 
+export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
+  const { t } = useLanguage();
+  const [step, setStep] = useState<1 | 2>(1);
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
     email: "",
     phone: "",
+    cnic: "",
     password: "",
+    confirmation: "",
     farmName: "",
     farmSize: "",
     farmLocation: "",
-    certifications: "",
   });
-
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
-  const cropOptions = ["wheat", "rice", "cotton", "sugarcane", "maize", "vegetables"];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  function updateField(event: React.ChangeEvent<HTMLInputElement>) {
+    setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
 
-  const toggleCrop = (crop: string) => {
-    setSelectedCrops(prev => 
-      prev.includes(crop) ? prev.filter(c => c !== crop) : [...prev, crop]
+  function toggleCrop(crop: string) {
+    setSelectedCrops((current) =>
+      current.includes(crop) ? current.filter((item) => item !== crop) : [...current, crop],
     );
-  };
+  }
 
-  const handleNext = () => {
+  function handleNext() {
     setError("");
-    if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      setError("First and last name are required.");
+    if (!formData.email.trim() || !formData.email.includes("@")) {
+      setError("Please enter a valid email address.");
       return;
     }
-    if (!formData.email.trim()) {
-      setError("Email is required.");
+    if (!CNIC_PATTERN.test(formData.cnic.trim())) {
+      setError("Please enter a valid Pakistani CNIC.");
       return;
     }
-    if (!formData.phone.trim()) {
-      setError("Phone number is required.");
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (formData.password !== formData.confirmation) {
+      setError("Passwords do not match.");
       return;
     }
     setStep(2);
-  };
+  }
 
-  const handleSubmit = () => {
+  async function handleSubmit() {
     setError("");
     if (!formData.farmName.trim()) {
       setError("Farm name is required.");
       return;
     }
-    if (!formData.farmLocation.trim()) {
-      setError("Farm location is required.");
+
+    const landSizeAcres = formData.farmSize.trim()
+      ? Number(formData.farmSize)
+      : undefined;
+    if (landSizeAcres !== undefined && (!Number.isFinite(landSizeAcres) || landSizeAcres < 0)) {
+      setError("Farm size must be a non-negative number.");
       return;
     }
-    onComplete();
-  };
 
-  const handleBack = () => {
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        email: formData.email.trim(),
+        password: formData.password,
+        cnic: formData.cnic.trim(),
+        farmName: formData.farmName.trim(),
+        ...(formData.phone.trim() ? { phone: formData.phone.trim() } : {}),
+        ...(formData.farmLocation.trim()
+          ? { farmLocation: { address: formData.farmLocation.trim() } }
+          : {}),
+        ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
+        ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
+      });
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Could not create your farmer account.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function handleBack() {
+    if (isSubmitting) return;
     if (step === 2) {
       setStep(1);
-    } else if (onBack) {
-      onBack();
+    } else {
+      onBack?.();
     }
-  };
+  }
 
   return (
     <div className="auth-wrapper">
       <div className="auth-card">
-        
-        {/* Left Side: Illustration */}
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
             <LuLeaf size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
@@ -99,11 +126,9 @@ export default function FarmerSignup({ onComplete, onBack }: FarmerSignupProps) 
           </div>
         </div>
 
-        {/* Right Side: Form */}
         <div className="auth-form-side" style={{ padding: "48px" }}>
-          
           <div style={{ display: "flex", alignItems: "center", marginBottom: "32px" }}>
-            <button className="back-btn" onClick={handleBack} aria-label="Go back" style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center" }}>
+            <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button" disabled={isSubmitting}>
               <LuArrowLeft size={24} color="var(--text-dark)" />
             </button>
             <h2 style={{ fontSize: "24px", fontWeight: 800, marginLeft: "16px", color: "var(--text-dark)" }}>
@@ -111,133 +136,67 @@ export default function FarmerSignup({ onComplete, onBack }: FarmerSignupProps) 
             </h2>
           </div>
 
-          {error && (
-            <div style={{ color: "#d32f2f", backgroundColor: "#ffebee", padding: "10px", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #ffcdd2" }}>
-              {error}
-            </div>
-          )}
+          {error ? <div className="auth-error" role="alert">{error}</div> : null}
 
           <div style={{ marginBottom: "32px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", fontWeight: 600, color: "var(--primary-green)", marginBottom: "12px" }}>
               <span>{step === 1 ? t("farmerSignup.step1") : t("farmerSignup.step2")}</span>
             </div>
             <div className="progress-bar">
-              <div className="progress-bar-fill" style={{ width: step === 1 ? "50%" : "100%" }}></div>
+              <div className="progress-bar-fill" style={{ width: step === 1 ? "50%" : "100%" }} />
             </div>
           </div>
 
           {step === 1 ? (
             <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-dark)", marginBottom: "-4px" }}>
-                {t("farmerSignup.personalInfo") || "Personal Information"}
+                Personal information
               </h3>
-              
-              <div style={{ display: "flex", gap: "16px" }}>
-                <input
-                  type="text"
-                  name="firstName"
-                  className="auth-input"
-                  placeholder="First Name"
-                  style={{ flex: 1 }}
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="text"
-                  name="lastName"
-                  className="auth-input"
-                  placeholder="Last Name"
-                  style={{ flex: 1 }}
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                />
+              <div className="auth-form-group">
+                <label htmlFor="farmer-email">Email</label>
+                <input id="farmer-email" name="email" className="auth-input" type="email" value={formData.email} onChange={updateField} disabled={isSubmitting} />
               </div>
-              
-              <input
-                type="text"
-                name="email"
-                className="auth-input"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleInputChange}
-              />
-              
-              <input
-                type="text"
-                name="phone"
-                className="auth-input"
-                dir="auto"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleInputChange}
-              />
-              
-              <div className="auth-input-wrapper">
-                <input
-                  type={showPw ? "text" : "password"}
-                  name="password"
-                  className="auth-input"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                />
-                <button type="button" className="toggle-pw" onClick={() => setShowPw(!showPw)}>
-                  {showPw ? <LuEye size={20} /> : <LuEyeOff size={20} />}
-                </button>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-phone">Phone (optional)</label>
+                <input id="farmer-phone" name="phone" className="auth-input" type="tel" value={formData.phone} onChange={updateField} disabled={isSubmitting} />
               </div>
-
-              <button 
-                className="auth-btn" 
-                style={{ marginTop: "16px" }}
-                onClick={handleNext}
-              >
-                Next Step &rarr;
+              <div className="auth-form-group">
+                <label htmlFor="farmer-cnic">CNIC</label>
+                <input id="farmer-cnic" name="cnic" className="auth-input" placeholder="35202-1234567-1" value={formData.cnic} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-password">Password</label>
+                <div className="auth-input-wrapper">
+                  <input id="farmer-password" name="password" className="auth-input" type={showPassword ? "text" : "password"} value={formData.password} onChange={updateField} disabled={isSubmitting} />
+                  <button type="button" className="toggle-pw" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
+                    {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
+                  </button>
+                </div>
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-confirmation">Confirm password</label>
+                <input id="farmer-confirmation" name="confirmation" className="auth-input" type="password" value={formData.confirmation} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <button className="auth-btn" type="button" style={{ marginTop: "16px" }} onClick={handleNext} disabled={isSubmitting}>
+                Next Step →
               </button>
             </div>
           ) : (
             <div className="animation-fade-in" style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-dark)" }}>{t("farmerSignup.farmInfo")}</h3>
-              
-              <div style={{ display: "flex", gap: "16px" }}>
-                <input
-                  type="text"
-                  name="farmName"
-                  className="auth-input"
-                  placeholder={t("farmerSignup.farmName")}
-                  style={{ flex: 1 }}
-                  value={formData.farmName}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="text"
-                  name="farmSize"
-                  className="auth-input"
-                  placeholder={t("farmerSignup.farmSize")}
-                  style={{ flex: 1 }}
-                  value={formData.farmSize}
-                  onChange={handleInputChange}
-                />
+              <div className="auth-form-group">
+                <label htmlFor="farmer-farm-name">Farm name</label>
+                <input id="farmer-farm-name" name="farmName" className="auth-input" value={formData.farmName} onChange={updateField} disabled={isSubmitting} />
               </div>
-              
-              <input
-                type="text"
-                name="farmLocation"
-                className="auth-input"
-                placeholder={t("farmerSignup.farmLocation")}
-                value={formData.farmLocation}
-                onChange={handleInputChange}
-              />
-              
-              <input
-                type="text"
-                name="certifications"
-                className="auth-input"
-                placeholder={t("farmerSignup.certifications")}
-                value={formData.certifications}
-                onChange={handleInputChange}
-              />
-
-              <div style={{ marginTop: "8px" }}>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-farm-size">Farm size (acres)</label>
+                <input id="farmer-farm-size" name="farmSize" className="auth-input" type="number" min="0" step="any" value={formData.farmSize} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-location">Farm location</label>
+                <input id="farmer-location" name="farmLocation" className="auth-input" value={formData.farmLocation} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>
                   {t("farmerSignup.selectCrops")}
                 </p>
@@ -245,52 +204,24 @@ export default function FarmerSignup({ onComplete, onBack }: FarmerSignupProps) 
                   {cropOptions.map((crop) => {
                     const isSelected = selectedCrops.includes(crop);
                     return (
-                      <button
-                        key={crop}
-                        type="button"
-                        onClick={() => toggleCrop(crop)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "6px",
-                          padding: "8px 16px",
-                          borderRadius: "20px",
-                          border: isSelected ? "2px solid var(--primary-green)" : "1px solid var(--border-medium)",
-                          backgroundColor: isSelected ? "var(--primary-green-soft)" : "white",
-                          color: isSelected ? "var(--primary-green)" : "var(--text-medium)",
-                          fontSize: "14px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                          transition: "all 0.2s"
-                        }}
-                      >
-                        {isSelected && <LuCheck size={16} />}
-                        {t(`crops.${crop}`) || crop}
+                      <button key={crop} type="button" aria-pressed={isSelected} onClick={() => toggleCrop(crop)} disabled={isSubmitting}>
+                        {isSelected ? <LuCheck size={16} /> : null}
+                        {crop}
                       </button>
                     );
                   })}
                 </div>
               </div>
-
               <div style={{ display: "flex", gap: "16px", marginTop: "16px" }}>
-                <button 
-                  className="auth-guest-btn" 
-                  style={{ flex: 1, borderColor: "var(--border-medium)" }}
-                  onClick={handleBack}
-                >
+                <button className="auth-guest-btn" type="button" style={{ flex: 1 }} onClick={handleBack} disabled={isSubmitting}>
                   {t("farmerSignup.back")}
                 </button>
-                <button 
-                  className="auth-btn" 
-                  style={{ flex: 1, margin: 0 }}
-                  onClick={handleSubmit}
-                >
-                  {t("signupForm.create")}
+                <button className="auth-btn" type="button" style={{ flex: 1, margin: 0 }} onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? "Creating account…" : "Create Account"}
                 </button>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

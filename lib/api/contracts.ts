@@ -1,4 +1,5 @@
 export type UserRole = 'farmer' | 'buyer' | 'transporter' | 'admin';
+export type WebRole = Exclude<UserRole, 'admin'>;
 
 export interface ApiAuthUser {
   id: string;
@@ -27,6 +28,32 @@ export interface RegisterBuyerRequest {
   email: string;
   password: string;
   phone?: string;
+}
+
+export interface RegisterFarmerRequest {
+  email: string;
+  password: string;
+  cnic: string;
+  farmName: string;
+  phone?: string;
+  farmLocation?: {
+    address?: string;
+  };
+  cropTypes?: string[];
+  landSizeAcres?: number;
+}
+
+export type TransporterVehicleType = 'bike' | 'rickshaw' | 'van' | 'truck';
+
+export interface RegisterTransporterRequest {
+  email: string;
+  password: string;
+  cnic: string;
+  vehicleType: TransporterVehicleType;
+  vehicleNumber: string;
+  licenseNumber: string;
+  phone?: string;
+  serviceAreas?: string[];
 }
 
 export interface ApiProduct {

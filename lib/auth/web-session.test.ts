@@ -43,3 +43,36 @@ test("webSession saves, reads, and clears an exact buyer session", () => {
   webSession.clear();
   expect(webSession.read()).toBeNull();
 });
+
+test("webSession accepts transporter data and rejects an admin result", () => {
+  const storage = new MemoryStorage();
+  Object.defineProperty(globalThis, "sessionStorage", {
+    configurable: true,
+    value: storage,
+  });
+
+  const transporter = {
+    accessToken: "transporter-token",
+    user: {
+      id: "transporter-1",
+      email: "transporter@example.com",
+      role: "transporter" as const,
+      isVerified: false,
+      isActive: true,
+    },
+  };
+
+  webSession.save(transporter);
+  expect(webSession.read()).toEqual(transporter);
+
+  storage.setItem(
+    WEB_SESSION_KEY,
+    JSON.stringify({
+      ...transporter,
+      user: { ...transporter.user, role: "admin" },
+    }),
+  );
+
+  expect(webSession.read()).toBeNull();
+  expect(storage.getItem(WEB_SESSION_KEY)).toBeNull();
+});

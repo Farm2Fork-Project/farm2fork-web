@@ -1,3 +1,5 @@
+import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
+
 /* ───────── Shared Types ───────── */
 export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter";
 export type AppTab = "marketplace" | "scan" | "cart" | "orders" | "profile";
@@ -57,7 +59,7 @@ export interface ProfileScreenProps {
 export interface SignUpFormScreenProps {
   onBack: () => void;
   onBackHome?: () => void;
-  onSubmit: () => void;
+  onSubmit: (input: RegisterBuyerRequest) => Promise<void> | void;
 }
 
 export interface SignUpRoleScreenProps {

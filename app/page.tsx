@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { AuthScreen } from "@/components/types";
 import LandingScreen from "@/components/LandingScreen";
 import LoginScreen from "@/components/LoginScreen";
+import SignUpFormScreen from "@/components/SignUpFormScreen";
 import SignUpRoleScreen from "@/components/SignUpRoleScreen";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { BuyerApp } from "@/components/buyer/BuyerApp";
 import { ApiClient } from "@/lib/api/client.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
+import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 import { type BuyerSession, webSession } from "@/lib/auth/web-session.ts";
 
 function HomeContent() {
@@ -22,7 +24,9 @@ function HomeContent() {
   const [session, setSession] = useState<BuyerSession | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>(() => {
-    return searchParams.get("auth") === "login" ? "login" : "landing";
+    if (searchParams.get("auth") === "login") return "login";
+    if (searchParams.get("auth") === "signup") return "signup-role";
+    return "landing";
   });
   const [loginError, setLoginError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,6 +75,13 @@ function HomeContent() {
     }
   }
 
+  async function registerBuyer(input: RegisterBuyerRequest) {
+    const nextSession = await repository.registerBuyer(input);
+    setSession(nextSession);
+    setAuthScreen("landing");
+    router.replace("/");
+  }
+
   function logout() {
     webSession.clear();
     setSession(null);
@@ -106,10 +117,17 @@ function HomeContent() {
           onBack={() => setAuthScreen("login")}
           onBackHome={closeAuth}
           onSelectRole={(role) => {
-            if (role === "buyer") setAuthScreen("login");
+            if (role === "buyer") setAuthScreen("signup-form");
             else if (role === "farmer") router.push("/farmer?signup=true");
             else if (role === "transporter") router.push("/transporter?signup=true");
           }}
+        />
+      ) : null}
+      {authScreen === "signup-form" ? (
+        <SignUpFormScreen
+          onBack={() => setAuthScreen("signup-role")}
+          onBackHome={closeAuth}
+          onSubmit={registerBuyer}
         />
       ) : null}
     </>

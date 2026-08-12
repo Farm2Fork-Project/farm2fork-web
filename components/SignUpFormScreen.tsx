@@ -1,59 +1,91 @@
 "use client";
 
 import { useState } from "react";
-import {
-  LuEyeOff,
-  LuEye,
-  LuArrowLeft,
-  LuX,
-} from "react-icons/lu";
-
+import { LuArrowLeft, LuEye, LuEyeOff, LuX } from "react-icons/lu";
+import type { BuyerBusinessType } from "@/lib/api/contracts.ts";
 import { SignUpFormScreenProps } from "./types";
-import { useLanguage } from "./LanguageContext";
 
-export default function SignUpFormScreen({ onBack, onBackHome, onSubmit }: SignUpFormScreenProps) {
-  const [showPw, setShowPw] = useState(false);
-  const [name, setName] = useState("");
+const BUSINESS_TYPES: Array<{ value: BuyerBusinessType; label: string }> = [
+  { value: "individual", label: "Individual" },
+  { value: "retailer", label: "Retailer" },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "wholesaler", label: "Wholesaler" },
+];
+
+export default function SignUpFormScreen({
+  onBack,
+  onBackHome,
+  onSubmit,
+}: SignUpFormScreenProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [businessName, setBusinessName] = useState("");
+  const [businessType, setBusinessType] = useState<BuyerBusinessType | "">("");
+  const [cnic, setCnic] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [confirmation, setConfirmation] = useState("");
   const [error, setError] = useState("");
-  const { t } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignUp = () => {
+  async function handleSignUp() {
     setError("");
-    if (!name.trim()) {
-      setError("Full Name is required.");
+    if (!businessName.trim() || !businessType || !cnic.trim()) {
+      setError("Business name, business type, and CNIC are required.");
       return;
     }
     if (!email.trim() || !email.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!phone.trim()) {
-      setError("Phone number is required.");
+    if (!password) {
+      setError("Please enter a password.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long.");
-      return;
-    }
-    if (password !== confirm) {
+    if (password !== confirmation) {
       setError("Passwords do not match.");
       return;
     }
 
-    // Call onSubmit on successful validation
-    onSubmit();
-  };
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        businessName: businessName.trim(),
+        businessType,
+        cnic: cnic.trim(),
+        email: email.trim(),
+        password,
+        ...(phone.trim() ? { phone: phone.trim() } : {}),
+      });
+    } catch (submissionError) {
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : "Could not create your account.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
-    <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="signup-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
+    <div
+      className="auth-wrapper"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="signup-heading"
+      onMouseDown={(event) => event.target === event.currentTarget && onBackHome?.()}
+    >
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
-          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
+          {onBackHome ? (
+            <button className="auth-close" onClick={onBackHome} aria-label="Close and return home">
+              <LuX size={22} />
+            </button>
+          ) : null}
+          <button className="auth-home-link" onClick={onBackHome}>
+            <LuArrowLeft size={16} /> Back to home
+          </button>
           <div className="auth-card-narrow-header">
             <button className="back-btn" onClick={onBack} aria-label="Go back">
               <LuArrowLeft size={22} />
@@ -61,84 +93,123 @@ export default function SignUpFormScreen({ onBack, onBackHome, onSubmit }: SignU
             <h1 id="signup-heading">Create your buyer account</h1>
           </div>
 
-          {error && (
-            <div style={{ color: "#d32f2f", backgroundColor: "#ffebee", padding: "10px", borderRadius: "6px", marginBottom: "16px", fontSize: "14px", border: "1px solid #ffcdd2" }}>
+          {error ? (
+            <div className="auth-error" role="alert">
               {error}
             </div>
-          )}
+          ) : null}
 
           <div className="auth-form-group">
-            <label htmlFor="signup-name">{t("signupForm.fullName")}</label>
+            <label htmlFor="signup-business-name">Business name</label>
             <input
-              id="signup-name"
+              id="signup-business-name"
               className="auth-input"
               type="text"
-              placeholder={t("signupForm.fullName")}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={businessName}
+              onChange={(event) => setBusinessName(event.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="auth-form-group">
-            <label htmlFor="signup-email">{t("signupForm.email")}</label>
+            <label htmlFor="signup-business-type">Business type</label>
+            <select
+              id="signup-business-type"
+              className="auth-input"
+              value={businessType}
+              onChange={(event) => setBusinessType(event.target.value as BuyerBusinessType)}
+              disabled={isSubmitting}
+            >
+              <option value="" disabled>
+                Select business type
+              </option>
+              {BUSINESS_TYPES.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="auth-form-group">
+            <label htmlFor="signup-cnic">CNIC</label>
+            <input
+              id="signup-cnic"
+              className="auth-input"
+              type="text"
+              placeholder="35202-1234567-1"
+              value={cnic}
+              onChange={(event) => setCnic(event.target.value)}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="auth-form-group">
+            <label htmlFor="signup-email">Email</label>
             <input
               id="signup-email"
               className="auth-input"
-              type="text"
-              placeholder={t("signupForm.email")}
+              type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="auth-form-group">
-            <label htmlFor="signup-phone">{t("signupForm.phone")}</label>
+            <label htmlFor="signup-phone">Phone (optional)</label>
             <input
               id="signup-phone"
               className="auth-input"
               type="tel"
-              placeholder={t("signupForm.phone")}
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={(event) => setPhone(event.target.value)}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="auth-form-group">
-            <label htmlFor="signup-password">{t("signupForm.password")}</label>
+            <label htmlFor="signup-password">Password</label>
             <div className="auth-input-wrapper">
               <input
                 id="signup-password"
                 className="auth-input"
-                type={showPw ? "text" : "password"}
-                placeholder={t("signupForm.password")}
+                type={showPassword ? "text" : "password"}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={isSubmitting}
               />
               <button
                 className="toggle-pw"
-                onClick={() => setShowPw(!showPw)}
+                onClick={() => setShowPassword((visible) => !visible)}
                 type="button"
                 aria-label="Toggle password visibility"
               >
-                {showPw ? <LuEye size={18} /> : <LuEyeOff size={18} />}
+                {showPassword ? <LuEye size={18} /> : <LuEyeOff size={18} />}
               </button>
             </div>
           </div>
 
           <div className="auth-form-group">
-            <label htmlFor="signup-confirm">{t("signupForm.confirm")}</label>
+            <label htmlFor="signup-confirm">Confirm password</label>
             <input
               id="signup-confirm"
               className="auth-input"
               type="password"
-              placeholder={t("signupForm.confirm")}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
+              value={confirmation}
+              onChange={(event) => setConfirmation(event.target.value)}
+              onKeyDown={(event) => event.key === "Enter" && handleSignUp()}
+              disabled={isSubmitting}
             />
           </div>
 
-          <button className="auth-btn" onClick={handleSignUp} id="signup-submit-btn">
-            {t("signupForm.create")}
+          <button
+            className="auth-btn"
+            onClick={handleSignUp}
+            disabled={isSubmitting}
+            id="signup-submit-btn"
+          >
+            {isSubmitting ? "Creating account…" : "Create account"}
           </button>
         </div>
       </div>

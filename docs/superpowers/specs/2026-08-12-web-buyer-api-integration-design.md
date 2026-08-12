@@ -16,6 +16,8 @@ orders and payments without inventing backend data or simulating settlement.
 
 ### Included
 
+- Buyer registration through `POST /api/auth/register/buyer`, followed by the
+  same session handling used by login.
 - Existing-buyer email/password login through `POST /api/auth/login`.
 - Session validation through `GET /api/auth/me`.
 - Buyer-only real API surfaces: marketplace, product detail, cart, checkout,
@@ -28,7 +30,7 @@ orders and payments without inventing backend data or simulating settlement.
 
 ### Explicitly excluded
 
-- Buyer registration, verification, password reset, and guest checkout.
+- Email verification, password reset, and guest checkout.
 - Farmer, transporter, administrator, and financial-partner API integration.
 - A production payment-provider redirect, webhook verification, or exposing the
   local payment simulator in the web UI.
@@ -43,7 +45,8 @@ The current backend returns an `accessToken` JSON field from login and does not
 issue HTTP-only cookies or refresh tokens. The first slice therefore uses a
 browser-only `WebSession` adapter:
 
-1. `POST /auth/login` returns `{ accessToken, user }`.
+1. `POST /auth/register/buyer` and `POST /auth/login` return `{ accessToken,
+   user }`.
 2. The adapter stores exactly that pair under a versioned `sessionStorage` key.
 3. The API client reads the token only when constructing a Bearer header.
 4. The application validates the session with `GET /auth/me` at buyer-app
@@ -89,6 +92,7 @@ endpoint except login requires `Authorization: Bearer <token>`.
 
 | Web action | Endpoint | Request | Result used by web |
 |---|---|---|---|
+| Register buyer | `POST /auth/register/buyer` | required business name, business type, CNIC, email, strong password; optional phone and saved addresses | `accessToken`, buyer user summary |
 | Login | `POST /auth/login` | `{ email, password }` | `accessToken`, buyer user summary |
 | Validate session | `GET /auth/me` | none | authenticated buyer summary |
 | Browse products | `GET /products` | `page`, `limit`, `search`, `category`, `qualityGrade`, `minPrice`, `maxPrice`, `sortBy`, `sortOrder` as applicable | paginated product data |
@@ -142,6 +146,21 @@ as returned by the payment API. This slice never calls `POST /payments/:id/simul
 
 No error path falls back to mock users, mock products, mock orders, or a fake
 payment result.
+
+## Buyer Registration Amendment
+
+The original first-slice restriction to existing buyers was corrected after
+the deployed web UI sent a buyer selecting Sign up back to login despite the
+backend already exposing `POST /auth/register/buyer`. The web app must render a
+buyer-specific form with the backend's required `businessName`, `businessType`,
+`cnic`, `email`, and strong `password` fields. `phone` and saved addresses are
+optional and omitted when blank. A successful buyer-only result is saved by
+the existing session adapter and opens the protected buyer application without
+a second login. A non-buyer response is rejected before session persistence.
+
+The legacy `/login` page must no longer use hard-coded credentials or route
+sign-up users to an ignored `?auth=signup` value. It must use the same real
+buyer login/registration entry state as `/`.
 
 ## Docker and Runtime Configuration
 

@@ -6,6 +6,7 @@ import {
   type ApiPage,
   type ApiPayment,
   type ApiProduct,
+  type ApiShipment,
   type BuyerProduct,
   type CreateOrderRequest,
   type InitiatePaymentResponse,
@@ -111,6 +112,10 @@ export class BuyerRepository {
 
   listPayments(query: PaymentQuery = {}): Promise<ApiPage<ApiPayment>> {
     return this.client.request<ApiPage<ApiPayment>>(withQuery("/payments", query));
+  }
+
+  listShipments(): Promise<ApiShipment[]> {
+    return this.client.request<ApiShipment[]>("/shipments");
   }
 
   getPayment(id: string): Promise<ApiPayment> {

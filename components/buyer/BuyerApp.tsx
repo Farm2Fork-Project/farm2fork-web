@@ -11,6 +11,7 @@ import type {
   ApiOrder,
   ApiPage,
   ApiPayment,
+  ApiShipment,
   BuyerProduct,
 } from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
@@ -33,6 +34,7 @@ type BuyerRepositoryPort = Pick<
   | "initiatePayment"
   | "listOrders"
   | "listPayments"
+  | "listShipments"
   | "listProducts"
 >;
 
@@ -62,6 +64,7 @@ export function BuyerApp({
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<ApiOrder[] | null>(null);
   const [payments, setPayments] = useState<ApiPayment[] | null>(null);
+  const [shipments, setShipments] = useState<ApiShipment[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,12 +116,14 @@ export function BuyerApp({
     Promise.all([
       repository.listOrders({ limit: 20 }),
       repository.listPayments({ limit: 50 }),
+      repository.listShipments(),
     ])
-      .then(([ordersResponse, paymentsResponse]) => {
+      .then(([ordersResponse, paymentsResponse, shipmentResponse]) => {
         if (!active) return;
         setOrdersError(null);
         setOrders(ordersResponse.data);
         setPayments(paymentsResponse.data);
+        setShipments(shipmentResponse);
       })
       .catch((error: unknown) => {
         if (active) setOrdersError(toErrorMessage(error));
@@ -235,7 +240,7 @@ export function BuyerApp({
             />
           ) : null}
           {activeTab === "orders" ? (
-            <Orders error={ordersError} orders={orders} payments={payments} />
+            <Orders error={ordersError} orders={orders} payments={payments} shipments={shipments} />
           ) : null}
         </main>
       </div>
@@ -413,14 +418,18 @@ function Orders({
   error,
   orders,
   payments,
+  shipments,
 }: {
   error: string | null;
   orders: ApiOrder[] | null;
   payments: ApiPayment[] | null;
+  shipments: ApiShipment[] | null;
 }) {
   if (error) return <p role="alert">{error}</p>;
-  if (!orders || !payments) return <p>Loading orders and payments…</p>;
+  if (!orders || !payments || !shipments) return <p>Loading orders and payments…</p>;
   if (orders.length === 0) return <p>No orders yet.</p>;
+
+  const shipmentsByOrder = new Map(shipments.map((shipment) => [shipment.orderId, shipment]));
 
   return (
     <section className="orders-grid">
@@ -447,9 +456,30 @@ function Orders({
           <p>
             Payment: {payments.find((payment) => payment.orderId === order.id)?.status ?? "not initiated"}
           </p>
+          <ShipmentTracking shipment={shipmentsByOrder.get(order.id)} />
         </article>
       ))}
     </section>
+  );
+}
+
+function ShipmentTracking({ shipment }: { shipment: ApiShipment | undefined }) {
+  if (!shipment) return <p>Shipment: awaiting assignment</p>;
+
+  return (
+    <div>
+      <p>Shipment: {shipment.status}</p>
+      {shipment.statusHistory.length > 0 ? (
+        <ol>
+          {shipment.statusHistory.map((entry) => (
+            <li key={`${entry.status}-${entry.timestamp}`}>
+              {entry.status} · {new Date(entry.timestamp).toLocaleString()}
+              {entry.note ? ` — ${entry.note}` : ""}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </div>
   );
 }
 

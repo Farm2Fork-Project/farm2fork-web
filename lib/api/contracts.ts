@@ -1,5 +1,10 @@
-export type UserRole = 'farmer' | 'buyer' | 'transporter' | 'admin';
-export type WebRole = Exclude<UserRole, 'admin'>;
+export type UserRole =
+  | 'farmer'
+  | 'buyer'
+  | 'transporter'
+  | 'financial_partner'
+  | 'admin';
+export type WebRole = Exclude<UserRole, 'admin' | 'financial_partner'>;
 
 export interface ApiAuthUser {
   id: string;
@@ -8,11 +13,6 @@ export interface ApiAuthUser {
   phone?: string;
   isVerified: boolean;
   isActive: boolean;
-}
-
-export interface ApiAuthResult {
-  accessToken: string;
-  user: ApiAuthUser;
 }
 
 export type BuyerBusinessType =
@@ -55,6 +55,19 @@ export interface RegisterTransporterRequest {
   phone?: string;
   serviceAreas?: string[];
 }
+
+export type BuyerOnboardingRequest = Omit<
+  RegisterBuyerRequest,
+  'email' | 'password'
+>;
+export type FarmerOnboardingRequest = Omit<
+  RegisterFarmerRequest,
+  'email' | 'password'
+>;
+export type TransporterOnboardingRequest = Omit<
+  RegisterTransporterRequest,
+  'email' | 'password'
+>;
 
 export interface ApiProduct {
   id: string;

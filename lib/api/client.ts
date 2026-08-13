@@ -1,4 +1,3 @@
-import { webSession } from "../auth/web-session.ts";
 import { ApiError } from "./contracts.ts";
 
 type FetchLike = (
@@ -13,21 +12,18 @@ export type ApiRequestOptions = Omit<RequestInit, "body" | "headers"> & {
 
 type ApiClientOptions = {
   baseUrl?: string;
-  getAccessToken?: () => string | null;
   clearSession?: () => void;
   fetchFn?: FetchLike;
 };
 
 export class ApiClient {
   private readonly baseUrl: string | undefined;
-  private readonly getAccessToken: () => string | null;
   private readonly clearSession: () => void;
   private readonly fetchFn: FetchLike;
 
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
-    this.getAccessToken = options.getAccessToken ?? (() => webSession.read()?.accessToken ?? null);
-    this.clearSession = options.clearSession ?? webSession.clear;
+    this.clearSession = options.clearSession ?? (() => undefined);
     this.fetchFn = options.fetchFn ?? fetch;
   }
 
@@ -37,13 +33,12 @@ export class ApiClient {
     const headers = new Headers(suppliedHeaders);
     headers.set("Accept", "application/json");
 
-    const accessToken = this.getAccessToken();
-    if (accessToken) {
-      headers.set("Authorization", `Bearer ${accessToken}`);
-    }
-
     if (body !== undefined) {
       headers.set("Content-Type", "application/json");
+    }
+
+    if (isUnsafeMethod(requestInit.method)) {
+      headers.set("X-Farm2Fork-CSRF", "1");
     }
 
     let response: Response;
@@ -51,6 +46,7 @@ export class ApiClient {
       response = await this.fetchFn(`${baseUrl}${normalizePath(path)}`, {
         ...requestInit,
         headers,
+        credentials: "include",
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
     } catch {
@@ -81,6 +77,12 @@ export class ApiClient {
     }
     return baseUrl;
   }
+}
+
+function isUnsafeMethod(method: string | undefined): boolean {
+  return ["DELETE", "PATCH", "POST", "PUT"].includes(
+    (method ?? "GET").toUpperCase(),
+  );
 }
 
 function normalizePath(path: string): string {

@@ -1,11 +1,7 @@
 import type { ApiRequestOptions } from "../api/client.ts";
 import {
   ApiError,
-  type ApiAuthResult,
   type ApiAuthUser,
-  type RegisterBuyerRequest,
-  type RegisterFarmerRequest,
-  type RegisterTransporterRequest,
   type WebRole,
 } from "../api/contracts.ts";
 import { type WebSession, webSession } from "./web-session.ts";
@@ -15,11 +11,6 @@ type ApiRequester = {
 };
 
 type SessionStore = Pick<typeof webSession, "clear" | "read" | "save">;
-
-type Credentials = {
-  email: string;
-  password: string;
-};
 
 export class RoleAuthRepository {
   private readonly client: ApiRequester;
@@ -36,52 +27,16 @@ export class RoleAuthRepository {
     this.session = session;
   }
 
-  async login(input: Credentials, expectedRole: WebRole): Promise<WebSession> {
-    return this.persistExpectedRole(
-      await this.client.request<ApiAuthResult>("/auth/login", {
-        method: "POST",
-        body: input,
-      }),
-      expectedRole,
-    );
-  }
-
-  async registerBuyer(input: RegisterBuyerRequest): Promise<WebSession> {
-    return this.persistExpectedRole(
-      await this.client.request<ApiAuthResult>("/auth/register/buyer", {
-        method: "POST",
-        body: input,
-      }),
-      "buyer",
-    );
-  }
-
-  async registerFarmer(input: RegisterFarmerRequest): Promise<WebSession> {
-    return this.persistExpectedRole(
-      await this.client.request<ApiAuthResult>("/auth/register/farmer", {
-        method: "POST",
-        body: input,
-      }),
-      "farmer",
-    );
-  }
-
-  async registerTransporter(input: RegisterTransporterRequest): Promise<WebSession> {
-    return this.persistExpectedRole(
-      await this.client.request<ApiAuthResult>("/auth/register/transporter", {
-        method: "POST",
-        body: input,
-      }),
-      "transporter",
-    );
-  }
-
-  async getCurrentUser(expectedRole: WebRole): Promise<WebSession["user"]> {
+  async getCurrentUser<Role extends WebRole>(
+    expectedRole: Role,
+  ): Promise<WebSession["user"] & { role: Role }> {
     try {
-      return this.toExpectedUser(
+      const user = this.toExpectedUser(
         await this.client.request<ApiAuthUser>("/auth/me"),
         expectedRole,
       );
+      this.session.save({ user });
+      return user;
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         this.session.clear();
@@ -90,22 +45,10 @@ export class RoleAuthRepository {
     }
   }
 
-  private persistExpectedRole(
-    result: ApiAuthResult,
-    expectedRole: WebRole,
-  ): WebSession {
-    const session: WebSession = {
-      accessToken: result.accessToken,
-      user: this.toExpectedUser(result.user, expectedRole),
-    };
-    this.session.save(session);
-    return session;
-  }
-
-  private toExpectedUser(
+  private toExpectedUser<Role extends WebRole>(
     user: ApiAuthUser,
-    expectedRole: WebRole,
-  ): WebSession["user"] {
+    expectedRole: Role,
+  ): WebSession["user"] & { role: Role } {
     if (user.role !== expectedRole) {
       throw new ApiError(
         403,

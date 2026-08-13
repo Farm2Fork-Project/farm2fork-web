@@ -11,20 +11,13 @@ import {
   type CreateOrderRequest,
   type InitiatePaymentResponse,
   type PaymentGateway,
-  type RegisterBuyerRequest,
   toBuyerProduct,
 } from "../api/contracts.ts";
-import {
-  type BuyerSession,
-  webSession,
-} from "../auth/web-session.ts";
-import { RoleAuthRepository } from "../auth/role-auth-repository.ts";
+import type { BuyerSession } from "../auth/web-session.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
 };
-
-type BuyerSessionStore = Pick<typeof webSession, "clear" | "read" | "save">;
 
 export type ProductQuery = {
   page?: number;
@@ -50,31 +43,17 @@ export type PaymentQuery = PaginationQuery & {
 
 export class BuyerRepository {
   private readonly client: ApiRequester;
-  private readonly session: BuyerSessionStore;
-  private readonly auth: RoleAuthRepository;
 
-  constructor({
-    client,
-    session = webSession,
-  }: {
-    client: ApiRequester;
-    session?: BuyerSessionStore;
-  }) {
+  constructor({ client }: { client: ApiRequester }) {
     this.client = client;
-    this.session = session;
-    this.auth = new RoleAuthRepository({ client, session });
-  }
-
-  async login(input: { email: string; password: string }): Promise<BuyerSession> {
-    return toBuyerSession(await this.auth.login(input, "buyer"));
-  }
-
-  async registerBuyer(input: RegisterBuyerRequest): Promise<BuyerSession> {
-    return toBuyerSession(await this.auth.registerBuyer(input));
   }
 
   async getCurrentBuyer(): Promise<BuyerSession["user"]> {
-    return toBuyerUser(await this.auth.getCurrentUser("buyer"));
+    const user = await this.client.request<ApiAuthUser>("/auth/me");
+    if (user.role !== "buyer") {
+      throw new ApiError(403, "This account cannot access the buyer application.");
+    }
+    return user as BuyerSession["user"];
   }
 
   async listProducts(query: ProductQuery = {}): Promise<ApiPage<BuyerProduct>> {
@@ -85,7 +64,9 @@ export class BuyerRepository {
   }
 
   async getProduct(id: string): Promise<BuyerProduct> {
-    return toBuyerProduct(await this.client.request<ApiProduct>(`/products/${id}`));
+    return toBuyerProduct(
+      await this.client.request<ApiProduct>(`/products/${id}`),
+    );
   }
 
   createOrder(input: CreateOrderRequest): Promise<ApiOrder> {
@@ -103,15 +84,20 @@ export class BuyerRepository {
     orderId: string,
     gateway: PaymentGateway,
   ): Promise<ApiPayment> {
-    const response = await this.client.request<InitiatePaymentResponse>("/payments", {
-      method: "POST",
-      body: { orderId, gateway },
-    });
+    const response = await this.client.request<InitiatePaymentResponse>(
+      "/payments",
+      {
+        method: "POST",
+        body: { orderId, gateway },
+      },
+    );
     return response.payment;
   }
 
   listPayments(query: PaymentQuery = {}): Promise<ApiPage<ApiPayment>> {
-    return this.client.request<ApiPage<ApiPayment>>(withQuery("/payments", query));
+    return this.client.request<ApiPage<ApiPayment>>(
+      withQuery("/payments", query),
+    );
   }
 
   listShipments(): Promise<ApiShipment[]> {
@@ -121,24 +107,6 @@ export class BuyerRepository {
   getPayment(id: string): Promise<ApiPayment> {
     return this.client.request<ApiPayment>(`/payments/${id}`);
   }
-}
-
-function toBuyerSession(session: { accessToken: string; user: ApiAuthUser }): BuyerSession {
-  return { accessToken: session.accessToken, user: toBuyerUser(session.user) };
-}
-
-function toBuyerUser(user: ApiAuthUser): BuyerSession["user"] {
-  if (user.role !== "buyer") {
-    throw new ApiError(403, "This account cannot access the buyer application.");
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
-    role: "buyer",
-    isVerified: user.isVerified,
-    isActive: user.isActive,
-  };
 }
 
 function withQuery(

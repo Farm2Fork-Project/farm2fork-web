@@ -15,13 +15,14 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const enterAdmin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const completeAdminLogin = async (
+    signIn: (auth: FirebaseWebAuthRepository) => ReturnType<FirebaseWebAuthRepository['signInWithEmail']>,
+  ) => {
     setError('')
     setIsSubmitting(true)
     const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
     try {
-      const result = await auth.signInWithEmail({ email, password })
+      const result = await signIn(auth)
       if (result.kind !== 'session' || result.user.role !== 'admin') {
         await auth.logout()
         throw new Error('This account is not authorized for the admin dashboard.')
@@ -31,6 +32,27 @@ export default function LoginPage() {
       setError(submissionError instanceof Error ? submissionError.message : 'Could not sign in.')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const enterAdmin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await completeAdminLogin((auth) => auth.signInWithEmail({ email, password }))
+  }
+
+  const signInWithGoogle = () => completeAdminLogin((auth) => auth.signInWithGoogle())
+
+  const resetPassword = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (!email.trim()) {
+      setError('Enter your email address first.')
+      return
+    }
+    try {
+      await new FirebaseWebAuthRepository({ client: new ApiClient() }).sendPasswordReset(email.trim())
+      setError('If an account exists, Firebase has sent a password-reset email.')
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : 'Could not send a password-reset email.')
     }
   }
 
@@ -98,7 +120,7 @@ export default function LoginPage() {
             <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               Password
             </label>
-            <a href="#" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-green)', textDecoration: 'none' }}>
+            <a href="#" onClick={resetPassword} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-green)', textDecoration: 'none' }}>
               Forgot password?
             </a>
           </div>
@@ -171,6 +193,17 @@ export default function LoginPage() {
           onMouseOut={(e) => e.currentTarget.style.background = 'var(--primary-green)'}
         >
           {isSubmitting ? 'Signing in…' : 'Sign In'} <ArrowRight size={18} />
+        </button>
+        <button
+          type="button"
+          disabled={isSubmitting}
+          onClick={() => void signInWithGoogle()}
+          style={{
+            width: '100%', padding: '14px', background: 'var(--white)', color: 'var(--text-dark)',
+            borderRadius: '8px', fontSize: '15px', fontWeight: 600, border: '1px solid var(--surface-medium)', cursor: 'pointer',
+          }}
+        >
+          Continue with Google
         </button>
       </form>
 

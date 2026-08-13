@@ -14,14 +14,14 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const completeLogin = async (
+    signIn: (auth: FirebaseWebAuthRepository) => ReturnType<FirebaseWebAuthRepository['signInWithEmail']>,
+  ) => {
     setError('')
     setLoading(true)
-
     const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
     try {
-      const result = await auth.signInWithEmail({ email, password })
+      const result = await signIn(auth)
       if (result.kind !== 'session' || result.user.role !== 'financial_partner') {
         await auth.logout()
         throw new Error('This account is not authorized for the financial partner dashboard.')
@@ -29,7 +29,29 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
       onLoginSuccess()
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : 'Could not sign in.')
+    } finally {
       setLoading(false)
+    }
+  }
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    await completeLogin((auth) => auth.signInWithEmail({ email, password }))
+  }
+
+  const signInWithGoogle = () => completeLogin((auth) => auth.signInWithGoogle())
+
+  const resetPassword = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault()
+    if (!email.trim()) {
+      setError('Enter your email address first.')
+      return
+    }
+    try {
+      await new FirebaseWebAuthRepository({ client: new ApiClient() }).sendPasswordReset(email.trim())
+      setError('If an account exists, Firebase has sent a password-reset email.')
+    } catch (resetError) {
+      setError(resetError instanceof Error ? resetError.message : 'Could not send a password-reset email.')
     }
   }
 
@@ -110,7 +132,7 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
                   <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                     Password
                   </label>
-                  <a href="#" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-green)', textDecoration: 'none', marginLeft: 'auto' }}>
+                  <a href="#" onClick={resetPassword} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary-green)', textDecoration: 'none', marginLeft: 'auto' }}>
                     Forgot password?
                   </a>
                 </div>
@@ -192,6 +214,17 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
                 }}
               >
                 {loading ? 'Authenticating...' : 'Sign In'} <ArrowRight size={18} />
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => void signInWithGoogle()}
+                style={{
+                  width: '100%', padding: '14px', background: 'var(--white)', color: 'var(--text-dark)',
+                  borderRadius: '8px', fontSize: '15px', fontWeight: 600, border: '1px solid var(--surface-medium)', cursor: 'pointer',
+                }}
+              >
+                Continue with Google
               </button>
             </form>
 

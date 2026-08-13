@@ -6,6 +6,7 @@ import DashboardScreen from '@/components/financial/DashboardScreen'
 import LoanDetailScreen from '@/components/financial/LoanDetailScreen'
 import SettingsScreen from '@/components/financial/SettingsScreen'
 import LogoutModal from '@/components/financial/LogoutModal'
+import { ApiClient } from '@/lib/api/client.ts'
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -16,10 +17,9 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true)
-    const auth = sessionStorage.getItem('financial_partner_authenticated')
-    if (auth === 'true') {
-      setIsAuthenticated(true)
-    }
+    new ApiClient().request<{ role: string }>('/auth/me')
+      .then((user) => setIsAuthenticated(user.role === 'financial_partner'))
+      .catch(() => setIsAuthenticated(false))
   }, [])
 
   const handleLoginSuccess = () => {
@@ -32,7 +32,7 @@ export default function Home() {
   }
 
   const handleLogoutConfirm = () => {
-    sessionStorage.removeItem('financial_partner_authenticated')
+    void new ApiClient().request('/auth/web/logout', { method: 'POST' }).catch(() => undefined)
     setIsAuthenticated(false)
     setSelectedLoanId(null)
     setCurrentView('queue')

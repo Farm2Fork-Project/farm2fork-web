@@ -37,10 +37,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [showLogout, setShowLogout] = useState(false)
 
   const handleLogout = () => {
-    localStorage.removeItem('role')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('avatarUrl')
-    router.push('/admin/login')
+    router.push('/admin/logout')
   }
 
   return (

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { ApiClient } from '@/lib/api/client.ts'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 
@@ -12,18 +13,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    try {
-      const r = localStorage.getItem('role')
-      setRole(r)
-      if (r !== 'admin') {
+    new ApiClient().request<{ role: string }>('/auth/me')
+      .then((user) => {
+        setRole(user.role)
+        if (user.role !== 'admin') {
+          router.replace('/admin/login')
+        }
+      })
+      .catch(() => {
+        setRole(null)
         router.replace('/admin/login')
-      }
-    } catch (e) {
-      setRole(null)
-      router.replace('/admin/login')
-    } finally {
-      setLoading(false)
-    }
+      })
+      .finally(() => setLoading(false))
   }, [router])
 
   if (loading || role !== 'admin') return null

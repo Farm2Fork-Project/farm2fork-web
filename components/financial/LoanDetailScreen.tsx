@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { LoanApplication, LoanDetailScreenProps } from '../types'
 import Topbar from './Topbar'
+import { ApiClient } from '@/lib/api/client.ts'
 
 export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings }: LoanDetailScreenProps) {
   const [mounted, setMounted] = useState(false)
@@ -100,8 +101,9 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('financial_partner_authenticated')
-    window.location.reload()
+    void new ApiClient().request('/auth/web/logout', { method: 'POST' })
+      .catch(() => undefined)
+      .finally(() => window.location.assign('/financial'))
   }
 
   if (!mounted) return null

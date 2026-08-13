@@ -3,6 +3,8 @@
 import React, { useState } from 'react'
 import { ArrowRight, Mail, Lock, Eye, EyeOff, ShieldCheck, Leaf } from 'lucide-react'
 import { FinancialLoginScreenProps } from '../types'
+import { ApiClient } from '@/lib/api/client.ts'
+import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
 
 
 export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProps) {
@@ -12,26 +14,23 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // Simulate authentication
-    setTimeout(() => {
-      const isValid =
-        (email === 'partner.user@farm2fork.com' && password === 'test1234') ||
-        (email === 'partner@farm2fork.com' && password === 'password123');
-
-      if (isValid) {
-        sessionStorage.setItem('financial_partner_authenticated', 'true')
-        sessionStorage.setItem('partner_email', email)
-        onLoginSuccess()
-      } else {
-        setError('Invalid email or password')
-        setLoading(false)
+    const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
+    try {
+      const result = await auth.signInWithEmail({ email, password })
+      if (result.kind !== 'session' || result.user.role !== 'financial_partner') {
+        await auth.logout()
+        throw new Error('This account is not authorized for the financial partner dashboard.')
       }
-    }, 800)
+      onLoginSuccess()
+    } catch (loginError) {
+      setError(loginError instanceof Error ? loginError.message : 'Could not sign in.')
+      setLoading(false)
+    }
   }
 
   return (

@@ -29,19 +29,6 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    try {
-      const n = localStorage.getItem('userName')
-      const r = localStorage.getItem('role')
-      const a = localStorage.getItem('avatarUrl')
-      if (n) setName(n)
-      if (r) setRole(r)
-      if (a) setAvatarUrl(a)
-    } catch (e) {
-      // ignore
-    }
-  }, [])
-
   return (
     <header className="topbar">
       <button

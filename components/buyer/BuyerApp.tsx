@@ -74,7 +74,7 @@ export function BuyerApp({
       .getCurrentBuyer()
       .then((currentBuyer) => {
         if (!active) return;
-        webSession.save({ accessToken: session.accessToken, user: currentBuyer });
+        webSession.save({ user: currentBuyer });
         setBuyer(currentBuyer);
       })
       .catch((error: unknown) => {
@@ -89,7 +89,7 @@ export function BuyerApp({
     return () => {
       active = false;
     };
-  }, [onLogout, repository, session.accessToken]);
+  }, [onLogout, repository]);
 
   useEffect(() => {
     if (!buyer || activeTab !== "marketplace") return;

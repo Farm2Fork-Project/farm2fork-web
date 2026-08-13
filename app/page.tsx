@@ -9,9 +9,12 @@ import SignUpFormScreen from "@/components/SignUpFormScreen";
 import SignUpRoleScreen from "@/components/SignUpRoleScreen";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { BuyerApp } from "@/components/buyer/BuyerApp";
+import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
 import { ApiClient } from "@/lib/api/client.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
-import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
+import { ApiError, type RegisterBuyerRequest } from "@/lib/api/contracts.ts";
+import { FirebaseWebAuthRepository } from "@/lib/auth/firebase-web-auth-repository.ts";
+import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import {
   type BuyerSession,
   type WebSession,
@@ -25,6 +28,14 @@ function HomeContent() {
     () => new BuyerRepository({ client: new ApiClient() }),
     [],
   );
+  const authRepository = useMemo(
+    () => new FirebaseWebAuthRepository({ client: new ApiClient() }),
+    [],
+  );
+  const roleRepository = useMemo(
+    () => new RoleAuthRepository({ client: new ApiClient() }),
+    [],
+  );
   const [session, setSession] = useState<BuyerSession | null>(null);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [authScreen, setAuthScreen] = useState<AuthScreen>(() => {
@@ -34,6 +45,10 @@ function HomeContent() {
   });
   const [loginError, setLoginError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [pendingOnboarding, setPendingOnboarding] = useState<
+    Omit<RegisterBuyerRequest, "email" | "password"> | null
+  >(null);
 
   const closeAuth = useCallback(() => {
     setLoginError("");
@@ -42,10 +57,20 @@ function HomeContent() {
   }, [router]);
 
   useEffect(() => {
-    const restoredSession = webSession.read();
-    setSession(isBuyerSession(restoredSession) ? restoredSession : null);
-    setIsCheckingSession(false);
-  }, []);
+    let active = true;
+    roleRepository
+      .getCurrentUser("buyer")
+      .then((user) => {
+        if (active) setSession({ user });
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setIsCheckingSession(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [roleRepository]);
 
   useEffect(() => {
     if (session || authScreen === "landing") return;
@@ -70,8 +95,11 @@ function HomeContent() {
     setIsSubmitting(true);
     setLoginError("");
     try {
-      const nextSession = await repository.login({ email, password });
-      setSession(nextSession);
+      const result = await authRepository.signInWithEmail({ email, password });
+      if (result.kind !== "session" || result.user.role !== "buyer") {
+        throw new ApiError(403, "This account cannot access the buyer application.");
+      }
+      setSession({ user: result.user as BuyerSession["user"] });
       setAuthScreen("landing");
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Could not sign in.");
@@ -81,16 +109,42 @@ function HomeContent() {
   }
 
   async function registerBuyer(input: RegisterBuyerRequest) {
-    const nextSession = await repository.registerBuyer(input);
-    setSession(nextSession);
-    setAuthScreen("landing");
-    router.replace("/");
+    const { email, password, ...onboarding } = input;
+    const result = await authRepository.signUpWithEmail({ email, password });
+    setPendingOnboarding(onboarding);
+    setVerificationEmail(result.email);
+    setAuthScreen("verification");
   }
 
-  function logout() {
-    webSession.clear();
+  async function logout() {
+    await authRepository.logout();
     setSession(null);
     setAuthScreen("login");
+  }
+
+  async function refreshVerification() {
+    setIsSubmitting(true);
+    setLoginError("");
+    try {
+      const result = await authRepository.refreshEmailVerification();
+      if (result.kind === "session") {
+        if (result.user.role !== "buyer") throw new ApiError(403, "This account cannot access the buyer application.");
+        setSession({ user: result.user as BuyerSession["user"] });
+        setAuthScreen("landing");
+        return;
+      }
+    } catch (error) {
+      if (isOnboardingRequired(error) && pendingOnboarding) {
+        const user = await authRepository.onboardBuyer(pendingOnboarding);
+        if (user.role !== "buyer") throw new ApiError(403, "This account cannot access the buyer application.");
+        setSession({ user: user as BuyerSession["user"] });
+        setAuthScreen("landing");
+        return;
+      }
+      setLoginError(error instanceof Error ? error.message : "Could not verify your email.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (isCheckingSession) return <p>Loading…</p>;
@@ -135,8 +189,26 @@ function HomeContent() {
           onSubmit={registerBuyer}
         />
       ) : null}
+      {authScreen === "verification" ? (
+        <EmailVerificationRequired
+          email={verificationEmail}
+          error={loginError}
+          isSubmitting={isSubmitting}
+          onBack={() => setAuthScreen("signup-form")}
+          onResend={() => authRepository.resendEmailVerification()}
+          onRefresh={refreshVerification}
+        />
+      ) : null}
     </>
   );
+}
+
+function isOnboardingRequired(error: unknown): boolean {
+  return error instanceof ApiError &&
+    !!error.body &&
+    typeof error.body === "object" &&
+    "code" in error.body &&
+    error.body.code === "ONBOARDING_REQUIRED";
 }
 
 function isBuyerSession(session: WebSession | null): session is BuyerSession {

@@ -4,18 +4,17 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogOut, RotateCcw } from 'lucide-react'
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
+import { ApiClient } from '@/lib/api/client.ts'
 
 export default function LogoutPage() {
   const router = useRouter()
 
   useEffect(() => {
-    localStorage.removeItem('role')
-    localStorage.removeItem('userName')
-    localStorage.removeItem('avatarUrl')
+    void new ApiClient().request('/auth/web/logout', { method: 'POST' }).catch(() => undefined)
   }, [])
 
   return (
-    <AdminPageShell title="Logout" description="Your local demo session has been cleared. Return to the login page when you want to enter the admin preview again.">
+    <AdminPageShell title="Logout" description="Your secure session has been cleared. Return to the login page when you want to sign in again.">
       <div className="card" style={{ maxWidth: 720, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(35, 107, 68, 0.12)', display: 'grid', placeItems: 'center', color: 'var(--primary-green)' }}>

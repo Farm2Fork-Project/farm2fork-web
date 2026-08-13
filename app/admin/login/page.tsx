@@ -4,15 +4,34 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight, Mail, Lock, Eye, Tractor, Leaf } from 'lucide-react'
 import AuthPageShell from '@/components/admin/screens/AuthPageShell'
 import Link from 'next/link'
+import { useState } from 'react'
+import { ApiClient } from '@/lib/api/client.ts'
+import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
 
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const enterAdmin = (e: React.FormEvent) => {
+  const enterAdmin = async (e: React.FormEvent) => {
     e.preventDefault()
-    localStorage.setItem('role', 'admin')
-    localStorage.setItem('userName', 'Admin User')
-    router.push('/admin/dashboard')
+    setError('')
+    setIsSubmitting(true)
+    const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
+    try {
+      const result = await auth.signInWithEmail({ email, password })
+      if (result.kind !== 'session' || result.user.role !== 'admin') {
+        await auth.logout()
+        throw new Error('This account is not authorized for the admin dashboard.')
+      }
+      router.push('/admin/dashboard')
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : 'Could not sign in.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -46,6 +65,8 @@ export default function LoginPage() {
               type="email"
               placeholder="admin@farm2fork.com"
               required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
               className="input"
               style={{
                 width: '100%',
@@ -89,6 +110,8 @@ export default function LoginPage() {
               type="password"
               placeholder="Enter password"
               required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               style={{
                 width: '100%',
                 padding: '14px 44px 14px 44px',
@@ -126,6 +149,7 @@ export default function LoginPage() {
 
         <button
           type="submit"
+          disabled={isSubmitting}
           style={{
             width: '100%',
             padding: '16px',
@@ -146,9 +170,11 @@ export default function LoginPage() {
           onMouseOver={(e) => e.currentTarget.style.background = 'var(--primary-green-dark)'}
           onMouseOut={(e) => e.currentTarget.style.background = 'var(--primary-green)'}
         >
-          Sign In <ArrowRight size={18} />
+          {isSubmitting ? 'Signing in…' : 'Sign In'} <ArrowRight size={18} />
         </button>
       </form>
+
+      {error ? <p role="alert" style={{ color: 'var(--error-red)', marginTop: '16px' }}>{error}</p> : null}
 
       <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--surface-medium)', textAlign: 'center', fontSize: '13px', color: 'var(--text-muted)' }}>
         Need assistance? <a href="#" style={{ color: 'var(--primary-green)', fontWeight: 600, textDecoration: 'none' }}>Contact Supply Support</a>

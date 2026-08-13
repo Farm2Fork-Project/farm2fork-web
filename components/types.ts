@@ -1,7 +1,7 @@
 import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 
 /* ───────── Shared Types ───────── */
-export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter";
+export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter" | "verification";
 export type AppTab = "marketplace" | "scan" | "cart" | "orders" | "profile";
 
 /* ───────── Product Data ───────── */

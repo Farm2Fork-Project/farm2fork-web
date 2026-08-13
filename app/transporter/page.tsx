@@ -48,6 +48,8 @@ function TransporterApp() {
   const [pendingOnboarding, setPendingOnboarding] = useState<
     Omit<RegisterTransporterRequest, "email" | "password"> | null
   >(null);
+  const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
+  const [isGoogleOnboarding, setIsGoogleOnboarding] = useState(false);
   const isSignup = searchParams.get("signup") === "true";
 
   useEffect(() => {
@@ -85,7 +87,18 @@ function TransporterApp() {
     setAuthError("");
     try {
       const result = await firebaseAuthRepository.signInWithEmail({ email, password });
-      if (result.kind !== "session" || result.user.role !== "transporter") {
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setIsVerifyingEmail(true);
+        return;
+      }
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setIsGoogleOnboarding(true);
+        setAuthMode("signup1");
+        return;
+      }
+      if (result.user.role !== "transporter") {
         throw new ApiError(403, "This account cannot access the transporter application.");
       }
       setSession({ user: result.user });
@@ -110,7 +123,18 @@ function TransporterApp() {
     setIsSubmitting(true);
     setAuthError("");
     try {
-      const { email, password, ...onboarding } = { ...draft, ...input };
+      const registration = { ...draft, ...input };
+      if (googleIdentityEmail) {
+        const { email: _email, password: _password, ...onboarding } = registration;
+        const user = await firebaseAuthRepository.onboardTransporter(onboarding);
+        if (user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
+        setSession({ user });
+        setGoogleIdentityEmail("");
+        setIsGoogleOnboarding(false);
+        router.replace("/transporter");
+        return;
+      }
+      const { email, password, ...onboarding } = registration;
       const result = await firebaseAuthRepository.signUpWithEmail({ email, password });
       setPendingOnboarding(onboarding);
       setVerificationEmail(result.email);
@@ -120,6 +144,40 @@ function TransporterApp() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function loginWithGoogle() {
+    setIsSubmitting(true);
+    setAuthError("");
+    try {
+      const result = await firebaseAuthRepository.signInWithGoogle();
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setIsGoogleOnboarding(true);
+        setAuthMode("signup1");
+        return;
+      }
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setIsVerifyingEmail(true);
+        return;
+      }
+      if (result.user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
+      setSession({ user: result.user as WebSession["user"] & { role: "transporter" } });
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Could not sign in with Google.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function requestPasswordReset(email: string) {
+    if (!email.trim()) {
+      setAuthError("Enter your email address before requesting a password reset.");
+      return;
+    }
+    await firebaseAuthRepository.sendPasswordReset(email.trim());
+    setAuthError("Password reset email sent. Check your inbox.");
   }
 
   async function logout() {
@@ -167,8 +225,8 @@ function TransporterApp() {
         />
       );
     }
-    if (authMode === "signup1") {
-      return <TransporterSignup1Screen onBack={() => router.replace("/transporter")} onNext={advanceSignup} />;
+      if (authMode === "signup1") {
+      return <TransporterSignup1Screen identityEmail={googleIdentityEmail || undefined} onBack={() => { setIsGoogleOnboarding(false); router.replace("/transporter"); }} onNext={advanceSignup} />;
     }
     if (authMode === "signup2") {
       return (
@@ -187,6 +245,8 @@ function TransporterApp() {
         onBackHome={() => router.replace("/")}
         onGoSignup={() => router.replace("/transporter?signup=true")}
         onLogin={login}
+        onGoogleLogin={loginWithGoogle}
+        onForgotPassword={requestPasswordReset}
       />
     );
   }

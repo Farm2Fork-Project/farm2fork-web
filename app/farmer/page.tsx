@@ -33,6 +33,7 @@ function FarmerApp() {
   const [pendingOnboarding, setPendingOnboarding] = useState<
     Omit<RegisterFarmerRequest, "email" | "password"> | null
   >(null);
+  const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
 
   const isSignup = searchParams.get("signup") === "true";
 
@@ -73,7 +74,17 @@ function FarmerApp() {
     setAuthError("");
     try {
       const result = await authRepository.signInWithEmail({ email, password });
-      if (result.kind !== "session" || result.user.role !== "farmer") {
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setIsVerifyingEmail(true);
+        return;
+      }
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setIsGoogleOnboarding(true);
+        return;
+      }
+      if (result.user.role !== "farmer") {
         throw new ApiError(403, "This account cannot access the farmer application.");
       }
       setSession({ user: result.user });
@@ -88,6 +99,16 @@ function FarmerApp() {
     setIsSubmitting(true);
     setAuthError("");
     try {
+      if (googleIdentityEmail) {
+        const { email: _email, password: _password, ...onboarding } = input;
+        const user = await authRepository.onboardFarmer(onboarding);
+        if (user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+        setSession({ user });
+        setGoogleIdentityEmail("");
+        setIsGoogleOnboarding(false);
+        router.replace("/farmer");
+        return;
+      }
       const { email, password, ...onboarding } = input;
       const result = await authRepository.signUpWithEmail({ email, password });
       setPendingOnboarding(onboarding);
@@ -96,6 +117,41 @@ function FarmerApp() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  const [isGoogleOnboarding, setIsGoogleOnboarding] = useState(false);
+
+  async function loginWithGoogle() {
+    setIsSubmitting(true);
+    setAuthError("");
+    try {
+      const result = await authRepository.signInWithGoogle();
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setIsGoogleOnboarding(true);
+        return;
+      }
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setIsVerifyingEmail(true);
+        return;
+      }
+      if (result.user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+      setSession({ user: result.user as WebSession["user"] & { role: "farmer" } });
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Could not sign in with Google.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function requestPasswordReset(email: string) {
+    if (!email.trim()) {
+      setAuthError("Enter your email address before requesting a password reset.");
+      return;
+    }
+    await authRepository.sendPasswordReset(email.trim());
+    setAuthError("Password reset email sent. Check your inbox.");
   }
 
   async function logout() {
@@ -149,10 +205,14 @@ function FarmerApp() {
     );
   }
 
-  if (isSignup) {
+  if (isSignup || isGoogleOnboarding) {
     return (
       <FarmerSignup
-        onBack={() => router.replace("/farmer")}
+        identityEmail={googleIdentityEmail || undefined}
+        onBack={() => {
+          setIsGoogleOnboarding(false);
+          router.replace("/farmer");
+        }}
         onSubmit={register}
       />
     );
@@ -168,6 +228,8 @@ function FarmerApp() {
         router.replace("/farmer?signup=true");
       }}
       onLogin={login}
+      onGoogleLogin={loginWithGoogle}
+      onForgotPassword={requestPasswordReset}
     />
   );
 }

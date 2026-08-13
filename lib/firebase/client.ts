@@ -2,11 +2,13 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  GoogleAuthProvider,
   inMemoryPersistence,
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type Auth,
   type User,
@@ -19,6 +21,7 @@ export type FirebaseWebUser = Pick<User, "email" | "getIdToken"> & {
 export type FirebaseWebAuthGateway = {
   createUserWithEmail(email: string, password: string): Promise<FirebaseWebUser>;
   signInWithEmail(email: string, password: string): Promise<FirebaseWebUser>;
+  signInWithGoogle(): Promise<FirebaseWebUser>;
   currentUser(): FirebaseWebUser | null;
   sendEmailVerification(user: FirebaseWebUser): Promise<void>;
   sendPasswordReset(email: string): Promise<void>;
@@ -65,6 +68,10 @@ export function createFirebaseWebAuthGateway(): FirebaseWebAuthGateway {
     },
     async signInWithEmail(email, password) {
       return (await signInWithEmailAndPassword(await getFirebaseAuth(), email, password))
+        .user;
+    },
+    async signInWithGoogle() {
+      return (await signInWithPopup(await getFirebaseAuth(), new GoogleAuthProvider()))
         .user;
     },
     currentUser() {

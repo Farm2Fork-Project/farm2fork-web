@@ -7,6 +7,8 @@ import { useLanguage } from "./LanguageContext";
 
 export default function LoginScreen({
   onLogin,
+  onGoogleLogin,
+  onForgotPassword,
   onGoSignup,
   onBackHome,
   loginError,
@@ -61,7 +63,15 @@ export default function LoginScreen({
               </button>
             </div>
             <div className="auth-forgot">
-              <a href="#">{t("login.forgot")}</a>
+              <a
+                href="#"
+                onClick={(event) => {
+                  event.preventDefault();
+                  if (onForgotPassword) void onForgotPassword(email);
+                }}
+              >
+                {t("login.forgot")}
+              </a>
             </div>
           </div>
 
@@ -82,6 +92,17 @@ export default function LoginScreen({
           <button className="auth-btn" disabled={isSubmitting} onClick={() => onLogin(email, password)} id="login-btn">
             {isSubmitting ? "Signing in…" : t("login.submit")}
           </button>
+
+          {onGoogleLogin ? (
+            <button
+              className="auth-guest-btn"
+              disabled={isSubmitting}
+              onClick={() => void onGoogleLogin()}
+              type="button"
+            >
+              Continue with Google
+            </button>
+          ) : null}
 
           <div className="auth-footer">
             {t("login.noAccount")}{" "}

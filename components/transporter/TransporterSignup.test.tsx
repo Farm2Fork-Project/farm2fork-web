@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { LanguageProvider } from "./LanguageContext";
@@ -24,6 +24,30 @@ test("TransporterSignup1Screen returns backend personal registration fields", as
     email: "driver@example.com",
     password: "StrongP@ss1",
     phone: "+923001234567",
+    cnic: "35202-1234567-1",
+  });
+});
+
+test("TransporterSignup1Screen reuses a Google identity without a password", async () => {
+  cleanup();
+  const user = userEvent.setup();
+  const onNext = vi.fn();
+  render(
+    <LanguageProvider>
+      <TransporterSignup1Screen
+        identityEmail="driver@example.com"
+        onBack={vi.fn()}
+        onNext={onNext}
+      />
+    </LanguageProvider>,
+  );
+
+  expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+  await user.type(screen.getByLabelText("CNIC"), "35202-1234567-1");
+  await user.click(screen.getByRole("button", { name: /next step/i }));
+  expect(onNext).toHaveBeenCalledWith({
+    email: "driver@example.com",
+    password: "",
     cnic: "35202-1234567-1",
   });
 });

@@ -1,5 +1,7 @@
 import type { ApiRequestOptions } from "../api/client.ts";
-import type {
+import {
+  ApiError,
+  type
   ApiAuthUser,
   BuyerOnboardingRequest,
   FarmerOnboardingRequest,
@@ -20,7 +22,8 @@ type Credentials = { email: string; password: string };
 
 export type FirebaseWebAuthResult =
   | { kind: "session"; user: ApiAuthUser }
-  | { kind: "verification_required"; email: string };
+  | { kind: "verification_required"; email: string }
+  | { kind: "onboarding_required"; email: string };
 
 export class FirebaseWebAuthRepository {
   private readonly client: ApiRequester;
@@ -41,6 +44,10 @@ export class FirebaseWebAuthRepository {
     return this.exchangeForSession(
       await this.firebase.signInWithEmail(input.email, input.password),
     );
+  }
+
+  async signInWithGoogle(): Promise<FirebaseWebAuthResult> {
+    return this.exchangeForSession(await this.firebase.signInWithGoogle());
   }
 
   async signUpWithEmail(
@@ -86,13 +93,29 @@ export class FirebaseWebAuthRepository {
   private async exchangeForSession(
     firebaseUser: FirebaseWebUser,
   ): Promise<FirebaseWebAuthResult> {
-    const user = await this.client.request<ApiAuthUser>("/auth/web/session", {
-      method: "POST",
-      body: { idToken: await firebaseUser.getIdToken(true) },
-    });
-    await this.firebase.signOut();
-    webSession.save({ user });
-    return { kind: "session", user };
+    try {
+      const user = await this.client.request<ApiAuthUser>("/auth/web/session", {
+        method: "POST",
+        body: { idToken: await firebaseUser.getIdToken(true) },
+      });
+      await this.firebase.signOut();
+      webSession.save({ user });
+      return { kind: "session", user };
+    } catch (error) {
+      if (hasBackendCode(error, "EMAIL_VERIFICATION_REQUIRED")) {
+        return {
+          kind: "verification_required",
+          email: firebaseUser.email ?? "",
+        };
+      }
+      if (hasBackendCode(error, "ONBOARDING_REQUIRED")) {
+        return {
+          kind: "onboarding_required",
+          email: firebaseUser.email ?? "",
+        };
+      }
+      throw error;
+    }
   }
 
   private async onboard(
@@ -116,4 +139,14 @@ export class FirebaseWebAuthRepository {
     }
     return user;
   }
+}
+
+function hasBackendCode(error: unknown, code: string): boolean {
+  return (
+    error instanceof ApiError &&
+    !!error.body &&
+    typeof error.body === "object" &&
+    "code" in error.body &&
+    error.body.code === code
+  );
 }

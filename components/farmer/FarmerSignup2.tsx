@@ -8,12 +8,13 @@ import { useLanguage } from "./LanguageContext";
 interface FarmerSignupProps {
   onSubmit: (input: RegisterFarmerRequest) => Promise<void>;
   onBack?: () => void;
+  identityEmail?: string;
 }
 
 const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
 const cropOptions = ["wheat", "rice", "cotton", "sugarcane", "maize", "vegetables"];
 
-export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
+export default function FarmerSignup({ onSubmit, onBack, identityEmail }: FarmerSignupProps) {
   const { t } = useLanguage();
   const [step, setStep] = useState<1 | 2>(1);
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +44,8 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
 
   function handleNext() {
     setError("");
-    if (!formData.email.trim() || !formData.email.includes("@")) {
+    const email = identityEmail ?? formData.email.trim();
+    if (!email || !email.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -51,11 +53,11 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
       setError("Please enter a valid Pakistani CNIC.");
       return;
     }
-    if (formData.password.length < 8) {
+    if (!identityEmail && formData.password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
-    if (formData.password !== formData.confirmation) {
+    if (!identityEmail && formData.password !== formData.confirmation) {
       setError("Passwords do not match.");
       return;
     }
@@ -80,7 +82,7 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
     setIsSubmitting(true);
     try {
       await onSubmit({
-        email: formData.email.trim(),
+        email: identityEmail ?? formData.email.trim(),
         password: formData.password,
         cnic: formData.cnic.trim(),
         farmName: formData.farmName.trim(),
@@ -152,10 +154,14 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
               <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-dark)", marginBottom: "-4px" }}>
                 Personal information
               </h3>
-              <div className="auth-form-group">
+              {identityEmail ? (
+                <p>Signed in with Google as <strong>{identityEmail}</strong></p>
+              ) : (
+                <div className="auth-form-group">
                 <label htmlFor="farmer-email">Email</label>
                 <input id="farmer-email" name="email" className="auth-input" type="email" value={formData.email} onChange={updateField} disabled={isSubmitting} />
-              </div>
+                </div>
+              )}
               <div className="auth-form-group">
                 <label htmlFor="farmer-phone">Phone (optional)</label>
                 <input id="farmer-phone" name="phone" className="auth-input" type="tel" value={formData.phone} onChange={updateField} disabled={isSubmitting} />
@@ -164,7 +170,8 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
                 <label htmlFor="farmer-cnic">CNIC</label>
                 <input id="farmer-cnic" name="cnic" className="auth-input" placeholder="35202-1234567-1" value={formData.cnic} onChange={updateField} disabled={isSubmitting} />
               </div>
-              <div className="auth-form-group">
+              {!identityEmail ? (
+                <div className="auth-form-group">
                 <label htmlFor="farmer-password">Password</label>
                 <div className="auth-input-wrapper">
                   <input id="farmer-password" name="password" className="auth-input" type={showPassword ? "text" : "password"} value={formData.password} onChange={updateField} disabled={isSubmitting} />
@@ -172,11 +179,14 @@ export default function FarmerSignup({ onSubmit, onBack }: FarmerSignupProps) {
                     {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
                   </button>
                 </div>
-              </div>
-              <div className="auth-form-group">
+                </div>
+              ) : null}
+              {!identityEmail ? (
+                <div className="auth-form-group">
                 <label htmlFor="farmer-confirmation">Confirm password</label>
                 <input id="farmer-confirmation" name="confirmation" className="auth-input" type="password" value={formData.confirmation} onChange={updateField} disabled={isSubmitting} />
-              </div>
+                </div>
+              ) : null}
               <button className="auth-btn" type="button" style={{ marginTop: "16px" }} onClick={handleNext} disabled={isSubmitting}>
                 Next Step →
               </button>

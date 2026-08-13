@@ -46,6 +46,8 @@ export interface CartScreenProps {
 
 export interface LoginScreenProps {
   onLogin: (email: string, password: string) => void | Promise<void>;
+  onGoogleLogin?: () => void | Promise<void>;
+  onForgotPassword?: (email: string) => void | Promise<void>;
   onGoSignup: () => void;
   onBackHome?: () => void;
   loginError?: string;
@@ -59,6 +61,7 @@ export interface ProfileScreenProps {
 export interface SignUpFormScreenProps {
   onBack: () => void;
   onBackHome?: () => void;
+  identityEmail?: string;
   onSubmit: (input: RegisterBuyerRequest) => Promise<void> | void;
 }
 

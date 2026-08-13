@@ -49,6 +49,7 @@ function HomeContent() {
   const [pendingOnboarding, setPendingOnboarding] = useState<
     Omit<RegisterBuyerRequest, "email" | "password"> | null
   >(null);
+  const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
 
   const closeAuth = useCallback(() => {
     setLoginError("");
@@ -96,7 +97,17 @@ function HomeContent() {
     setLoginError("");
     try {
       const result = await authRepository.signInWithEmail({ email, password });
-      if (result.kind !== "session" || result.user.role !== "buyer") {
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setAuthScreen("verification");
+        return;
+      }
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setAuthScreen("signup-form");
+        return;
+      }
+      if (result.user.role !== "buyer") {
         throw new ApiError(403, "This account cannot access the buyer application.");
       }
       setSession({ user: result.user as BuyerSession["user"] });
@@ -109,11 +120,58 @@ function HomeContent() {
   }
 
   async function registerBuyer(input: RegisterBuyerRequest) {
+    if (googleIdentityEmail) {
+      const { email: _email, password: _password, ...onboarding } = input;
+      const user = await authRepository.onboardBuyer(onboarding);
+      if (user.role !== "buyer") {
+        throw new ApiError(403, "This account cannot access the buyer application.");
+      }
+      setSession({ user: user as BuyerSession["user"] });
+      setGoogleIdentityEmail("");
+      setAuthScreen("landing");
+      return;
+    }
     const { email, password, ...onboarding } = input;
     const result = await authRepository.signUpWithEmail({ email, password });
     setPendingOnboarding(onboarding);
     setVerificationEmail(result.email);
     setAuthScreen("verification");
+  }
+
+  async function loginWithGoogle() {
+    setIsSubmitting(true);
+    setLoginError("");
+    try {
+      const result = await authRepository.signInWithGoogle();
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setAuthScreen("verification");
+        return;
+      }
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setAuthScreen("signup-form");
+        return;
+      }
+      if (result.user.role !== "buyer") {
+        throw new ApiError(403, "This account cannot access the buyer application.");
+      }
+      setSession({ user: result.user as BuyerSession["user"] });
+      setAuthScreen("landing");
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : "Could not sign in with Google.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function requestPasswordReset(email: string) {
+    if (!email.trim()) {
+      setLoginError("Enter your email address before requesting a password reset.");
+      return;
+    }
+    await authRepository.sendPasswordReset(email.trim());
+    setLoginError("Password reset email sent. Check your inbox.");
   }
 
   async function logout() {
@@ -169,6 +227,8 @@ function HomeContent() {
             setAuthScreen("signup-role");
           }}
           onLogin={login}
+          onGoogleLogin={loginWithGoogle}
+          onForgotPassword={requestPasswordReset}
         />
       ) : null}
       {authScreen === "signup-role" ? (
@@ -184,6 +244,7 @@ function HomeContent() {
       ) : null}
       {authScreen === "signup-form" ? (
         <SignUpFormScreen
+          identityEmail={googleIdentityEmail || undefined}
           onBack={() => setAuthScreen("signup-role")}
           onBackHome={closeAuth}
           onSubmit={registerBuyer}

@@ -15,6 +15,7 @@ const BUSINESS_TYPES: Array<{ value: BuyerBusinessType; label: string }> = [
 export default function SignUpFormScreen({
   onBack,
   onBackHome,
+  identityEmail,
   onSubmit,
 }: SignUpFormScreenProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,15 +35,16 @@ export default function SignUpFormScreen({
       setError("Business name, business type, and CNIC are required.");
       return;
     }
-    if (!email.trim() || !email.includes("@")) {
+    const resolvedEmail = identityEmail ?? email.trim();
+    if (!resolvedEmail || !resolvedEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!password) {
+    if (!identityEmail && !password) {
       setError("Please enter a password.");
       return;
     }
-    if (password !== confirmation) {
+    if (!identityEmail && password !== confirmation) {
       setError("Passwords do not match.");
       return;
     }
@@ -53,7 +55,7 @@ export default function SignUpFormScreen({
         businessName: businessName.trim(),
         businessType,
         cnic: cnic.trim(),
-        email: email.trim(),
+        email: resolvedEmail,
         password,
         ...(phone.trim() ? { phone: phone.trim() } : {}),
       });
@@ -144,7 +146,10 @@ export default function SignUpFormScreen({
             />
           </div>
 
-          <div className="auth-form-group">
+          {identityEmail ? (
+            <p>Signed in with Google as <strong>{identityEmail}</strong></p>
+          ) : (
+            <div className="auth-form-group">
             <label htmlFor="signup-email">Email</label>
             <input
               id="signup-email"
@@ -154,9 +159,11 @@ export default function SignUpFormScreen({
               onChange={(event) => setEmail(event.target.value)}
               disabled={isSubmitting}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="auth-form-group">
+          {!identityEmail ? (
+            <div className="auth-form-group">
             <label htmlFor="signup-phone">Phone (optional)</label>
             <input
               id="signup-phone"
@@ -166,9 +173,11 @@ export default function SignUpFormScreen({
               onChange={(event) => setPhone(event.target.value)}
               disabled={isSubmitting}
             />
-          </div>
+            </div>
+          ) : null}
 
-          <div className="auth-form-group">
+          {!identityEmail ? (
+            <div className="auth-form-group">
             <label htmlFor="signup-password">Password</label>
             <div className="auth-input-wrapper">
               <input
@@ -188,9 +197,11 @@ export default function SignUpFormScreen({
                 {showPassword ? <LuEye size={18} /> : <LuEyeOff size={18} />}
               </button>
             </div>
-          </div>
+            </div>
+          ) : null}
 
-          <div className="auth-form-group">
+          {!identityEmail ? (
+            <div className="auth-form-group">
             <label htmlFor="signup-confirm">Confirm password</label>
             <input
               id="signup-confirm"
@@ -201,7 +212,8 @@ export default function SignUpFormScreen({
               onKeyDown={(event) => event.key === "Enter" && handleSignUp()}
               disabled={isSubmitting}
             />
-          </div>
+            </div>
+          ) : null}
 
           <button
             className="auth-btn"

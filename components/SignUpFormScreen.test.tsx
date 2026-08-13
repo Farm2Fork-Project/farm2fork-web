@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { expect, test, vi } from "vitest";
 import { LanguageProvider } from "./LanguageContext";
@@ -30,5 +30,34 @@ test("SignUpFormScreen submits the backend buyer registration fields", async () 
     email: "buyer@example.com",
     password: "StrongP@ss1",
     phone: "+923001234567",
+  });
+});
+
+test("SignUpFormScreen reuses a Google identity without requesting a password", async () => {
+  cleanup();
+  const user = userEvent.setup();
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(
+    <LanguageProvider>
+      <SignUpFormScreen
+        identityEmail="buyer@example.com"
+        onBack={vi.fn()}
+        onSubmit={onSubmit}
+      />
+    </LanguageProvider>,
+  );
+
+  expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
+  await user.type(screen.getByLabelText("Business name"), "Fresh Mart");
+  await user.selectOptions(screen.getByLabelText("Business type"), "retailer");
+  await user.type(screen.getByLabelText("CNIC"), "35202-1234567-1");
+  await user.click(screen.getByRole("button", { name: "Create account" }));
+
+  expect(onSubmit).toHaveBeenCalledWith({
+    businessName: "Fresh Mart",
+    businessType: "retailer",
+    cnic: "35202-1234567-1",
+    email: "buyer@example.com",
+    password: "",
   });
 });

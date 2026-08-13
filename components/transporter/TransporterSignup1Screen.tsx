@@ -13,11 +13,12 @@ export type TransporterPersonalInput = Pick<
 export interface TransporterSignup1ScreenProps {
   onBack: () => void;
   onNext: (input: TransporterPersonalInput) => void;
+  identityEmail?: string;
 }
 
 const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
 
-export default function TransporterSignup1Screen({ onBack, onNext }: TransporterSignup1ScreenProps) {
+export default function TransporterSignup1Screen({ onBack, onNext, identityEmail }: TransporterSignup1ScreenProps) {
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -28,7 +29,8 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
 
   function handleNext() {
     setError("");
-    if (!email.trim() || !email.includes("@")) {
+    const resolvedEmail = identityEmail ?? email.trim();
+    if (!resolvedEmail || !resolvedEmail.includes("@")) {
       setError("Please enter a valid email address.");
       return;
     }
@@ -36,12 +38,12 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
       setError("Please enter a valid Pakistani CNIC.");
       return;
     }
-    if (password.length < 8) {
+    if (!identityEmail && password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
     onNext({
-      email: email.trim(),
+      email: resolvedEmail,
       password,
       cnic: cnic.trim(),
       ...(phone.trim() ? { phone: phone.trim() } : {}),
@@ -64,10 +66,14 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
           {error ? <div className="auth-error" role="alert">{error}</div> : null}
           <p>{t("tsignup.step1")}</p>
           <div className="progress-bar"><div className="progress-bar-fill" style={{ width: "50%" }} /></div>
-          <div className="auth-form-group">
+          {identityEmail ? (
+            <p>Signed in with Google as <strong>{identityEmail}</strong></p>
+          ) : (
+            <div className="auth-form-group">
             <label htmlFor="transporter-email">Email</label>
             <input id="transporter-email" className="auth-input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
-          </div>
+            </div>
+          )}
           <div className="auth-form-group">
             <label htmlFor="transporter-phone">Phone (optional)</label>
             <input id="transporter-phone" className="auth-input" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} />
@@ -76,7 +82,8 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
             <label htmlFor="transporter-cnic">CNIC</label>
             <input id="transporter-cnic" className="auth-input" placeholder="35202-1234567-1" value={cnic} onChange={(event) => setCnic(event.target.value)} />
           </div>
-          <div className="auth-form-group">
+          {!identityEmail ? (
+            <div className="auth-form-group">
             <label htmlFor="transporter-password">Password</label>
             <div className="auth-input-wrapper">
               <input id="transporter-password" className="auth-input" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} />
@@ -84,7 +91,8 @@ export default function TransporterSignup1Screen({ onBack, onNext }: Transporter
                 {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
               </button>
             </div>
-          </div>
+            </div>
+          ) : null}
           <button className="auth-btn" type="button" onClick={handleNext}>{t("tsignup.next")}</button>
         </div>
       </div>

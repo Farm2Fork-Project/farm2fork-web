@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import FarmerDashboard from "@/components/farmer/FarmerDashboard";
 import FarmerSignup from "@/components/farmer/FarmerSignup2";
@@ -9,10 +9,7 @@ import { LanguageProvider } from "@/components/LanguageContext";
 import LoginScreen from "@/components/LoginScreen";
 import { ApiClient } from "@/lib/api/client.ts";
 import { ApiError, type RegisterFarmerRequest } from "@/lib/api/contracts.ts";
-import {
-  FirebaseWebAuthRepository,
-  type FirebaseWebAuthResult,
-} from "@/lib/auth/firebase-web-auth-repository.ts";
+import { FirebaseWebAuthRepository } from "@/lib/auth/firebase-web-auth-repository.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
 
@@ -40,23 +37,6 @@ function FarmerApp() {
 
   const isSignup = searchParams.get("signup") === "true";
 
-  const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
-    if (result.kind === "onboarding_required") {
-      setGoogleIdentityEmail(result.email);
-      setIsGoogleOnboarding(true);
-      return;
-    }
-    if (result.kind === "verification_required") {
-      setVerificationEmail(result.email);
-      setIsVerifyingEmail(true);
-      return;
-    }
-    if (result.user.role !== "farmer") {
-      throw new ApiError(403, "This account cannot access the farmer application.");
-    }
-    setSession({ user: result.user as WebSession["user"] & { role: "farmer" } });
-  }, []);
-
   useEffect(() => {
     let active = true;
     if (isSignup) {
@@ -83,20 +63,6 @@ function FarmerApp() {
       active = false;
     };
   }, [isSignup, repository]);
-
-  useEffect(() => {
-    let active = true;
-    authRepository.resumeGoogleRedirect()
-      .then((result) => {
-        if (active && result) completeGoogleSignIn(result);
-      })
-      .catch((error) => {
-        if (active) setAuthError(error instanceof Error ? error.message : "Could not complete Google sign-in.");
-      });
-    return () => {
-      active = false;
-    };
-  }, [authRepository, completeGoogleSignIn]);
 
   async function login(email: string, password: string) {
     if (!email || !password) {
@@ -160,8 +126,18 @@ function FarmerApp() {
     setAuthError("");
     try {
       const result = await authRepository.signInWithGoogle();
-      if (!result) return;
-      completeGoogleSignIn(result);
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setIsGoogleOnboarding(true);
+        return;
+      }
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setIsVerifyingEmail(true);
+        return;
+      }
+      if (result.user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+      setSession({ user: result.user as WebSession["user"] & { role: "farmer" } });
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not sign in with Google.");
     } finally {

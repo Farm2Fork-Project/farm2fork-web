@@ -13,10 +13,7 @@ import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRe
 import { ApiClient } from "@/lib/api/client.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import { ApiError, type RegisterBuyerRequest } from "@/lib/api/contracts.ts";
-import {
-  FirebaseWebAuthRepository,
-  type FirebaseWebAuthResult,
-} from "@/lib/auth/firebase-web-auth-repository.ts";
+import { FirebaseWebAuthRepository } from "@/lib/auth/firebase-web-auth-repository.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import {
   type BuyerSession,
@@ -60,24 +57,6 @@ function HomeContent() {
     router.replace("/");
   }, [router]);
 
-  const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
-    if (result.kind === "verification_required") {
-      setVerificationEmail(result.email);
-      setAuthScreen("verification");
-      return;
-    }
-    if (result.kind === "onboarding_required") {
-      setGoogleIdentityEmail(result.email);
-      setAuthScreen("signup-form");
-      return;
-    }
-    if (result.user.role !== "buyer") {
-      throw new ApiError(403, "This account cannot access the buyer application.");
-    }
-    setSession({ user: result.user as BuyerSession["user"] });
-    setAuthScreen("landing");
-  }, []);
-
   useEffect(() => {
     let active = true;
     roleRepository
@@ -93,22 +72,6 @@ function HomeContent() {
       active = false;
     };
   }, [roleRepository]);
-
-  useEffect(() => {
-    let active = true;
-    authRepository.resumeGoogleRedirect()
-      .then((result) => {
-        if (active && result) completeGoogleSignIn(result);
-      })
-      .catch((error) => {
-        if (!active) return;
-        setLoginError(error instanceof Error ? error.message : "Could not complete Google sign-in.");
-        setAuthScreen("login");
-      });
-    return () => {
-      active = false;
-    };
-  }, [authRepository, completeGoogleSignIn]);
 
   useEffect(() => {
     if (session || authScreen === "landing") return;
@@ -180,8 +143,21 @@ function HomeContent() {
     setLoginError("");
     try {
       const result = await authRepository.signInWithGoogle();
-      if (!result) return;
-      completeGoogleSignIn(result);
+      if (result.kind === "verification_required") {
+        setVerificationEmail(result.email);
+        setAuthScreen("verification");
+        return;
+      }
+      if (result.kind === "onboarding_required") {
+        setGoogleIdentityEmail(result.email);
+        setAuthScreen("signup-form");
+        return;
+      }
+      if (result.user.role !== "buyer") {
+        throw new ApiError(403, "This account cannot access the buyer application.");
+      }
+      setSession({ user: result.user as BuyerSession["user"] });
+      setAuthScreen("landing");
     } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Could not sign in with Google.");
     } finally {

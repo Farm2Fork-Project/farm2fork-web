@@ -4,12 +4,9 @@ import { useRouter } from 'next/navigation'
 import { ArrowRight, Mail, Lock, Eye, Tractor, Leaf } from 'lucide-react'
 import AuthPageShell from '@/components/admin/screens/AuthPageShell'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { ApiClient } from '@/lib/api/client.ts'
-import {
-  FirebaseWebAuthRepository,
-  type FirebaseWebAuthResult,
-} from '@/lib/auth/firebase-web-auth-repository.ts'
+import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -19,14 +16,13 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const completeAdminLogin = async (
-    signIn: (auth: FirebaseWebAuthRepository) => Promise<FirebaseWebAuthResult | null>,
+    signIn: (auth: FirebaseWebAuthRepository) => ReturnType<FirebaseWebAuthRepository['signInWithEmail']>,
   ) => {
     setError('')
     setIsSubmitting(true)
     const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
     try {
       const result = await signIn(auth)
-      if (!result) return
       if (result.kind !== 'session' || result.user.role !== 'admin') {
         await auth.logout()
         throw new Error('This account is not authorized for the admin dashboard.')
@@ -38,26 +34,6 @@ export default function LoginPage() {
       setIsSubmitting(false)
     }
   }
-
-  useEffect(() => {
-    let active = true
-    const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
-    auth.resumeGoogleRedirect()
-      .then(async (result) => {
-        if (!active || !result) return
-        if (result.kind !== 'session' || result.user.role !== 'admin') {
-          await auth.logout()
-          throw new Error('This account is not authorized for the admin dashboard.')
-        }
-        router.push('/admin/dashboard')
-      })
-      .catch((submissionError) => {
-        if (active) setError(submissionError instanceof Error ? submissionError.message : 'Could not complete Google sign-in.')
-      })
-    return () => {
-      active = false
-    }
-  }, [router])
 
   const enterAdmin = async (e: React.FormEvent) => {
     e.preventDefault()

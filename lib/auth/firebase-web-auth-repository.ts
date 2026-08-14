@@ -46,14 +46,8 @@ export class FirebaseWebAuthRepository {
     );
   }
 
-  async signInWithGoogle(): Promise<FirebaseWebAuthResult | null> {
-    const user = await this.firebase.signInWithGoogle();
-    return user ? this.exchangeForSession(user) : null;
-  }
-
-  async resumeGoogleRedirect(): Promise<FirebaseWebAuthResult | null> {
-    const user = await this.firebase.getGoogleRedirectResult();
-    return user ? this.exchangeForSession(user) : null;
+  async signInWithGoogle(): Promise<FirebaseWebAuthResult> {
+    return this.exchangeForSession(await this.firebase.signInWithGoogle());
   }
 
   async signUpWithEmail(

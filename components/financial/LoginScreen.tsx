@@ -1,10 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ArrowRight, Mail, Lock, Eye, EyeOff, ShieldCheck, Leaf } from 'lucide-react'
 import { FinancialLoginScreenProps } from '../types'
 import { ApiClient } from '@/lib/api/client.ts'
-import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
+import {
+  FirebaseWebAuthRepository,
+  type FirebaseWebAuthResult,
+} from '@/lib/auth/firebase-web-auth-repository.ts'
 
 
 export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProps) {
@@ -15,13 +18,14 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
   const [loading, setLoading] = useState(false)
 
   const completeLogin = async (
-    signIn: (auth: FirebaseWebAuthRepository) => ReturnType<FirebaseWebAuthRepository['signInWithEmail']>,
+    signIn: (auth: FirebaseWebAuthRepository) => Promise<FirebaseWebAuthResult | null>,
   ) => {
     setError('')
     setLoading(true)
     const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
     try {
       const result = await signIn(auth)
+      if (!result) return
       if (result.kind !== 'session' || result.user.role !== 'financial_partner') {
         await auth.logout()
         throw new Error('This account is not authorized for the financial partner dashboard.')
@@ -33,6 +37,26 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    let active = true
+    const auth = new FirebaseWebAuthRepository({ client: new ApiClient() })
+    auth.resumeGoogleRedirect()
+      .then(async (result) => {
+        if (!active || !result) return
+        if (result.kind !== 'session' || result.user.role !== 'financial_partner') {
+          await auth.logout()
+          throw new Error('This account is not authorized for the financial partner dashboard.')
+        }
+        onLoginSuccess()
+      })
+      .catch((loginError) => {
+        if (active) setError(loginError instanceof Error ? loginError.message : 'Could not complete Google sign-in.')
+      })
+    return () => {
+      active = false
+    }
+  }, [onLoginSuccess])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

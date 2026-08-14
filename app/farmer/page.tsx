@@ -13,6 +13,11 @@ import {
   FirebaseWebAuthRepository,
   type FirebaseWebAuthResult,
 } from "@/lib/auth/firebase-web-auth-repository.ts";
+import {
+  beginFirebaseOnboarding,
+  readMatchingFirebaseOnboardingEmail,
+} from "@/lib/auth/firebase-onboarding-flow.ts";
+import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
 
@@ -39,11 +44,16 @@ function FarmerApp() {
   const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
 
   const isSignup = searchParams.get("signup") === "true";
+  const isFirebaseOnboarding = searchParams.get("firebaseOnboarding") === "true";
+
+  const beginRoleSelection = useCallback((email: string) => {
+    beginFirebaseOnboarding(email);
+    router.replace("/?auth=signup&firebaseOnboarding=true");
+  }, [router]);
 
   const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
     if (result.kind === "onboarding_required") {
-      setGoogleIdentityEmail(result.email);
-      setIsGoogleOnboarding(true);
+      beginRoleSelection(result.email);
       return;
     }
     if (result.kind === "verification_required") {
@@ -55,7 +65,7 @@ function FarmerApp() {
       throw new ApiError(403, "This account cannot access the farmer application.");
     }
     setSession({ user: result.user as WebSession["user"] & { role: "farmer" } });
-  }, []);
+  }, [beginRoleSelection]);
 
   useEffect(() => {
     let active = true;
@@ -98,6 +108,20 @@ function FarmerApp() {
     };
   }, [authRepository, completeGoogleSignIn]);
 
+  useEffect(() => {
+    if (!isFirebaseOnboarding) return;
+    const email = readMatchingFirebaseOnboardingEmail(
+      authRepository.getCurrentFirebaseIdentityEmail(),
+    );
+    if (!email) {
+      setAuthError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      router.replace("/?auth=login");
+      return;
+    }
+    setGoogleIdentityEmail(email);
+    setIsGoogleOnboarding(true);
+  }, [authRepository, isFirebaseOnboarding, router]);
+
   async function login(email: string, password: string) {
     if (!email || !password) {
       setAuthError("Please enter your email and password.");
@@ -114,8 +138,7 @@ function FarmerApp() {
         return;
       }
       if (result.kind === "onboarding_required") {
-        setGoogleIdentityEmail(result.email);
-        setIsGoogleOnboarding(true);
+        beginRoleSelection(result.email);
         return;
       }
       if (result.user.role !== "farmer") {
@@ -139,6 +162,7 @@ function FarmerApp() {
         if (user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
         setSession({ user });
         setGoogleIdentityEmail("");
+        firebaseOnboardingIntent.clear();
         setIsGoogleOnboarding(false);
         router.replace("/farmer");
         return;
@@ -196,14 +220,18 @@ function FarmerApp() {
         router.replace("/farmer");
         return;
       }
-    } catch (error) {
-      if (isOnboardingRequired(error) && pendingOnboarding) {
+      if (result.kind === "onboarding_required") {
+        if (!pendingOnboarding) {
+          beginRoleSelection(result.email);
+          return;
+        }
         const user = await authRepository.onboardFarmer(pendingOnboarding);
         if (user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
         setSession({ user });
         router.replace("/farmer");
         return;
       }
+    } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not verify your email.");
     } finally {
       setIsSubmitting(false);
@@ -235,7 +263,11 @@ function FarmerApp() {
         identityEmail={googleIdentityEmail || undefined}
         onBack={() => {
           setIsGoogleOnboarding(false);
-          router.replace("/farmer");
+          router.replace(
+            googleIdentityEmail
+              ? "/?auth=signup&firebaseOnboarding=true"
+              : "/farmer",
+          );
         }}
         onSubmit={register}
       />
@@ -256,14 +288,6 @@ function FarmerApp() {
       onForgotPassword={requestPasswordReset}
     />
   );
-}
-
-function isOnboardingRequired(error: unknown): boolean {
-  return error instanceof ApiError &&
-    !!error.body &&
-    typeof error.body === "object" &&
-    "code" in error.body &&
-    error.body.code === "ONBOARDING_REQUIRED";
 }
 
 function isFarmerSession(session: WebSession | null): session is WebSession & {

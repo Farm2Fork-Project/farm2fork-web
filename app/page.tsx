@@ -17,6 +17,12 @@ import {
   FirebaseWebAuthRepository,
   type FirebaseWebAuthResult,
 } from "@/lib/auth/firebase-web-auth-repository.ts";
+import {
+  beginFirebaseOnboarding,
+  firebaseOnboardingPortalPath,
+  readMatchingFirebaseOnboardingEmail,
+} from "@/lib/auth/firebase-onboarding-flow.ts";
+import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import {
   type BuyerSession,
@@ -54,11 +60,28 @@ function HomeContent() {
   >(null);
   const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
 
+  const beginRoleSelection = useCallback((email: string) => {
+    setGoogleIdentityEmail(beginFirebaseOnboarding(email));
+    setAuthScreen("signup-role");
+    router.replace("/?auth=signup&firebaseOnboarding=true");
+  }, [router]);
+
   const closeAuth = useCallback(() => {
+    firebaseOnboardingIntent.clear();
+    setGoogleIdentityEmail("");
+    void authRepository.discardFirebaseIdentity();
     setLoginError("");
     setAuthScreen("landing");
     router.replace("/");
-  }, [router]);
+  }, [authRepository, router]);
+
+  const cancelFirebaseOnboarding = useCallback(() => {
+    firebaseOnboardingIntent.clear();
+    setGoogleIdentityEmail("");
+    void authRepository.discardFirebaseIdentity();
+    setAuthScreen("login");
+    router.replace("/?auth=login");
+  }, [authRepository, router]);
 
   const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
     if (result.kind === "verification_required") {
@@ -67,8 +90,7 @@ function HomeContent() {
       return;
     }
     if (result.kind === "onboarding_required") {
-      setGoogleIdentityEmail(result.email);
-      setAuthScreen("signup-form");
+      beginRoleSelection(result.email);
       return;
     }
     if (result.user.role !== "buyer") {
@@ -76,7 +98,7 @@ function HomeContent() {
     }
     setSession({ user: result.user as BuyerSession["user"] });
     setAuthScreen("landing");
-  }, []);
+  }, [beginRoleSelection]);
 
   useEffect(() => {
     let active = true;
@@ -111,6 +133,20 @@ function HomeContent() {
   }, [authRepository, completeGoogleSignIn]);
 
   useEffect(() => {
+    if (searchParams.get("firebaseOnboarding") !== "true") return;
+    const email = readMatchingFirebaseOnboardingEmail(
+      authRepository.getCurrentFirebaseIdentityEmail(),
+    );
+    if (!email) {
+      setLoginError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      setAuthScreen("login");
+      return;
+    }
+    setGoogleIdentityEmail(email);
+    setAuthScreen("signup-role");
+  }, [authRepository, searchParams]);
+
+  useEffect(() => {
     if (session || authScreen === "landing") return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -140,8 +176,7 @@ function HomeContent() {
         return;
       }
       if (result.kind === "onboarding_required") {
-        setGoogleIdentityEmail(result.email);
-        setAuthScreen("signup-form");
+        beginRoleSelection(result.email);
         return;
       }
       if (result.user.role !== "buyer") {
@@ -165,6 +200,7 @@ function HomeContent() {
       }
       setSession({ user: user as BuyerSession["user"] });
       setGoogleIdentityEmail("");
+      firebaseOnboardingIntent.clear();
       setAuthScreen("landing");
       return;
     }
@@ -215,14 +251,18 @@ function HomeContent() {
         setAuthScreen("landing");
         return;
       }
-    } catch (error) {
-      if (isOnboardingRequired(error) && pendingOnboarding) {
+      if (result.kind === "onboarding_required") {
+        if (!pendingOnboarding) {
+          beginRoleSelection(result.email);
+          return;
+        }
         const user = await authRepository.onboardBuyer(pendingOnboarding);
         if (user.role !== "buyer") throw new ApiError(403, "This account cannot access the buyer application.");
         setSession({ user: user as BuyerSession["user"] });
         setAuthScreen("landing");
         return;
       }
+    } catch (error) {
       setLoginError(error instanceof Error ? error.message : "Could not verify your email.");
     } finally {
       setIsSubmitting(false);
@@ -257,12 +297,16 @@ function HomeContent() {
       ) : null}
       {authScreen === "signup-role" ? (
         <SignUpRoleScreen
-          onBack={() => setAuthScreen("login")}
+          onBack={cancelFirebaseOnboarding}
           onBackHome={closeAuth}
           onSelectRole={(role) => {
             if (role === "buyer") setAuthScreen("signup-form");
-            else if (role === "farmer") router.push("/farmer?signup=true");
-            else if (role === "transporter") router.push("/transporter?signup=true");
+            else {
+              const path = firebaseOnboardingPortalPath(role);
+              if (path && googleIdentityEmail) router.push(path);
+              else if (role === "farmer") router.push("/farmer?signup=true");
+              else router.push("/transporter?signup=true");
+            }
           }}
         />
       ) : null}
@@ -286,14 +330,6 @@ function HomeContent() {
       ) : null}
     </>
   );
-}
-
-function isOnboardingRequired(error: unknown): boolean {
-  return error instanceof ApiError &&
-    !!error.body &&
-    typeof error.body === "object" &&
-    "code" in error.body &&
-    error.body.code === "ONBOARDING_REQUIRED";
 }
 
 function isBuyerSession(session: WebSession | null): session is BuyerSession {

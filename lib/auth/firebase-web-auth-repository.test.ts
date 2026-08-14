@@ -230,3 +230,26 @@ test("exposes the active Firebase identity email for role onboarding", () => {
 
   expect(repository.getCurrentFirebaseIdentityEmail()).toBe("new.user@example.com");
 });
+
+test("signs Firebase out when onboarding is abandoned", async () => {
+  let signedOut = 0;
+  const repository = new FirebaseWebAuthRepository({
+    client: { request: async () => ({}) },
+    firebase: {
+      createUserWithEmail: async () => null as never,
+      signInWithEmail: async () => null as never,
+      signInWithGoogle: async () => null,
+      getGoogleRedirectResult: async () => null,
+      currentUser: () => null,
+      sendEmailVerification: async () => undefined,
+      sendPasswordReset: async () => undefined,
+      signOut: async () => {
+        signedOut += 1;
+      },
+    },
+  });
+
+  await repository.discardFirebaseIdentity();
+
+  expect(signedOut).toBe(1);
+});

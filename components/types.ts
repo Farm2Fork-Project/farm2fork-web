@@ -68,7 +68,7 @@ export interface SignUpFormScreenProps {
 export interface SignUpRoleScreenProps {
   onBack: () => void;
   onBackHome?: () => void;
-  onSelectRole: (role: string) => void;
+  onSelectRole: (role: "buyer" | "farmer" | "transporter") => void;
 }
 
 export interface TopBarProps {

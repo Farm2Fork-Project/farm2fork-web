@@ -60,6 +60,10 @@ export class FirebaseWebAuthRepository {
     return this.firebase.currentUser()?.email?.trim().toLowerCase() || null;
   }
 
+  discardFirebaseIdentity(): Promise<void> {
+    return this.firebase.signOut();
+  }
+
   async signUpWithEmail(
     input: Credentials,
   ): Promise<{ kind: "verification_required"; email: string }> {

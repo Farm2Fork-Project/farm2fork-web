@@ -2,6 +2,7 @@ import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
   getAuth,
+  getRedirectResult,
   GoogleAuthProvider,
   inMemoryPersistence,
   sendEmailVerification,
@@ -9,6 +10,7 @@ import {
   setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   type Auth,
   type User,
@@ -21,7 +23,8 @@ export type FirebaseWebUser = Pick<User, "email" | "getIdToken"> & {
 export type FirebaseWebAuthGateway = {
   createUserWithEmail(email: string, password: string): Promise<FirebaseWebUser>;
   signInWithEmail(email: string, password: string): Promise<FirebaseWebUser>;
-  signInWithGoogle(): Promise<FirebaseWebUser>;
+  signInWithGoogle(): Promise<FirebaseWebUser | null>;
+  getGoogleRedirectResult(): Promise<FirebaseWebUser | null>;
   currentUser(): FirebaseWebUser | null;
   sendEmailVerification(user: FirebaseWebUser): Promise<void>;
   sendPasswordReset(email: string): Promise<void>;
@@ -59,6 +62,10 @@ export const firebasePublicEnvironment: FirebasePublicEnvironment = {
     process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
 };
 
+export function shouldUseGoogleRedirect(userAgent: string): boolean {
+  return /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i.test(userAgent);
+}
+
 let authPromise: Promise<Auth> | undefined;
 let initializedAuth: Auth | undefined;
 
@@ -94,8 +101,16 @@ export function createFirebaseWebAuthGateway(): FirebaseWebAuthGateway {
         .user;
     },
     async signInWithGoogle() {
-      return (await signInWithPopup(await getFirebaseAuth(), new GoogleAuthProvider()))
-        .user;
+      const auth = await getFirebaseAuth();
+      const provider = new GoogleAuthProvider();
+      if (shouldUseGoogleRedirect(navigator.userAgent)) {
+        await signInWithRedirect(auth, provider);
+        return null;
+      }
+      return (await signInWithPopup(auth, provider)).user;
+    },
+    async getGoogleRedirectResult() {
+      return (await getRedirectResult(await getFirebaseAuth()))?.user ?? null;
     },
     currentUser() {
       return initializedAuth?.currentUser ?? null;

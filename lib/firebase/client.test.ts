@@ -28,3 +28,21 @@ test("builds Firebase client configuration from the statically exposed public en
     messagingSenderId: "sender-id",
   });
 });
+
+test("uses the redirect flow for mobile Google sign-in", () => {
+  const clientModule = client as Record<string, unknown>;
+  const shouldUseGoogleRedirect = clientModule.shouldUseGoogleRedirect as (
+    userAgent: string,
+  ) => boolean;
+
+  expect(
+    shouldUseGoogleRedirect(
+      "Mozilla/5.0 (Linux; Android 16; Pixel 10) AppleWebKit/537.36 Chrome/151.0",
+    ),
+  ).toBe(true);
+  expect(
+    shouldUseGoogleRedirect(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/151.0",
+    ),
+  ).toBe(false);
+});

@@ -155,3 +155,56 @@ test("exchanges a Google identity and preserves onboarding-required state", asyn
     email: "new@example.com",
   });
 });
+
+test("exchanges the Firebase identity returned after a mobile Google redirect", async () => {
+  const calls: Array<{ path: string; options?: unknown }> = [];
+  const user = {
+    email: "buyer@example.com",
+    getIdToken: async () => "redirect-id-token",
+    reload: async () => undefined,
+  };
+  const repository = new FirebaseWebAuthRepository({
+    client: {
+      request: async (path, options) => {
+        calls.push({ path, options });
+        return {
+          id: "buyer-1",
+          email: "buyer@example.com",
+          role: "buyer",
+          isVerified: true,
+          isActive: true,
+        };
+      },
+    },
+    firebase: {
+      createUserWithEmail: async () => user,
+      signInWithEmail: async () => user,
+      signInWithGoogle: async () => null,
+      getGoogleRedirectResult: async () => user,
+      currentUser: () => user,
+      sendEmailVerification: async () => undefined,
+      sendPasswordReset: async () => undefined,
+      signOut: async () => undefined,
+    },
+  });
+  const redirectRepository = repository as FirebaseWebAuthRepository & {
+    resumeGoogleRedirect(): Promise<unknown>;
+  };
+
+  await expect(redirectRepository.resumeGoogleRedirect()).resolves.toEqual({
+    kind: "session",
+    user: {
+      id: "buyer-1",
+      email: "buyer@example.com",
+      role: "buyer",
+      isVerified: true,
+      isActive: true,
+    },
+  });
+  expect(calls).toEqual([
+    {
+      path: "/auth/web/session",
+      options: { method: "POST", body: { idToken: "redirect-id-token" } },
+    },
+  ]);
+});

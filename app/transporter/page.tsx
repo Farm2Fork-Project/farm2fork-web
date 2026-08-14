@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/transporter/TopBar";
 import ShipmentScreen from "@/components/transporter/ShipmentScreen";
@@ -15,7 +15,10 @@ import LoginScreen from "@/components/LoginScreen";
 import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
 import { ApiClient } from "@/lib/api/client.ts";
 import { ApiError, type RegisterTransporterRequest } from "@/lib/api/contracts.ts";
-import { FirebaseWebAuthRepository } from "@/lib/auth/firebase-web-auth-repository.ts";
+import {
+  FirebaseWebAuthRepository,
+  type FirebaseWebAuthResult,
+} from "@/lib/auth/firebase-web-auth-repository.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
 import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
@@ -52,6 +55,24 @@ function TransporterApp() {
   const [isGoogleOnboarding, setIsGoogleOnboarding] = useState(false);
   const isSignup = searchParams.get("signup") === "true";
 
+  const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
+    if (result.kind === "onboarding_required") {
+      setGoogleIdentityEmail(result.email);
+      setIsGoogleOnboarding(true);
+      setAuthMode("signup1");
+      return;
+    }
+    if (result.kind === "verification_required") {
+      setVerificationEmail(result.email);
+      setIsVerifyingEmail(true);
+      return;
+    }
+    if (result.user.role !== "transporter") {
+      throw new ApiError(403, "This account cannot access the transporter application.");
+    }
+    setSession({ user: result.user as WebSession["user"] & { role: "transporter" } });
+  }, []);
+
   useEffect(() => {
     let active = true;
     if (isSignup) {
@@ -77,6 +98,20 @@ function TransporterApp() {
       active = false;
     };
   }, [authRepository, isSignup]);
+
+  useEffect(() => {
+    let active = true;
+    firebaseAuthRepository.resumeGoogleRedirect()
+      .then((result) => {
+        if (active && result) completeGoogleSignIn(result);
+      })
+      .catch((error) => {
+        if (active) setAuthError(error instanceof Error ? error.message : "Could not complete Google sign-in.");
+      });
+    return () => {
+      active = false;
+    };
+  }, [completeGoogleSignIn, firebaseAuthRepository]);
 
   async function login(email: string, password: string) {
     if (!email || !password) {
@@ -151,19 +186,8 @@ function TransporterApp() {
     setAuthError("");
     try {
       const result = await firebaseAuthRepository.signInWithGoogle();
-      if (result.kind === "onboarding_required") {
-        setGoogleIdentityEmail(result.email);
-        setIsGoogleOnboarding(true);
-        setAuthMode("signup1");
-        return;
-      }
-      if (result.kind === "verification_required") {
-        setVerificationEmail(result.email);
-        setIsVerifyingEmail(true);
-        return;
-      }
-      if (result.user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
-      setSession({ user: result.user as WebSession["user"] & { role: "transporter" } });
+      if (!result) return;
+      completeGoogleSignIn(result);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "Could not sign in with Google.");
     } finally {

@@ -208,3 +208,25 @@ test("exchanges the Firebase identity returned after a Google redirect", async (
     },
   ]);
 });
+
+test("exposes the active Firebase identity email for role onboarding", () => {
+  const repository = new FirebaseWebAuthRepository({
+    client: { request: async () => ({}) },
+    firebase: {
+      createUserWithEmail: async () => null as never,
+      signInWithEmail: async () => null as never,
+      signInWithGoogle: async () => null,
+      getGoogleRedirectResult: async () => null,
+      currentUser: () => ({
+        email: "new.user@example.com",
+        getIdToken: async () => "firebase-id-token",
+        reload: async () => undefined,
+      }),
+      sendEmailVerification: async () => undefined,
+      sendPasswordReset: async () => undefined,
+      signOut: async () => undefined,
+    },
+  });
+
+  expect(repository.getCurrentFirebaseIdentityEmail()).toBe("new.user@example.com");
+});

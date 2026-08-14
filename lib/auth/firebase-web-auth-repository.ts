@@ -56,6 +56,10 @@ export class FirebaseWebAuthRepository {
     return user ? this.exchangeForSession(user) : null;
   }
 
+  getCurrentFirebaseIdentityEmail(): string | null {
+    return this.firebase.currentUser()?.email?.trim().toLowerCase() || null;
+  }
+
   async signUpWithEmail(
     input: Credentials,
   ): Promise<{ kind: "verification_required"; email: string }> {

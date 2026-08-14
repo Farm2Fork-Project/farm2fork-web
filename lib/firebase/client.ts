@@ -36,11 +36,34 @@ type FirebaseClientConfig = {
   messagingSenderId: string;
 };
 
+type FirebasePublicEnvironmentKey =
+  | "NEXT_PUBLIC_FIREBASE_API_KEY"
+  | "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"
+  | "NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+  | "NEXT_PUBLIC_FIREBASE_APP_ID"
+  | "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID";
+
+type FirebasePublicEnvironment = Partial<
+  Record<FirebasePublicEnvironmentKey, string>
+>;
+
+// Next.js only exposes public client environment variables when they are read
+// directly. Do not replace these with dynamic `process.env[name]` access.
+export const firebasePublicEnvironment: FirebasePublicEnvironment = {
+  NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+};
+
 let authPromise: Promise<Auth> | undefined;
 let initializedAuth: Auth | undefined;
 
 export function getFirebaseClientConfig(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: FirebasePublicEnvironment = firebasePublicEnvironment,
 ): FirebaseClientConfig {
   return {
     apiKey: requirePublicFirebaseValue(environment, "NEXT_PUBLIC_FIREBASE_API_KEY"),
@@ -102,8 +125,8 @@ async function getFirebaseAuth(): Promise<Auth> {
 }
 
 function requirePublicFirebaseValue(
-  environment: NodeJS.ProcessEnv,
-  name: string,
+  environment: FirebasePublicEnvironment,
+  name: FirebasePublicEnvironmentKey,
 ): string {
   const value = environment[name]?.trim();
   if (!value) throw new Error(`${name} must be configured.`);

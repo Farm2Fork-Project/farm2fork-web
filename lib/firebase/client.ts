@@ -9,6 +9,7 @@ import {
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signInWithRedirect,
   signOut,
   type Auth,
@@ -48,6 +49,11 @@ type FirebasePublicEnvironmentKey =
 type FirebasePublicEnvironment = Partial<
   Record<FirebasePublicEnvironmentKey, string>
 >;
+
+export type FirebaseBrowserOrigin = {
+  protocol: string;
+  hostname: string;
+};
 
 // Next.js only exposes public client environment variables when they are read
 // directly. Do not replace these with dynamic `process.env[name]` access.
@@ -96,8 +102,12 @@ export function createFirebaseWebAuthGateway(): FirebaseWebAuthGateway {
         .user;
     },
     async signInWithGoogle() {
-      await signInWithRedirect(await getFirebaseAuth(), new GoogleAuthProvider());
-      return null;
+      const origin = currentBrowserOrigin();
+      return signInWithGoogleForOrigin(
+        await getFirebaseAuth(origin),
+        new GoogleAuthProvider(),
+        origin,
+      );
     },
     async getGoogleRedirectResult() {
       return (await getRedirectResult(await getFirebaseAuth()))?.user ?? null;
@@ -117,9 +127,48 @@ export function createFirebaseWebAuthGateway(): FirebaseWebAuthGateway {
   };
 }
 
-async function getFirebaseAuth(): Promise<Auth> {
+export function shouldUseGooglePopup(origin: FirebaseBrowserOrigin): boolean {
+  return (
+    origin.protocol === "http:" &&
+    (origin.hostname === "localhost" || origin.hostname === "127.0.0.1")
+  );
+}
+
+export function resolveFirebaseAuthDomain(
+  environment: FirebasePublicEnvironment,
+  origin: FirebaseBrowserOrigin,
+): string {
+  const projectId = requirePublicFirebaseValue(
+    environment,
+    "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  );
+  if (shouldUseGooglePopup(origin)) return `${projectId}.firebaseapp.com`;
+  return requirePublicFirebaseValue(
+    environment,
+    "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  );
+}
+
+export async function signInWithGoogleForOrigin(
+  auth: Auth,
+  provider: GoogleAuthProvider,
+  origin: FirebaseBrowserOrigin,
+): Promise<FirebaseWebUser | null> {
+  if (shouldUseGooglePopup(origin)) {
+    return (await signInWithPopup(auth, provider)).user;
+  }
+  await signInWithRedirect(auth, provider);
+  return null;
+}
+
+async function getFirebaseAuth(
+  origin: FirebaseBrowserOrigin = currentBrowserOrigin(),
+): Promise<Auth> {
   authPromise ??= (async () => {
-    const config = getFirebaseClientConfig();
+    const config = {
+      ...getFirebaseClientConfig(),
+      authDomain: resolveFirebaseAuthDomain(firebasePublicEnvironment, origin),
+    };
     const app = getApps().length > 0 ? getApp() : initializeApp(config);
     const auth = getAuth(app);
     await setPersistence(auth, inMemoryPersistence);
@@ -127,6 +176,13 @@ async function getFirebaseAuth(): Promise<Auth> {
     return auth;
   })();
   return authPromise;
+}
+
+function currentBrowserOrigin(): FirebaseBrowserOrigin {
+  return {
+    protocol: window.location.protocol,
+    hostname: window.location.hostname,
+  };
 }
 
 function requirePublicFirebaseValue(

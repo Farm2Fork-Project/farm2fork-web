@@ -15,7 +15,9 @@ For local development:
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002/api
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=localhost:3001
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=farm2fork-2a5b9
+# Required by the Docker build; local HTTP derives the Firebase hosted domain.
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=farm2fork-2a5b9.firebaseapp.com
 ```
 
 ```bash
@@ -26,6 +28,12 @@ The backend must allow the exact web origin through `CORS_ORIGIN` and
 `WEB_APP_ORIGIN`, for example `http://localhost:3001`. Browser requests use
 credentialed, HTTP-only backend sessions and the `X-Farm2Fork-CSRF` header.
 
+Local HTTP Google sign-in uses `signInWithPopup`. It does not use the
+same-origin Firebase redirect helper because Firebase redirect authentication
+opens its `authDomain` over HTTPS. Add `localhost` to Firebase Authentication's
+Authorized domains before testing; Firebase projects created after April 2025
+do not add it automatically.
+
 ## Docker runtime
 
 No Compose `env_file` is used. Supply the public API base explicitly at build
@@ -33,7 +41,8 @@ and runtime:
 
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3002/api \
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=localhost:3001 \
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=farm2fork-2a5b9 \
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=farm2fork-2a5b9.firebaseapp.com \
 docker compose up --build
 ```
 
@@ -41,25 +50,24 @@ The web app is available at `http://localhost:3001`. `NEXT_PUBLIC_*` values are
 embedded in the browser bundle during the image build, so rebuild after changing
 the API base or Firebase auth domain.
 
-## Firebase Google redirect setup
+## Firebase Google authentication setup
 
 Firebase redirect helpers are served through Next at `/__/auth/*` and proxied
-transparently to the Firebase project. This keeps the helper on the same origin
-as the app and works in the Docker runtime.
+transparently to the Firebase project for deployed HTTPS environments. This
+keeps the helper on the same origin when the app is served over HTTPS.
 
-For each web environment, set `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` to the exact
-web authority (`localhost:3001` locally; the deployed web host in production),
-then configure Firebase/Google OAuth to allow:
+For production, set `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` to the exact HTTPS web
+authority that serves this app, then configure Firebase/Google OAuth to allow
+that authority with the `/__/auth/handler` path. For example:
 
 ```text
 https://<web-domain>/__/auth/handler
 ```
 
-For local HTTP development, use `http://localhost:3001/__/auth/handler` when
-the OAuth configuration permits it. Add the same host to Firebase
-Authentication's Authorized domains. Do not point `authDomain` at
-`<project>.firebaseapp.com`; that helper configuration is unavailable for this
-project and is the cause of the prior redirect failure.
+Do not configure local HTTP as the Firebase redirect `authDomain`: that makes
+the SDK open `https://localhost:3001` and causes `ERR_SSL_PROTOCOL_ERROR`.
+Local development instead uses the project-hosted `firebaseapp.com` auth domain
+and a popup.
 
 ## Real role onboarding
 

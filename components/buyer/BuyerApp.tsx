@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   LuLeaf,
   LuPlus,
@@ -36,6 +36,7 @@ type BuyerRepositoryPort = Pick<
   | "listPayments"
   | "listShipments"
   | "listProducts"
+  | "simulatePaymentSuccess"
 >;
 
 type BuyerTab = "cart" | "marketplace" | "orders";
@@ -66,6 +67,23 @@ export function BuyerApp({
   const [payments, setPayments] = useState<ApiPayment[] | null>(null);
   const [shipments, setShipments] = useState<ApiShipment[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [settlingPaymentId, setSettlingPaymentId] = useState<string | null>(null);
+
+  const refreshOrders = useCallback(async () => {
+    try {
+      const [ordersResponse, paymentsResponse, shipmentResponse] = await Promise.all([
+        repository.listOrders({ limit: 20 }),
+        repository.listPayments({ limit: 50 }),
+        repository.listShipments(),
+      ]);
+      setOrdersError(null);
+      setOrders(ordersResponse.data);
+      setPayments(paymentsResponse.data);
+      setShipments(shipmentResponse);
+    } catch (error) {
+      setOrdersError(toErrorMessage(error));
+    }
+  }, [repository]);
 
   useEffect(() => {
     let active = true;
@@ -112,27 +130,8 @@ export function BuyerApp({
 
   useEffect(() => {
     if (!buyer || activeTab !== "orders") return;
-    let active = true;
-    Promise.all([
-      repository.listOrders({ limit: 20 }),
-      repository.listPayments({ limit: 50 }),
-      repository.listShipments(),
-    ])
-      .then(([ordersResponse, paymentsResponse, shipmentResponse]) => {
-        if (!active) return;
-        setOrdersError(null);
-        setOrders(ordersResponse.data);
-        setPayments(paymentsResponse.data);
-        setShipments(shipmentResponse);
-      })
-      .catch((error: unknown) => {
-        if (active) setOrdersError(toErrorMessage(error));
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [activeTab, buyer, repository]);
+    void refreshOrders();
+  }, [activeTab, buyer, refreshOrders]);
 
   const groups = useMemo(() => groupCartItemsByFarmer(cart), [cart]);
 
@@ -157,6 +156,18 @@ export function BuyerApp({
         items,
       ),
     );
+  }
+
+  async function settlePayment(paymentId: string) {
+    setSettlingPaymentId(paymentId);
+    try {
+      await repository.simulatePaymentSuccess(paymentId);
+      await refreshOrders();
+    } catch (error) {
+      setOrdersError(toErrorMessage(error));
+    } finally {
+      setSettlingPaymentId(null);
+    }
   }
 
   if (!buyer && !accountError) {
@@ -240,7 +251,14 @@ export function BuyerApp({
             />
           ) : null}
           {activeTab === "orders" ? (
-            <Orders error={ordersError} orders={orders} payments={payments} shipments={shipments} />
+            <Orders
+              error={ordersError}
+              onSimulatePayment={settlePayment}
+              orders={orders}
+              payments={payments}
+              settlingPaymentId={settlingPaymentId}
+              shipments={shipments}
+            />
           ) : null}
         </main>
       </div>
@@ -416,13 +434,17 @@ function Cart({
 
 function Orders({
   error,
+  onSimulatePayment,
   orders,
   payments,
+  settlingPaymentId,
   shipments,
 }: {
   error: string | null;
+  onSimulatePayment: (paymentId: string) => void;
   orders: ApiOrder[] | null;
   payments: ApiPayment[] | null;
+  settlingPaymentId: string | null;
   shipments: ApiShipment[] | null;
 }) {
   if (error) return <p role="alert">{error}</p>;
@@ -434,7 +456,34 @@ function Orders({
   return (
     <section className="orders-grid">
       {orders.map((order) => (
-        <article className="order-card" key={order.id}>
+        <OrderCard
+          key={order.id}
+          onSimulatePayment={onSimulatePayment}
+          order={order}
+          payment={payments.find((candidate) => candidate.orderId === order.id)}
+          settlingPaymentId={settlingPaymentId}
+          shipment={shipmentsByOrder.get(order.id)}
+        />
+      ))}
+    </section>
+  );
+}
+
+function OrderCard({
+  onSimulatePayment,
+  order,
+  payment,
+  settlingPaymentId,
+  shipment,
+}: {
+  onSimulatePayment: (paymentId: string) => void;
+  order: ApiOrder;
+  payment: ApiPayment | undefined;
+  settlingPaymentId: string | null;
+  shipment: ApiShipment | undefined;
+}) {
+  return (
+    <article className="order-card">
           <div className="order-card-header">
             <div>
               <div className="order-card-id">Order {order.id}</div>
@@ -454,12 +503,22 @@ function Orders({
             <div className="order-total-row grand"><span>Grand total</span><span>{order.grandTotal} PKR</span></div>
           </div>
           <p>
-            Payment: {payments.find((payment) => payment.orderId === order.id)?.status ?? "not initiated"}
+            Payment: {payment?.status ?? "not initiated"}
           </p>
-          <ShipmentTracking shipment={shipmentsByOrder.get(order.id)} />
+          {payment?.status === "pending" ? (
+            <button
+              className="cart-shop-btn"
+              disabled={settlingPaymentId === payment.id}
+              onClick={() => onSimulatePayment(payment.id)}
+              type="button"
+            >
+              {settlingPaymentId === payment.id
+                ? "Settling payment…"
+                : "Simulate payment success"}
+            </button>
+          ) : null}
+          <ShipmentTracking shipment={shipment} />
         </article>
-      ))}
-    </section>
   );
 }
 

@@ -73,6 +73,7 @@ test("BuyerApp validates the session before it renders live marketplace data", a
         listShipments,
         createOrder: vi.fn(),
         initiatePayment: vi.fn(),
+        simulatePaymentSuccess: vi.fn(),
       }}
       onLogout={vi.fn()}
     />,
@@ -128,6 +129,7 @@ test("BuyerApp shows only the shipment scoped to each real order", async () => {
         ]),
         createOrder: vi.fn(),
         initiatePayment: vi.fn(),
+        simulatePaymentSuccess: vi.fn(),
       }}
       onLogout={vi.fn()}
     />,
@@ -137,4 +139,77 @@ test("BuyerApp shows only the shipment scoped to each real order", async () => {
 
   expect(await screen.findByText("Shipment: in_transit")).toBeVisible();
   expect(screen.queryByText("Shipment: delivered")).not.toBeInTheDocument();
+});
+
+test("BuyerApp settles a pending payment and refreshes its timeline", async () => {
+  const simulatePaymentSuccess = vi.fn().mockResolvedValue({
+    id: "payment-1",
+    status: "success",
+  });
+  const listPayments = vi
+    .fn()
+    .mockResolvedValueOnce({ data: [{ id: "payment-1", orderId: "order-1", status: "pending" }] })
+    .mockResolvedValueOnce({ data: [{ id: "payment-1", orderId: "order-1", status: "success" }] });
+
+  render(
+    <BuyerApp
+      session={session}
+      repository={{
+        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+        listProducts: vi.fn().mockResolvedValue({ data: [] }),
+        getProduct: vi.fn(),
+        listOrders: vi.fn().mockResolvedValue({
+          data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
+        }),
+        listPayments,
+        listShipments: vi.fn().mockResolvedValue([]),
+        createOrder: vi.fn(),
+        initiatePayment: vi.fn(),
+        simulatePaymentSuccess,
+      }}
+      onLogout={vi.fn()}
+    />,
+  );
+
+  await userEvent.click(await screen.findByRole("button", { name: "Orders" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Simulate payment success" }));
+
+  expect(simulatePaymentSuccess).toHaveBeenCalledWith("payment-1");
+  expect(await screen.findByText("Payment: success")).toBeVisible();
+  expect(listPayments).toHaveBeenCalledTimes(2);
+});
+
+test("BuyerApp disables a payment settlement action while it is pending", async () => {
+  const simulatePaymentSuccess = vi.fn(
+    () => new Promise<never>(() => undefined),
+  );
+
+  render(
+    <BuyerApp
+      session={session}
+      repository={{
+        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+        listProducts: vi.fn().mockResolvedValue({ data: [] }),
+        getProduct: vi.fn(),
+        listOrders: vi.fn().mockResolvedValue({
+          data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
+        }),
+        listPayments: vi.fn().mockResolvedValue({
+          data: [{ id: "payment-1", orderId: "order-1", status: "pending" }],
+        }),
+        listShipments: vi.fn().mockResolvedValue([]),
+        createOrder: vi.fn(),
+        initiatePayment: vi.fn(),
+        simulatePaymentSuccess,
+      }}
+      onLogout={vi.fn()}
+    />,
+  );
+
+  await userEvent.click(await screen.findByRole("button", { name: "Orders" }));
+  const button = await screen.findByRole("button", { name: "Simulate payment success" });
+  await userEvent.click(button);
+
+  expect(simulatePaymentSuccess).toHaveBeenCalledOnce();
+  expect(button).toBeDisabled();
 });

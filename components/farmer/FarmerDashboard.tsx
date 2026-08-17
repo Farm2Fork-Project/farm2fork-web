@@ -16,13 +16,17 @@ import {
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
-import FarmerOrders, { Order } from "./FarmerOrders";
+import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
 import FarmerProfile from "./ProfileScreen";
 import { useLanguage } from "./LanguageContext";
 import { LuLeaf } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
-import type { ApiProduct, CreateFarmerProductRequest } from "@/lib/api/contracts.ts";
+import type {
+  ApiOrder,
+  ApiProduct,
+  CreateFarmerProductRequest,
+} from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "profile";
@@ -54,49 +58,32 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
     };
   }, [repository]);
 
-  // Shared Orders State
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "ord_1001",
-      date: "4/6/2026",
-      status: "Processing",
-      customerName: "Muhammad Ali",
-      items: [
-        { name: "Organic Tomatoes", quantity: 10.0, price: 120, unit: "kg" },
-        { name: "Fresh Spinach", quantity: 5.0, price: 80, unit: "kg" },
-      ],
-      subtotal: 1600,
-      platformFee: 80,
-      grandTotal: 1680,
-      address: "Building 14B, Gulberg III, Lahore, Punjab",
-    },
-    {
-      id: "ord_1002",
-      date: "5/6/2026",
-      status: "Processing",
-      customerName: "Ayesha Ahmed",
-      items: [
-        { name: "Organic Tomatoes", quantity: 5.0, price: 120, unit: "kg" },
-      ],
-      subtotal: 600,
-      platformFee: 30,
-      grandTotal: 630,
-      address: "Sector F-7, Islamabad",
-    },
-    {
-      id: "ord_1000",
-      date: "1/6/2026",
-      status: "Completed",
-      customerName: "Sana Khan",
-      items: [
-        { name: "Desi Onions", quantity: 20.0, price: 60, unit: "kg" },
-      ],
-      subtotal: 1200,
-      platformFee: 60,
-      grandTotal: 1260,
-      address: "House 34A, Block C, Phase 5 DHA, Lahore",
-    },
-  ]);
+  useEffect(() => {
+    if (activeTab !== "orders") return;
+    let active = true;
+
+    repository
+      .listOrders()
+      .then((response) => {
+        if (!active) return;
+        setOrdersError("");
+        setOrders(response.data);
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setOrdersError(
+            error instanceof Error ? error.message : "Could not load your orders.",
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activeTab, repository]);
+
+  const [orders, setOrders] = useState<ApiOrder[] | null>(null);
+  const [ordersError, setOrdersError] = useState("");
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -135,21 +122,6 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
     setListings((current) => [toListing(created), ...current]);
     setActiveTab("listings");
     showToast(t("farmer.toast.createSuccess"));
-  };
-
-  // Order Handlers
-  const handleCompleteOrder = (id: string) => {
-    setOrders((prev) =>
-      prev.map((ord) => (ord.id === id ? { ...ord, status: "Completed" } : ord))
-    );
-    showToast(t("farmer.toast.orderCompleted").replace("{id}", id));
-  };
-
-  const handleCancelOrder = (id: string) => {
-    setOrders((prev) =>
-      prev.map((ord) => (ord.id === id ? { ...ord, status: "Cancelled" } : ord))
-    );
-    showToast(t("farmer.toast.orderCancelled").replace("{id}", id));
   };
 
   const unreadNotificationsCount = notifications.filter(n => !n.read).length;
@@ -449,11 +421,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
           )}
 
           {activeTab === "orders" && (
-            <FarmerOrders
-              orders={orders}
-              onCompleteOrder={handleCompleteOrder}
-              onCancelOrder={handleCancelOrder}
-            />
+            ordersError ? <p role="alert">{ordersError}</p> : orders ? <FarmerOrders orders={orders} /> : <p>Loading orders…</p>
           )}
 
           {activeTab === "feed" && <FarmFeed />}

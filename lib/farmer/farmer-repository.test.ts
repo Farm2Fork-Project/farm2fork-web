@@ -55,3 +55,19 @@ test("FarmerRepository reads the authenticated farmer's product page", async () 
   await repository.listMyProducts();
   expect(calls).toEqual(["/products/mine?limit=100"]);
 });
+
+test("FarmerRepository reads the authenticated farmer's order page", async () => {
+  const calls: string[] = [];
+  const repository = new FarmerRepository({
+    client: {
+      request: async (path) => {
+        calls.push(path);
+        return { data: [], page: 1, limit: 20, total: 0, totalPages: 0 };
+      },
+    },
+  });
+
+  await repository.listOrders();
+
+  expect(calls).toEqual(["/orders?limit=20"]);
+});

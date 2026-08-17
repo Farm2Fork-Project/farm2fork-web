@@ -1,5 +1,6 @@
 import type { ApiRequestOptions } from "../api/client.ts";
 import type {
+  ApiOrder,
   ApiPage,
   ApiProduct,
   CreateFarmerProductRequest,
@@ -18,6 +19,10 @@ export class FarmerRepository {
 
   listMyProducts(): Promise<ApiPage<ApiProduct>> {
     return this.client.request<ApiPage<ApiProduct>>("/products/mine?limit=100");
+  }
+
+  listOrders(): Promise<ApiPage<ApiOrder>> {
+    return this.client.request<ApiPage<ApiOrder>>("/orders?limit=20");
   }
 
   createProduct(input: CreateFarmerProductRequest): Promise<ApiProduct> {

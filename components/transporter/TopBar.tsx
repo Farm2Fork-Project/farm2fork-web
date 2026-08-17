@@ -31,7 +31,6 @@ export default function TopBar({ activeTab, setActiveTab }: TopBarProps) {
   const links: { tab: AppTab; icon: React.ReactNode; label: string }[] = [
     { tab: "shipments", icon: <LuClipboardList size={18} />, label: t("tship.pageTitle") },
     { tab: "scan", icon: <LuQrCode size={18} />, label: t("topbar.trace") },
-    { tab: "orders", icon: <LuClipboardList size={18} />, label: t("topbar.orders") },
   ];
 
   return (

@@ -1,6 +1,6 @@
 /* ───────── Shared Types ───────── */
 export type AuthScreen = "login" | "signup-role" | "signup-form";
-export type AppTab = "shipments" | "scan" | "orders" | "profile";
+export type AppTab = "shipments" | "scan" | "profile";
 
 /* ───────── Product Data ───────── */
 export const PRODUCTS = [
@@ -19,7 +19,6 @@ export const CATEGORIES = ["All", "Vegetables", "Fruits", "Grains", "Dairy"];
 export const TAB_TITLES: Record<AppTab, string> = {
   shipments: "Shipments",
   scan: "Trace",
-  orders: "Orders",
   profile: "Profile",
 };
 

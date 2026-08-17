@@ -9,7 +9,6 @@ import TransporterSignup2Screen, { type TransporterVehicleInput } from "@/compon
 import ScanScreen from "@/components/transporter/ScanScreen";
 import { type AppTab } from "@/components/transporter/types";
 import { LanguageProvider, useLanguage } from "@/components/transporter/LanguageContext";
-import TransporterOrdersScreen from "@/components/transporter/OrdersScreen";
 import TransporterProfileScreen from "@/components/transporter/ProfileScreen";
 import LoginScreen from "@/components/LoginScreen";
 import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
@@ -305,7 +304,6 @@ function TransporterApp() {
   const renderContent = () => {
     switch (activeTab) {
       case "shipments": return <ShipmentScreen repository={shipmentRepository} />;
-      case "orders": return <TransporterOrdersScreen />;
       case "scan": return <ScanScreen />;
       case "profile": return <TransporterProfileScreen onLogout={logout} />;
       default: return <div>Screen not found</div>;

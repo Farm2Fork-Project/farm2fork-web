@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
 import { ApiError } from "./contracts.ts";
 import { ApiClient } from "./client.ts";
 
@@ -23,6 +23,26 @@ test("ApiClient uses cookie credentials and a CSRF header without a bearer token
   expect(headers.get("Authorization")).toBeNull();
   expect(headers.get("X-Farm2Fork-CSRF")).toBe("1");
   expect(requests[0].init?.credentials).toBe("include");
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+test("ApiClient invokes the browser fetch function with the browser global receiver", async () => {
+  let receiver: unknown;
+  const fetchFn = function (this: unknown) {
+    receiver = this;
+    return Promise.resolve(new Response(JSON.stringify({ ok: true }), {
+      headers: { "Content-Type": "application/json" },
+    }));
+  };
+  vi.stubGlobal("fetch", fetchFn);
+  const client = new ApiClient({ baseUrl: "http://localhost:3000/api" });
+
+  await client.request("/health");
+
+  expect(receiver).toBe(globalThis);
 });
 
 test("ApiClient clears the session and normalizes a 401 response", async () => {

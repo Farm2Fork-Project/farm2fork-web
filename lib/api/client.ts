@@ -24,7 +24,7 @@ export class ApiClient {
   constructor(options: ApiClientOptions = {}) {
     this.baseUrl = options.baseUrl ?? process.env.NEXT_PUBLIC_API_BASE_URL;
     this.clearSession = options.clearSession ?? (() => undefined);
-    this.fetchFn = options.fetchFn ?? fetch;
+    this.fetchFn = options.fetchFn ?? globalThis.fetch.bind(globalThis);
   }
 
   async request<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {

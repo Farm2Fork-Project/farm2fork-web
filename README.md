@@ -81,11 +81,24 @@ its expected role with `GET /api/auth/me`. The farmer requires a CNIC and farm
 name. The transporter requires a CNIC, vehicle type/number, driving licence
 number, and at least one service area.
 
-The user-owned multi-role smoke sequence is: register a farmer, create a
-product, register a buyer, complete a configured payment, then register/login a
-transporter. Transporter shipment discovery and self-claim are not connected to
-the web UI yet, and a real transporter delivery cannot exist until payment is
-settled. Automated checks do not create Atlas data or simulate payments.
+## Local marketplace simulator walkthrough
+
+The local payment simulator is deliberately a development-only stand-in for a
+payment provider. It is not a Firebase or media feature, and no Cloudinary
+configuration is required for this flow.
+
+1. Register as a farmer and create an active listing.
+2. Register as a buyer, add that listing to the cart, and submit an order.
+3. Open Buyer **Orders** and select **Simulate payment success** for the
+   pending payment. The API marks the order paid and makes the delivery
+   claimable.
+4. Register as a transporter, open **Shipments**, claim the available delivery,
+   and progress it from `assigned` to `picked_up`, `in_transit`, and
+   `delivered`. Each status update requires a delivery note.
+5. Refresh Buyer **Orders** and Farmer **Orders** to see the shared lifecycle
+   state and shipment history.
+
+Automated checks do not create Atlas data or simulate marketplace payments.
 
 ## Verification
 

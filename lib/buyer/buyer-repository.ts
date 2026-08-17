@@ -94,6 +94,13 @@ export class BuyerRepository {
     return response.payment;
   }
 
+  simulatePaymentSuccess(paymentId: string): Promise<ApiPayment> {
+    return this.client.request<ApiPayment>(`/payments/${paymentId}/simulate`, {
+      method: "POST",
+      body: { status: "success" },
+    });
+  }
+
   listPayments(query: PaymentQuery = {}): Promise<ApiPage<ApiPayment>> {
     return this.client.request<ApiPage<ApiPayment>>(
       withQuery("/payments", query),

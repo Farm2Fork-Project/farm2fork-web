@@ -286,6 +286,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.notif.sms": "SMS Alerts",
     "settings.notif.smsDesc": "Text messages for urgent order issues.",
     "settings.save": "Save Changes",
+    "settings.notif.saved": "Notification preferences saved on this device.",
 
     "settings.lang.title": "Language & Display",
     "settings.lang.subtitle": "Customize your regional preferences and app appearance.",
@@ -306,7 +307,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.contact.message": "Message",
     "settings.contact.messagePlaceholder": "Describe your issue...",
     "settings.contact.send": "Send Message",
-    
+    "settings.contact.sentNote": "Message noted. Our support inbox isn't connected yet, so please also email {email} for a reply.",
+
     // Profile Sidebar & Modal & Other tabs
     "settings.faqs.title": "Frequently Asked Questions",
     "settings.faqs.subtitle": "Find answers to common questions about Farm2Fork.",
@@ -877,6 +879,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.notif.sms": "SMS الرٹس",
     "settings.notif.smsDesc": "فوری آرڈر کے مسائل کے لیے ٹیکسٹ پیغامات۔",
     "settings.save": "ترتیبات محفوظ کریں",
+    "settings.notif.saved": "اطلاعاتی ترجیحات اس ڈیوائس پر محفوظ کر لی گئی ہیں۔",
 
     "settings.lang.title": "زبان اور ڈسپلے",
     "settings.lang.subtitle": "اپنی علاقائی ترجیحات اور ایپ کی ظاہری شکل کو اپنی مرضی کے مطابق بنائیں۔",
@@ -897,7 +900,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.contact.message": "پیغام",
     "settings.contact.messagePlaceholder": "اپنا مسئلہ بیان کریں...",
     "settings.contact.send": "پیغام بھیجیں",
-    
+    "settings.contact.sentNote": "پیغام نوٹ کر لیا گیا ہے۔ ہمارا سپورٹ ان باکس ابھی منسلک نہیں ہے، اس لیے براہ کرم جواب کے لیے {email} پر بھی ای میل کریں۔",
+
     // Profile Sidebar & Modal & Other tabs
     "settings.faqs.title": "اکثر پوچھے گئے سوالات",
     "settings.faqs.subtitle": "فارم ٹو فورک کے بارے میں عام سوالات کے جوابات تلاش کریں۔",

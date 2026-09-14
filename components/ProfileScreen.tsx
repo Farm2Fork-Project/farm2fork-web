@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LuShoppingCart,
   LuBell,
@@ -13,11 +13,15 @@ import {
   LuLogOut,
   LuChevronRight,
   LuTriangleAlert,
-  LuLeaf
+  LuLeaf,
+  LuX
 } from "react-icons/lu";
 
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
+
+const NOTIF_PREFS_KEY = "app_notif_prefs";
+const SUPPORT_EMAIL = "support@farm2fork.pk";
 
 export default function ProfileScreen({
   onLogout,
@@ -30,7 +34,52 @@ export default function ProfileScreen({
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [contactSubject, setContactSubject] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
   const { t, language, setLanguage, fontSize, setFontSize } = useLanguage();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(NOTIF_PREFS_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as {
+        emailNotif?: boolean;
+        pushNotif?: boolean;
+        smsNotif?: boolean;
+      };
+      if (typeof parsed.emailNotif === "boolean") setEmailNotif(parsed.emailNotif);
+      if (typeof parsed.pushNotif === "boolean") setPushNotif(parsed.pushNotif);
+      if (typeof parsed.smsNotif === "boolean") setSmsNotif(parsed.smsNotif);
+    } catch {
+      // Ignore malformed/unavailable storage -- defaults already apply.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  function saveNotificationPrefs() {
+    try {
+      localStorage.setItem(
+        NOTIF_PREFS_KEY,
+        JSON.stringify({ emailNotif, pushNotif, smsNotif }),
+      );
+    } catch {
+      // Best-effort only -- toggles still apply to this session either way.
+    }
+    setToastMessage(t("settings.notif.saved"));
+  }
+
+  function sendContactMessage() {
+    if (!contactMessage.trim()) return;
+    setToastMessage(t("settings.contact.sentNote").replace("{email}", SUPPORT_EMAIL));
+    setContactSubject("");
+    setContactMessage("");
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -91,7 +140,9 @@ export default function ProfileScreen({
               </div>
             </div>
 
-            <button className="settings-save-btn">{t("settings.save")}</button>
+            <button className="settings-save-btn" onClick={saveNotificationPrefs} type="button">
+              {t("settings.save")}
+            </button>
           </div>
         );
       case "language":
@@ -131,16 +182,33 @@ export default function ProfileScreen({
             <h2>{t("settings.contact.title")}</h2>
             <p className="profile-tab-subtitle">{t("settings.contact.subtitle")}</p>
 
-            <form className="contact-form" style={{ display: "flex", flexDirection: "column", gap: "var(--sp-lg)", maxWidth: "500px" }}>
+            <form
+              className="contact-form"
+              style={{ display: "flex", flexDirection: "column", gap: "var(--sp-lg)", maxWidth: "500px" }}
+              onSubmit={(e) => { e.preventDefault(); sendContactMessage(); }}
+            >
               <div>
                 <label style={{ display: "block", marginBottom: "var(--sp-xs)", fontSize: "14px", fontWeight: 600 }}>{t("settings.contact.subject")}</label>
-                <input type="text" className="input" placeholder={t("settings.contact.subjectPlaceholder")} />
+                <input
+                  type="text"
+                  className="input"
+                  placeholder={t("settings.contact.subjectPlaceholder")}
+                  value={contactSubject}
+                  onChange={(e) => setContactSubject(e.target.value)}
+                />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "var(--sp-xs)", fontSize: "14px", fontWeight: 600 }}>{t("settings.contact.message")}</label>
-                <textarea className="input" rows={5} placeholder={t("settings.contact.messagePlaceholder")}></textarea>
+                <textarea
+                  className="input"
+                  rows={5}
+                  placeholder={t("settings.contact.messagePlaceholder")}
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  required
+                ></textarea>
               </div>
-              <button type="button" className="settings-save-btn" style={{ width: "fit-content" }}>{t("settings.contact.send")}</button>
+              <button type="submit" className="settings-save-btn" style={{ width: "fit-content" }}>{t("settings.contact.send")}</button>
             </form>
           </div>
         );
@@ -242,6 +310,17 @@ export default function ProfileScreen({
 
   return (
     <>
+      {toastMessage && (
+        <div className="toast-alert">
+          <div className="toast-alert-icon">
+            <LuInfo size={18} />
+          </div>
+          <span className="toast-alert-message">{toastMessage}</span>
+          <button className="toast-alert-close" onClick={() => setToastMessage(null)} type="button">
+            <LuX size={14} />
+          </button>
+        </div>
+      )}
       <div className="profile-web-layout">
         {/* Sidebar */}
         <aside className="profile-sidebar">

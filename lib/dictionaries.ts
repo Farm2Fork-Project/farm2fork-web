@@ -537,6 +537,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.tab.create": "Create",
     "farmer.tab.orders": "Orders",
     "farmer.tab.feed": "Community",
+    "farmer.tab.scan": "Trace",
     "farmer.tab.profile": "Profile",
 
     "farmer.listings.title": "My Listings",
@@ -1118,6 +1119,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.tab.create": "پیداوار درج کریں",
     "farmer.tab.orders": "آرڈرز",
     "farmer.tab.feed": "کسان چوپال",
+    "farmer.tab.scan": "فصل کا سفر",
     "farmer.tab.profile": "پروفائل",
 
     "farmer.listings.title": "میری فصلیں",

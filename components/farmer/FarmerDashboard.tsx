@@ -13,12 +13,14 @@ import {
   X,
   Menu,
   FileText,
+  QrCode,
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
 import FarmerProfile from "./ProfileScreen";
+import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
 import { LuLeaf } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
@@ -29,7 +31,7 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
-type TabType = "listings" | "create" | "orders" | "feed" | "profile";
+type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
 export default function FarmerDashboard({ onLogout }: { onLogout?: () => void }) {
   const { t, language } = useLanguage();
@@ -204,6 +206,14 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
             >
               <span className="icon"><Rss size={18} /></span>
               <span className="label">{t("farmer.tab.feed")}</span>
+            </a>
+            <a
+              href="#"
+              className={`topbar-link${activeTab === "scan" ? " active" : ""}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab("scan"); }}
+            >
+              <span className="icon"><QrCode size={18} /></span>
+              <span className="label">{t("farmer.tab.scan")}</span>
             </a>
             </nav>
 
@@ -386,6 +396,20 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
                 <button
                   onClick={() => {
+                    setActiveTab("scan");
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left p-3 rounded-lg text-sm font-semibold flex items-center gap-3 border-none cursor-pointer transition-colors ${activeTab === "scan"
+                    ? "bg-[var(--primary-green-soft)] text-[var(--primary-green)]"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                >
+                  <QrCode size={16} />
+                  <span>{t("farmer.tab.scan")}</span>
+                </button>
+
+                <button
+                  onClick={() => {
                     setActiveTab("profile");
                     setMobileMenuOpen(false);
                   }}
@@ -425,6 +449,8 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
           )}
 
           {activeTab === "feed" && <FarmFeed />}
+
+          {activeTab === "scan" && <ScanScreen />}
 
           {activeTab === "profile" && <FarmerProfile onLogout={() => {
             if (onLogout) onLogout();

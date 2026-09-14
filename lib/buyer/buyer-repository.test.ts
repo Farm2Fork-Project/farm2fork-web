@@ -5,9 +5,9 @@ test("BuyerRepository creates an order without client-calculated totals or farme
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new BuyerRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return { id: "order-1" };
+        return { id: "order-1" } as T;
       },
     },
   });
@@ -43,9 +43,9 @@ test("BuyerRepository settles a pending payment through the local simulator", as
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new BuyerRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return { id: "payment-1", status: "success" };
+        return { id: "payment-1", status: "success" } as T;
       },
     },
   });

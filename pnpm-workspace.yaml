@@ -8,3 +8,21 @@ allowBuilds:
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver
+overrides:
+  # Force patched versions of vulnerable transitive deps pulled in by
+  # eslint-config-next's eslint toolchain and next's own build deps.
+  minimatch@3: 3.1.5
+  minimatch@9: 9.0.9
+  brace-expansion@1: 1.1.18
+  brace-expansion@2: 2.1.4
+  picomatch@2: 2.3.2
+  picomatch@4: 4.0.7
+  ajv@6: 6.15.0
+  flatted: 3.4.4
+  nanoid: 3.3.19
+  browserslist: 4.28.9
+  "@humanfs/node": 0.17.0
+  baseline-browser-mapping: 2.11.23
+  "@babel/core": 7.29.7
+  js-yaml: 4.3.2
+  postcss: 8.5.28

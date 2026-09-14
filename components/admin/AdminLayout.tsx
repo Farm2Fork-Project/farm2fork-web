@@ -27,7 +27,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .finally(() => setLoading(false))
   }, [router])
 
-  if (loading || role !== 'admin') return null
+  if (loading) {
+    return (
+      <div className="app-boundary" role="status" aria-live="polite">
+        <div className="app-spinner" />
+        <p>Checking your access…</p>
+      </div>
+    )
+  }
+
+  if (role !== 'admin') return null
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', position: 'relative' }}>

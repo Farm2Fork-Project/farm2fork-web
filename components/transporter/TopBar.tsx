@@ -13,7 +13,7 @@ import {
 import { AppTab, TopBarProps } from "./types";
 import { useLanguage } from "./LanguageContext";
 
-export default function TopBar({ activeTab, setActiveTab }: TopBarProps) {
+export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) {
   const { t } = useLanguage();
   const [showNotif, setShowNotif] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -144,7 +144,7 @@ export default function TopBar({ activeTab, setActiveTab }: TopBarProps) {
           <div className="topbar-avatar" style={{ background: "linear-gradient(135deg, var(--primary-green), #14492a)" }}>T</div>
           <div className="topbar-user-info">
             <span className="topbar-user-name">Transporter</span>
-            <span className="topbar-user-role">transporter@test.com</span>
+            <span className="topbar-user-role">{email}</span>
           </div>
         </div>
       </div>

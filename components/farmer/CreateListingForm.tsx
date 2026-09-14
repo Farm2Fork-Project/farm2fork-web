@@ -155,7 +155,7 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
                 </label>
                 <input
                   id="farmer-product-price"
-                  type="number" required min="1" placeholder="0"
+                  type="number" required min="0.01" step="0.01" placeholder="0"
                   value={price} onChange={(e) => setPrice(e.target.value)}
                   className="input w-full py-2.5 px-4 text-sm rounded-lg border-gray-200 focus:border-[var(--primary-green)] bg-white"
                 />

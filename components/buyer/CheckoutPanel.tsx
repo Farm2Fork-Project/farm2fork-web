@@ -1,10 +1,17 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { LuCircleCheckBig } from "react-icons/lu";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
 import type { ApiOrderAddress, PaymentGateway } from "@/lib/api/contracts.ts";
+
+function paymentStatusBadgeClass(status: string): string {
+  if (status === "success") return "badge-soft-green";
+  if (status === "failed" || status === "refunded") return "badge-soft-red";
+  return "badge-soft-blue";
+}
 
 type CheckoutRepository = Pick<
   BuyerRepository,
@@ -20,10 +27,12 @@ export function CheckoutPanel({
   groups,
   repository,
   onConfirmedFarmers,
+  onViewOrders,
 }: {
   groups: CartFarmerGroup[];
   repository: CheckoutRepository;
   onConfirmedFarmers: (farmerIds: string[]) => void;
+  onViewOrders: () => void;
 }) {
   const [address, setAddress] = useState<ApiOrderAddress>({
     street: "",
@@ -70,6 +79,36 @@ export function CheckoutPanel({
     setResults(nextResults);
     if (confirmedFarmers.length > 0) onConfirmedFarmers(confirmedFarmers);
     setIsSubmitting(false);
+  }
+
+  if (results.length > 0) {
+    return (
+      <div className="checkout-panel">
+        <div className="card" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--sp-md)" }}>
+          <LuCircleCheckBig size={40} color="var(--success)" />
+          <h3 style={{ margin: 0 }}>
+            {results.length === 1 ? "Order placed" : `${results.length} orders placed`}
+          </h3>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
+            Each farmer group is now its own order with a pending payment.
+          </p>
+          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "var(--sp-sm)" }}>
+            {results.map((result, index) => (
+              <div className="flex-between" key={result.farmerId}>
+                <span>Farmer group {index + 1}</span>
+                <span className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}>
+                  {result.paymentStatus}
+                </span>
+              </div>
+            ))}
+          </div>
+          {error ? <p role="alert">{error}</p> : null}
+          <button className="btn btn-primary" onClick={onViewOrders} type="button">
+            View orders
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -135,11 +174,6 @@ export function CheckoutPanel({
       </button>
 
       {error ? <p role="alert">{error}</p> : null}
-      {results.length > 0 ? (
-        <p>
-          {results.length} {results.length === 1 ? "payment is" : "payments are"} pending.
-        </p>
-      ) : null}
     </form>
   );
 }

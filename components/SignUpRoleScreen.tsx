@@ -1,5 +1,6 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
 import {
   LuShoppingCart,
   LuStore,
@@ -15,17 +16,27 @@ import { useLanguage } from "./LanguageContext";
 export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: SignUpRoleScreenProps) {
   const { t } = useLanguage();
 
+  const handleRoleKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    role: "buyer" | "farmer" | "transporter"
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelectRole(role);
+    }
+  };
+
   return (
     <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="role-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
-          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><LuX size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> {t("login.backToHome")}</button>
           <div className="auth-card-narrow-header">
-            <button className="back-btn" onClick={onBack} aria-label="Go back">
+            <button className="back-btn" onClick={onBack} aria-label={t("signupRole.goBackAriaLabel")}>
               <LuArrowLeft size={22} />
             </button>
-            <h1 id="role-heading">Choose how you&apos;ll use Farm2Fork</h1>
+            <h1 id="role-heading">{t("signupRole.header")}</h1>
           </div>
 
           <p className="role-selection-title">{t("signupRole.want")}</p>
@@ -33,6 +44,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
           <div
             className="role-card"
             onClick={() => onSelectRole("buyer")}
+            onKeyDown={(e) => handleRoleKeyDown(e, "buyer")}
             role="button"
             tabIndex={0}
             id="role-buyer"
@@ -47,7 +59,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
             <LuChevronRight size={20} className="role-card-arrow" />
           </div>
 
-          <div className="role-card" onClick={() => onSelectRole("farmer")} role="button" tabIndex={0} id="role-farmer">
+          <div className="role-card" onClick={() => onSelectRole("farmer")} onKeyDown={(e) => handleRoleKeyDown(e, "farmer")} role="button" tabIndex={0} id="role-farmer">
             <div className="role-card-icon">
               <LuStore size={24} />
             </div>
@@ -58,7 +70,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
             <LuChevronRight size={20} className="role-card-arrow" />
           </div>
 
-          <div className="role-card" onClick={() => onSelectRole("transporter")} role="button" tabIndex={0} id="role-transporter">
+          <div className="role-card" onClick={() => onSelectRole("transporter")} onKeyDown={(e) => handleRoleKeyDown(e, "transporter")} role="button" tabIndex={0} id="role-transporter">
             <div className="role-card-icon">
               <LuTruck size={24} />
             </div>

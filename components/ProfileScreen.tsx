@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LuShoppingCart,
   LuBell,
@@ -11,24 +11,75 @@ import {
   LuShield,
   LuFileText,
   LuLogOut,
-  LuToggleRight,
-  LuToggleLeft,
   LuChevronRight,
   LuTriangleAlert,
-  LuLeaf
+  LuLeaf,
+  LuX
 } from "react-icons/lu";
 
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
 
-export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
+const NOTIF_PREFS_KEY = "app_notif_prefs";
+const SUPPORT_EMAIL = "support@farm2fork.pk";
+
+export default function ProfileScreen({
+  onLogout,
+  signedInAs,
+  email,
+  avatarIcon,
+}: ProfileScreenProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [contactSubject, setContactSubject] = useState("");
+  const [contactMessage, setContactMessage] = useState("");
   const { t, language, setLanguage, fontSize, setFontSize } = useLanguage();
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(NOTIF_PREFS_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as {
+        emailNotif?: boolean;
+        pushNotif?: boolean;
+        smsNotif?: boolean;
+      };
+      if (typeof parsed.emailNotif === "boolean") setEmailNotif(parsed.emailNotif);
+      if (typeof parsed.pushNotif === "boolean") setPushNotif(parsed.pushNotif);
+      if (typeof parsed.smsNotif === "boolean") setSmsNotif(parsed.smsNotif);
+    } catch {
+      // Ignore malformed/unavailable storage -- defaults already apply.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  function saveNotificationPrefs() {
+    try {
+      localStorage.setItem(
+        NOTIF_PREFS_KEY,
+        JSON.stringify({ emailNotif, pushNotif, smsNotif }),
+      );
+    } catch {
+      // Best-effort only -- toggles still apply to this session either way.
+    }
+    setToastMessage(t("settings.notif.saved"));
+  }
+
+  function sendContactMessage() {
+    if (!contactMessage.trim()) return;
+    setToastMessage(t("settings.contact.sentNote").replace("{email}", SUPPORT_EMAIL));
+    setContactSubject("");
+    setContactMessage("");
+  }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -44,8 +95,15 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
                   <h3>{t("settings.notif.email")}</h3>
                   <p>{t("settings.notif.emailDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {emailNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={emailNotif}
+                      onChange={() => setEmailNotif(!emailNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
               <div className="setting-item" onClick={() => setPushNotif(!pushNotif)} style={{ cursor: "pointer" }}>
@@ -53,8 +111,15 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
                   <h3>{t("settings.notif.push")}</h3>
                   <p>{t("settings.notif.pushDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {pushNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={pushNotif}
+                      onChange={() => setPushNotif(!pushNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
               <div className="setting-item" onClick={() => setSmsNotif(!smsNotif)} style={{ cursor: "pointer" }}>
@@ -62,13 +127,22 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
                   <h3>{t("settings.notif.sms")}</h3>
                   <p>{t("settings.notif.smsDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {smsNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={smsNotif}
+                      onChange={() => setSmsNotif(!smsNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
             </div>
 
-            <button className="settings-save-btn">{t("settings.save")}</button>
+            <button className="settings-save-btn" onClick={saveNotificationPrefs} type="button">
+              {t("settings.save")}
+            </button>
           </div>
         );
       case "language":
@@ -99,15 +173,6 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
                   {fontSize === "small" ? t("settings.lang.fontSmall") : fontSize === "medium" ? t("settings.lang.fontMedium") : t("settings.lang.fontLarge")} <LuChevronRight size={16} />
                 </div>
               </div>
-              <div className="setting-item" onClick={() => setDarkMode(!darkMode)} style={{ cursor: "pointer" }}>
-                <div className="setting-info">
-                  <h3>{t("settings.lang.darkmode")}</h3>
-                  <p>{t("settings.lang.darkmodeDesc")}</p>
-                </div>
-                <div className="setting-toggle">
-                  {darkMode ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
-                </div>
-              </div>
             </div>
           </div>
         );
@@ -117,16 +182,33 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
             <h2>{t("settings.contact.title")}</h2>
             <p className="profile-tab-subtitle">{t("settings.contact.subtitle")}</p>
 
-            <form className="contact-form" style={{ display: "flex", flexDirection: "column", gap: "var(--sp-lg)", maxWidth: "500px" }}>
+            <form
+              className="contact-form"
+              style={{ display: "flex", flexDirection: "column", gap: "var(--sp-lg)", maxWidth: "500px" }}
+              onSubmit={(e) => { e.preventDefault(); sendContactMessage(); }}
+            >
               <div>
                 <label style={{ display: "block", marginBottom: "var(--sp-xs)", fontSize: "14px", fontWeight: 600 }}>{t("settings.contact.subject")}</label>
-                <input type="text" className="input" placeholder={t("settings.contact.subjectPlaceholder")} />
+                <input
+                  type="text"
+                  className="input"
+                  placeholder={t("settings.contact.subjectPlaceholder")}
+                  value={contactSubject}
+                  onChange={(e) => setContactSubject(e.target.value)}
+                />
               </div>
               <div>
                 <label style={{ display: "block", marginBottom: "var(--sp-xs)", fontSize: "14px", fontWeight: 600 }}>{t("settings.contact.message")}</label>
-                <textarea className="input" rows={5} placeholder={t("settings.contact.messagePlaceholder")}></textarea>
+                <textarea
+                  className="input"
+                  rows={5}
+                  placeholder={t("settings.contact.messagePlaceholder")}
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
+                  required
+                ></textarea>
               </div>
-              <button type="button" className="settings-save-btn" style={{ width: "fit-content" }}>{t("settings.contact.send")}</button>
+              <button type="submit" className="settings-save-btn" style={{ width: "fit-content" }}>{t("settings.contact.send")}</button>
             </form>
           </div>
         );
@@ -228,16 +310,27 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
 
   return (
     <>
+      {toastMessage && (
+        <div className="toast-alert">
+          <div className="toast-alert-icon">
+            <LuInfo size={18} />
+          </div>
+          <span className="toast-alert-message">{toastMessage}</span>
+          <button className="toast-alert-close" onClick={() => setToastMessage(null)} type="button">
+            <LuX size={14} />
+          </button>
+        </div>
+      )}
       <div className="profile-web-layout">
         {/* Sidebar */}
         <aside className="profile-sidebar">
           <div className="profile-user-card">
             <div className="profile-avatar">
-              <LuShoppingCart size={28} />
+              {avatarIcon ?? <LuShoppingCart size={28} />}
             </div>
             <div>
-              <div className="profile-user-name">{t("settings.sidebar.signedIn")}</div>
-              <div className="profile-user-email">{t("settings.sidebar.email")}</div>
+              <div className="profile-user-name">{signedInAs ?? t("settings.sidebar.signedIn")}</div>
+              <div className="profile-user-email">{email ?? t("settings.sidebar.email")}</div>
             </div>
           </div>
 

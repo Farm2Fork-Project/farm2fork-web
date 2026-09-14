@@ -23,9 +23,9 @@ export default function LoginScreen({
     <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="login-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label="Close and return home"><LuX size={22} /></button>}
-          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> Back to home</button>
-          <div className="auth-heading"><span>Welcome back</span><h1 id="login-heading">Sign in to Farm2Fork</h1><p>Manage orders, listings, deliveries, and produce records from one place.</p></div>
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><LuX size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> {t("login.backToHome")}</button>
+          <div className="auth-heading"><span>{t("login.welcomeBack")}</span><h1 id="login-heading">{t("login.heading")}</h1><p>{t("login.description")}</p></div>
 
           <div className="auth-form-group">
             <label htmlFor="login-email">{t("login.email")}</label>
@@ -57,7 +57,7 @@ export default function LoginScreen({
                 className="toggle-pw"
                 onClick={() => setShowPw(!showPw)}
                 type="button"
-                aria-label="Toggle password visibility"
+                aria-label={t("login.togglePasswordVisibility")}
               >
                 {showPw ? <LuEye size={18} /> : <LuEyeOff size={18} />}
               </button>
@@ -90,7 +90,7 @@ export default function LoginScreen({
           )}
 
           <button className="auth-btn" disabled={isSubmitting} onClick={() => onLogin(email, password)} id="login-btn">
-            {isSubmitting ? "Signing in…" : t("login.submit")}
+            {isSubmitting ? t("login.signingIn") : t("login.submit")}
           </button>
 
           {onGoogleLogin ? (
@@ -100,7 +100,7 @@ export default function LoginScreen({
               onClick={() => void onGoogleLogin()}
               type="button"
             >
-              Continue with Google
+              {t("login.continueWithGoogle")}
             </button>
           ) : null}
 

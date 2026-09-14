@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { LuTruck } from "react-icons/lu";
 import TopBar from "@/components/transporter/TopBar";
 import ShipmentScreen from "@/components/transporter/ShipmentScreen";
 import TransporterSignup1Screen, { type TransporterPersonalInput } from "@/components/transporter/TransporterSignup1Screen";
@@ -9,7 +10,7 @@ import TransporterSignup2Screen, { type TransporterVehicleInput } from "@/compon
 import ScanScreen from "@/components/transporter/ScanScreen";
 import { type AppTab } from "@/components/transporter/types";
 import { LanguageProvider, useLanguage } from "@/components/transporter/LanguageContext";
-import TransporterProfileScreen from "@/components/transporter/ProfileScreen";
+import TransporterProfileScreen from "@/components/ProfileScreen";
 import LoginScreen from "@/components/LoginScreen";
 import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
 import { ApiClient } from "@/lib/api/client.ts";
@@ -30,7 +31,7 @@ import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 function TransporterApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const authRepository = useMemo(
     () => new RoleAuthRepository({ client: new ApiClient() }),
     [],
@@ -127,7 +128,7 @@ function TransporterApp() {
       firebaseAuthRepository.getCurrentFirebaseIdentityEmail(),
     );
     if (!email) {
-      setAuthError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      setAuthError("Your onboarding session expired. Sign in again to choose a role.");
       router.replace("/?auth=login");
       return;
     }
@@ -305,15 +306,22 @@ function TransporterApp() {
     switch (activeTab) {
       case "shipments": return <ShipmentScreen repository={shipmentRepository} />;
       case "scan": return <ScanScreen />;
-      case "profile": return <TransporterProfileScreen onLogout={logout} />;
+      case "profile": return (
+        <TransporterProfileScreen
+          email={session.user.email}
+          avatarIcon={<LuTruck size={28} />}
+          signedInAs={t("tTopBar.signedIn")}
+          onLogout={logout}
+        />
+      );
       default: return <div>Screen not found</div>;
     }
   };
 
   return (
-    <div className="app-shell animation-fade-in" dir={t("app.title") === "فارم ٹو فورک" ? "rtl" : "ltr"}>
+    <div className="app-shell animation-fade-in" dir={language === "ur" ? "rtl" : "ltr"}>
       <div className="app-main">
-        <TopBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <TopBar activeTab={activeTab} email={session.user.email} setActiveTab={setActiveTab} />
         <main className="app-content">{renderContent()}</main>
       </div>
     </div>

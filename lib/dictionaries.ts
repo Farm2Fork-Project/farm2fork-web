@@ -102,8 +102,14 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "landing.footer.fyp": "Final Year Project · UCP",
 
     // Login Screen
-    "login.title": "Welcome Back",
-    "login.subtitle": "Log in to trace your orders and buy fresh produce.",
+    "login.backToHome": "Back to home",
+    "login.closeAriaLabel": "Close and return home",
+    "login.welcomeBack": "Welcome back",
+    "login.heading": "Sign in to Farm2Fork",
+    "login.description": "Manage orders, listings, deliveries, and produce records from one place.",
+    "login.togglePasswordVisibility": "Toggle password visibility",
+    "login.signingIn": "Signing in…",
+    "login.continueWithGoogle": "Continue with Google",
     "login.email": "Email / Phone",
     "login.emailPlaceholder": "buyer@example.com",
     "login.password": "Password",
@@ -116,7 +122,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "login.guest": "Continue as guest",
 
     // Sign Up Role Screen
-    "signupRole.header": "Create Account",
+    "signupRole.header": "Choose how you'll use Farm2Fork",
+    "signupRole.goBackAriaLabel": "Go back",
     "signupRole.want": "I want to…",
     "signupRole.buyerRole": "Buyer",
     "signupRole.buyerDescText": "Buy fresh produce, scan QR codes, and track your orders.",
@@ -240,7 +247,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "scan.desc": "Enter the Product ID to verify product origin, farmer, order journey, shipment updates, and blockchain records.",
     "scan.back": "Back to Search",
     "scan.traceTitle": "Trace",
-    "scan.verified": "Verified Blockchain Trace Ledger",
+    "scan.verified": "Example blockchain trace (demo data)",
+    "scan.tryDemo": "Live product lookups aren't connected yet — try the demo ID: {demoId}",
+    "scan.notFoundTitle": "No trace found for \"{query}\"",
+    "scan.notFoundDesc": "Live product lookups aren't connected yet. Try the demo ID {demoId} to see an example journey.",
     "scanResult.event1": "Product Listing",
     "scanResult.role1": "Farmer",
     "scanResult.event2": "Payment Confirmed",
@@ -283,6 +293,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.notif.sms": "SMS Alerts",
     "settings.notif.smsDesc": "Text messages for urgent order issues.",
     "settings.save": "Save Changes",
+    "settings.notif.saved": "Notification preferences saved on this device.",
 
     "settings.lang.title": "Language & Display",
     "settings.lang.subtitle": "Customize your regional preferences and app appearance.",
@@ -290,8 +301,6 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.lang.languageDesc": "Choose your preferred language.",
     "settings.lang.currency": "Currency",
     "settings.lang.currencyDesc": "Preferred currency for marketplace.",
-    "settings.lang.darkmode": "Dark Mode",
-    "settings.lang.darkmodeDesc": "Toggle dark mode appearance.",
     "settings.lang.fontsize": "Font Size",
     "settings.lang.fontsizeDesc": "Adjust the text size across the app.",
     "settings.lang.fontSmall": "Small",
@@ -305,7 +314,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.contact.message": "Message",
     "settings.contact.messagePlaceholder": "Describe your issue...",
     "settings.contact.send": "Send Message",
-    
+    "settings.contact.sentNote": "Message noted. Our support inbox isn't connected yet, so please also email {email} for a reply.",
+
     // Profile Sidebar & Modal & Other tabs
     "settings.faqs.title": "Frequently Asked Questions",
     "settings.faqs.subtitle": "Find answers to common questions about Farm2Fork.",
@@ -338,6 +348,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.uc.subtitle": "This section is currently being updated. Please check back later.",
     
     "settings.sidebar.signedIn": "Signed in as Buyer",
+    "settings.sidebar.signedInFarmer": "Signed in as Farmer",
     "settings.sidebar.email": "buyer@test.com",
     "settings.sidebar.appSettings": "App Settings",
     "settings.sidebar.notif": "Notification Settings",
@@ -431,6 +442,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "tship.noteTooLong": "A delivery note cannot exceed 500 characters.",
     "tship.updating": "Updating…",
     "tship.markFailed": "Mark failed",
+    "tship.confirmFailedTitle": "Mark delivery as failed?",
+    "tship.confirmFailedBody": "This marks the shipment as failed and cannot be undone from here.",
+    "tship.confirmFailedAction": "Mark as failed",
+    "tship.cancel": "Cancel",
     "tship.status.assigned": "Assigned",
     "tship.status.picked_up": "Picked up",
     "tship.status.in_transit": "In transit",
@@ -534,6 +549,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.tab.create": "Create",
     "farmer.tab.orders": "Orders",
     "farmer.tab.feed": "Community",
+    "farmer.tab.scan": "Trace",
     "farmer.tab.profile": "Profile",
 
     "farmer.listings.title": "My Listings",
@@ -564,9 +580,19 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.toast.orderCompleted": "Order #{id} completed successfully.",
     "farmer.toast.orderCancelled": "Order #{id} cancelled successfully.",
 
+    "notifications.title": "Notifications",
+    "notifications.markAllRead": "Mark all as read",
+    "farmer.notifications.n1.title": "New Order",
+    "farmer.notifications.n1.text": "New Order #ord_1001 received from Muhammad Ali",
+    "farmer.notifications.n1.time": "2 hrs ago",
+    "farmer.notifications.n2.title": "Quality Approved",
+    "farmer.notifications.n2.text": "Quality Grade check for Desi Onions approved",
+    "farmer.notifications.n2.time": "1 day ago",
+
     // Social feed keys
     "feed.tab.community": "Community Feed",
     "feed.tab.liked": "Liked Posts",
+    "feed.previewNotice": "Preview: posts and comments here aren't saved to a shared feed yet, and reset when you reload.",
     "feed.composer.placeholder": "What's on your mind, Hassan?",
     "feed.composer.title": "Create Post",
     "feed.composer.titlePlaceholder": "What's on your mind?",
@@ -581,7 +607,21 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.post.comment": "Comment",
     "feed.post.comments": "Comments",
     "feed.post.writeComment": "Write a comment...",
-    "feed.post.commentsCount": "{count} Comments"
+    "feed.post.commentsCount": "{count} Comments",
+    "feed.seed.post1.author": "Fatima Bibi",
+    "feed.seed.post1.title": "Sindh Mango Crop Advice",
+    "feed.seed.post1.content": "Due to early heatwaves in Sindh, ensure light watering every 3 days. Focus on organic pest repellents for grade A quality exports!",
+    "feed.seed.post1.tags": "Mangoes,FarmingTips,Organic",
+    "feed.seed.post1.comment1.author": "Rahim Yar",
+    "feed.seed.post1.comment1.content": "Thank you Fatima, this advice is very timely. Our orchards in Mirpur Khas are seeing high temperatures already.",
+    "feed.seed.post1.comment2.author": "Zainab Shah",
+    "feed.seed.post1.comment2.content": "Which pest repellents do you recommend specifically for exports? Neem oil mixtures?",
+    "feed.seed.post2.author": "Tariq Mehmood",
+    "feed.seed.post2.title": "Basmati Rice Price Trends",
+    "feed.seed.post2.content": "Expect price stabilization for Basmati Rice (1121) this season. Direct listings here are cutting out middleman cuts by 20%!",
+    "feed.seed.post2.tags": "MarketTrends,Rice,DirectMarket",
+    "feed.seed.post2.comment1.author": "Ali Raza",
+    "feed.seed.post2.comment1.content": "Agreed, direct prices are much better than selling in local mandi this month."
   },
   ur: {
     // General
@@ -686,8 +726,14 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "landing.footer.fyp": "فائنل ایئر پروجیکٹ · یو سی پی",
 
     // Login Screen
-    "login.title": "لاگ ان",
-    "login.subtitle": "خوش آمدید",
+    "login.backToHome": "ہوم پر واپس جائیں",
+    "login.closeAriaLabel": "بند کریں اور ہوم پر واپس جائیں",
+    "login.welcomeBack": "خوش آمدید",
+    "login.heading": "Farm2Fork میں سائن ان کریں",
+    "login.description": "ایک ہی جگہ سے آرڈرز، فہرستیں، ترسیلات اور پیداوار کے ریکارڈ کا نظم کریں۔",
+    "login.togglePasswordVisibility": "پاس ورڈ کی مرئیت تبدیل کریں",
+    "login.signingIn": "سائن ان ہو رہا ہے…",
+    "login.continueWithGoogle": "گوگل کے ساتھ جاری رکھیں",
     "login.email": "ای میل / فون",
     "login.emailPlaceholder": "user@example.com",
     "login.password": "پاس ورڈ",
@@ -700,7 +746,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "login.guest": "مہمان کے طور پر جاری رکھیں",
 
     // Sign Up Role Screen
-    "signupRole.header": "اکاؤنٹ بنائیں",
+    "signupRole.header": "منتخب کریں کہ آپ Farm2Fork کیسے استعمال کریں گے",
+    "signupRole.goBackAriaLabel": "واپس جائیں",
     "signupRole.want": "میں چاہتا ہوں...",
     "signupRole.buyerRole": "خریدار",
     "signupRole.buyerDescText": "تازہ پیداوار خریدیں، QR کوڈ اسکین کریں، اور اپنے آرڈرز کو ٹریک کریں۔",
@@ -824,7 +871,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "scan.desc": "پروڈکٹ کی اصل، کسان، آرڈر کا سفر، شپمنٹ اپ ڈیٹس، اور بلاک چین ریکارڈز کی تصدیق کے لیے پروڈکٹ کی آئی ڈی درج کریں۔",
     "scan.back": "تلاش پر واپس جائیں",
     "scan.traceTitle": "فصل کا سفر",
-    "scan.verified": "تصدیق شدہ بلاک چین ٹریس لیجر",
+    "scan.verified": "مثالی بلاک چین ٹریس (نمائشی ڈیٹا)",
+    "scan.tryDemo": "لائیو پروڈکٹ لُک اپ ابھی منسلک نہیں ہے — نمائشی آئی ڈی آزمائیں: {demoId}",
+    "scan.notFoundTitle": "\"{query}\" کے لیے کوئی سفر نہیں ملا",
+    "scan.notFoundDesc": "لائیو پروڈکٹ لُک اپ ابھی منسلک نہیں ہے۔ ایک مثالی سفر دیکھنے کے لیے نمائشی آئی ڈی {demoId} آزمائیں۔",
     "scanResult.event1": "مصنوعات کی فہرست",
     "scanResult.role1": "کاشتکار",
     "scanResult.event2": "ادائیگی کی تصدیق ہو گئی",
@@ -867,6 +917,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.notif.sms": "SMS الرٹس",
     "settings.notif.smsDesc": "فوری آرڈر کے مسائل کے لیے ٹیکسٹ پیغامات۔",
     "settings.save": "ترتیبات محفوظ کریں",
+    "settings.notif.saved": "اطلاعاتی ترجیحات اس ڈیوائس پر محفوظ کر لی گئی ہیں۔",
 
     "settings.lang.title": "زبان اور ڈسپلے",
     "settings.lang.subtitle": "اپنی علاقائی ترجیحات اور ایپ کی ظاہری شکل کو اپنی مرضی کے مطابق بنائیں۔",
@@ -874,8 +925,6 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.lang.languageDesc": "اپنی پسندیدہ زبان کا انتخاب کریں۔",
     "settings.lang.currency": "کرنسی",
     "settings.lang.currencyDesc": "مارکیٹ پلیس کے لیے پسندیدہ کرنسی۔",
-    "settings.lang.darkmode": "ڈارک موڈ",
-    "settings.lang.darkmodeDesc": "ڈارک موڈ کی ظاہری شکل کو ٹوگل کریں۔",
     "settings.lang.fontsize": "فونٹ سائز",
     "settings.lang.fontsizeDesc": "ایپ میں متن کا سائز تبدیل کریں۔",
     "settings.lang.fontSmall": "چھوٹا",
@@ -889,7 +938,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.contact.message": "پیغام",
     "settings.contact.messagePlaceholder": "اپنا مسئلہ بیان کریں...",
     "settings.contact.send": "پیغام بھیجیں",
-    
+    "settings.contact.sentNote": "پیغام نوٹ کر لیا گیا ہے۔ ہمارا سپورٹ ان باکس ابھی منسلک نہیں ہے، اس لیے براہ کرم جواب کے لیے {email} پر بھی ای میل کریں۔",
+
     // Profile Sidebar & Modal & Other tabs
     "settings.faqs.title": "اکثر پوچھے گئے سوالات",
     "settings.faqs.subtitle": "فارم ٹو فورک کے بارے میں عام سوالات کے جوابات تلاش کریں۔",
@@ -922,6 +972,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.uc.subtitle": "یہ سیکشن فی الحال اپ ڈیٹ کیا جا رہا ہے۔ براہ کرم بعد میں دوبارہ چیک کریں۔",
     
     "settings.sidebar.signedIn": "بطور خریدار سائن ان کیا گیا",
+    "settings.sidebar.signedInFarmer": "بطور کسان سائن ان کیا گیا",
     "settings.sidebar.email": "buyer@test.com",
     "settings.sidebar.appSettings": "ایپ کی ترتیبات",
     "settings.sidebar.notif": "نوٹیفکیشن کی ترتیبات",
@@ -1009,6 +1060,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "tship.noteTooLong": "ڈیلیوری نوٹ 500 حروف سے زیادہ نہیں ہو سکتا۔",
     "tship.updating": "اپ ڈیٹ ہو رہی ہے…",
     "tship.markFailed": "ناکام نشان لگائیں",
+    "tship.confirmFailedTitle": "ڈیلیوری کو ناکام نشان زد کریں؟",
+    "tship.confirmFailedBody": "اس سے شپمنٹ ناکام نشان زد ہو جائے گی اور یہاں سے واپس نہیں کی جا سکتی۔",
+    "tship.confirmFailedAction": "ناکام نشان زد کریں",
+    "tship.cancel": "منسوخ کریں",
     "tship.status.assigned": "تفویض شدہ",
     "tship.status.picked_up": "پک اپ ہو گیا",
     "tship.status.in_transit": "ٹرانزٹ میں",
@@ -1112,6 +1167,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.tab.create": "پیداوار درج کریں",
     "farmer.tab.orders": "آرڈرز",
     "farmer.tab.feed": "کسان چوپال",
+    "farmer.tab.scan": "فصل کا سفر",
     "farmer.tab.profile": "پروفائل",
 
     "farmer.listings.title": "میری فصلیں",
@@ -1142,9 +1198,19 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.toast.orderCompleted": "آرڈر #{id} کامیابی سے مکمل ہو گیا۔",
     "farmer.toast.orderCancelled": "آرڈر #{id} منسوخ کر دیا گیا۔",
 
+    "notifications.title": "اطلاعات",
+    "notifications.markAllRead": "سب کو پڑھا ہوا نشان زد کریں",
+    "farmer.notifications.n1.title": "نیا آرڈر",
+    "farmer.notifications.n1.text": "آرڈر #ord_1001 محمد علی سے موصول ہوا",
+    "farmer.notifications.n1.time": "2 گھنٹے پہلے",
+    "farmer.notifications.n2.title": "معیار کی منظوری",
+    "farmer.notifications.n2.text": "دیسی پیاز کے لیے معیار کی جانچ منظور ہو گئی",
+    "farmer.notifications.n2.time": "1 دن پہلے",
+
     // Urdu Social feed keys
     "feed.tab.community": "کسان چوپال",
     "feed.tab.liked": "پسندیدہ پوسٹس",
+    "feed.previewNotice": "پیش نظارہ: یہاں پوسٹس اور تبصرے ابھی مشترکہ فیڈ میں محفوظ نہیں ہوتے، اور دوبارہ لوڈ کرنے پر ری سیٹ ہو جاتے ہیں۔",
     "feed.composer.placeholder": "حسن، آپ کے ذہن میں کیا ہے؟",
     "feed.composer.title": "پوسٹ بنائیں",
     "feed.composer.titlePlaceholder": "موضوع کا عنوان لکھیں...",
@@ -1159,6 +1225,20 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.post.comment": "تبصرہ",
     "feed.post.comments": "تبصرے",
     "feed.post.writeComment": "تبصرہ لکھیں...",
-    "feed.post.commentsCount": "{count} تبصرے"
+    "feed.post.commentsCount": "{count} تبصرے",
+    "feed.seed.post1.author": "فاطمہ بی بی",
+    "feed.seed.post1.title": "سندھ میں آم کی فصل کا مشورہ",
+    "feed.seed.post1.content": "سندھ میں ابتدائی گرمی کی لہروں کی وجہ سے، ہر 3 دن بعد ہلکا پانی دینا یقینی بنائیں۔ گریڈ اے کوالٹی کی برآمدات کے لیے نامیاتی کیڑے مار ادویات پر توجہ دیں!",
+    "feed.seed.post1.tags": "آم,کھیتی_باڑی_مشورہ,نامیاتی",
+    "feed.seed.post1.comment1.author": "رحیم یار",
+    "feed.seed.post1.comment1.content": "فاطمہ، آپ کا بہت شکریہ، یہ مشورہ بہت بروقت ہے۔ میرپورخاص میں ہمارے باغات میں پہلے ہی زیادہ درجہ حرارت دیکھا جا رہا ہے۔",
+    "feed.seed.post1.comment2.author": "زینب شاہ",
+    "feed.seed.post1.comment2.content": "آپ خاص طور پر برآمدات کے لیے کون سی کیڑے مار دوا تجویز کرتی ہیں؟ نیم کے تیل کا آمیزہ؟",
+    "feed.seed.post2.author": "طارق محمود",
+    "feed.seed.post2.title": "باسمتی چاول کی قیمت کے رجحانات",
+    "feed.seed.post2.content": "اس سیزن میں باسمتی چاول (1121) کی قیمتوں میں استحکام کی توقع کریں۔ یہاں براہ راست لسٹنگ مڈل مین کے کٹوتی کو 20 فیصد تک کم کر رہی ہے!",
+    "feed.seed.post2.tags": "مارکیٹ_رجحانات,چاول,براہ_راست_مارکیٹ",
+    "feed.seed.post2.comment1.author": "علی رضا",
+    "feed.seed.post2.comment1.content": "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔"
   }
 };

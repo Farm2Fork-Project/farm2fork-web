@@ -114,7 +114,7 @@ function FarmerApp() {
       authRepository.getCurrentFirebaseIdentityEmail(),
     );
     if (!email) {
-      setAuthError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      setAuthError("Your onboarding session expired. Sign in again to choose a role.");
       router.replace("/?auth=login");
       return;
     }
@@ -241,7 +241,7 @@ function FarmerApp() {
   if (isCheckingSession) return <p>Loading…</p>;
 
   if (session?.user.role === "farmer") {
-    return <FarmerDashboard onLogout={logout} />;
+    return <FarmerDashboard email={session.user.email} onLogout={logout} />;
   }
 
   if (isVerifyingEmail) {

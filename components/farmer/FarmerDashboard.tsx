@@ -13,14 +13,16 @@ import {
   X,
   Menu,
   FileText,
+  QrCode,
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
-import FarmerProfile from "./ProfileScreen";
+import FarmerProfile from "../ProfileScreen";
+import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
-import { LuLeaf } from "react-icons/lu";
+import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
   ApiOrder,
@@ -29,9 +31,9 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
-type TabType = "listings" | "create" | "orders" | "feed" | "profile";
+type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
-export default function FarmerDashboard({ onLogout }: { onLogout?: () => void }) {
+export default function FarmerDashboard({ email, onLogout }: { email?: string; onLogout?: () => void }) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -91,8 +93,8 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
   // Notifications bell state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: "n_1", text: "New Order #ord_1001 received from Muhammad Ali", time: "2 hrs ago", read: false },
-    { id: "n_2", text: "Quality Grade check for Desi Onions approved", time: "1 day ago", read: true },
+    { id: "n_1", read: false },
+    { id: "n_2", read: true },
   ]);
 
   const showToast = (message: string) => {
@@ -205,6 +207,14 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
               <span className="icon"><Rss size={18} /></span>
               <span className="label">{t("farmer.tab.feed")}</span>
             </a>
+            <a
+              href="#"
+              className={`topbar-link${activeTab === "scan" ? " active" : ""}`}
+              onClick={(e) => { e.preventDefault(); setActiveTab("scan"); }}
+            >
+              <span className="icon"><QrCode size={18} /></span>
+              <span className="label">{t("farmer.tab.scan")}</span>
+            </a>
             </nav>
 
           <div className="topbar-right">
@@ -241,15 +251,15 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                   color: "var(--text-main)"
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{language === "ur" ? "اطلاعات" : "Notifications"}</h4>
-                    <span 
+                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{t("notifications.title")}</h4>
+                    <span
                       onClick={() => {
                         markNotificationsRead();
                         setNotificationsOpen(false);
-                      }} 
+                      }}
                       style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}
                     >
-                      {language === "ur" ? "سب کو پڑھا ہوا نشان زد کریں" : "Mark all as read"}
+                      {t("notifications.markAllRead")}
                     </span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
@@ -262,21 +272,15 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>
-                              {idx === 0 
-                                ? (language === "ur" ? "نیا آرڈر" : "New Order") 
-                                : (language === "ur" ? "معیار کی منظوری" : "Quality Approved")}
+                              {idx === 0 ? t("farmer.notifications.n1.title") : t("farmer.notifications.n2.title")}
                             </strong>
                             {!n.read && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary-green)", marginTop: "4px" }}></span>}
                           </div>
                           <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>
-                            {language === "ur" 
-                              ? n.text.replace("New Order", "نیا آرڈر").replace("received from", "موصول ہوا از").replace("Quality Grade check for", "معیار کی جانچ برائے").replace("approved", "منظور شدہ")
-                              : n.text}
+                            {idx === 0 ? t("farmer.notifications.n1.text") : t("farmer.notifications.n2.text")}
                           </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>
-                            {language === "ur"
-                              ? n.time.replace("hrs ago", "گھنٹے پہلے").replace("day ago", "دن پہلے")
-                              : n.time}
+                            {idx === 0 ? t("farmer.notifications.n1.time") : t("farmer.notifications.n2.time")}
                           </div>
                         </div>
                       </div>
@@ -296,7 +300,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
               <div className="topbar-avatar" style={{ background: "linear-gradient(135deg, var(--primary-green), #14492a)", color: "white", fontWeight: "bold" }}>F</div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{t("signupRole.farmerRole")}</span>
-                <span className="topbar-user-role">farmer@test.com</span>
+                <span className="topbar-user-role">{email}</span>
               </div>
             </div>
           </div>
@@ -386,6 +390,20 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
                 <button
                   onClick={() => {
+                    setActiveTab("scan");
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`w-full text-left p-3 rounded-lg text-sm font-semibold flex items-center gap-3 border-none cursor-pointer transition-colors ${activeTab === "scan"
+                    ? "bg-[var(--primary-green-soft)] text-[var(--primary-green)]"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                >
+                  <QrCode size={16} />
+                  <span>{t("farmer.tab.scan")}</span>
+                </button>
+
+                <button
+                  onClick={() => {
                     setActiveTab("profile");
                     setMobileMenuOpen(false);
                   }}
@@ -426,10 +444,19 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
           {activeTab === "feed" && <FarmFeed />}
 
-          {activeTab === "profile" && <FarmerProfile onLogout={() => {
-            if (onLogout) onLogout();
-            else console.log("Logout");
-          }} />}
+          {activeTab === "scan" && <ScanScreen />}
+
+          {activeTab === "profile" && (
+            <FarmerProfile
+              email={email}
+              avatarIcon={<LuUser size={28} />}
+              signedInAs={t("settings.sidebar.signedInFarmer")}
+              onLogout={() => {
+                if (onLogout) onLogout();
+                else console.log("Logout");
+              }}
+            />
+          )}
         </main>
 
 

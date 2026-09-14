@@ -16,6 +16,7 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import type { BuyerRepository, ProductQuery } from "@/lib/buyer/buyer-repository.ts";
+import { orderStatusClass } from "@/lib/status.ts";
 import {
   addCartItem,
   groupCartItemsByFarmer,
@@ -489,7 +490,7 @@ function OrderCard({
               <div className="order-card-id">Order {order.id}</div>
               <div className="order-card-date">{new Date(order.createdAt).toLocaleDateString()}</div>
             </div>
-            <span className="order-status processing">{order.status}</span>
+            <span className={`order-status ${orderStatusClass(order.status)}`}>{order.status}</span>
           </div>
           <div className="order-items">
             {order.items.map((item) => (

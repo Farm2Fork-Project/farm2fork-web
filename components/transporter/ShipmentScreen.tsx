@@ -9,6 +9,7 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
+import { orderStatusClass } from "@/lib/status.ts";
 import { useLanguage } from "./LanguageContext";
 
 type ShipmentRepositoryPort = Pick<
@@ -249,7 +250,7 @@ function OwnedShipments({
               <div className="order-card-id">{t("tship.shipmentId")} {shipment.id}</div>
               <div className="order-card-date">{t("tship.deliveryOrder")} {shipment.orderId}</div>
             </div>
-            <span className="order-status processing">{statusLabel(t, shipment.status)}</span>
+            <span className={`order-status ${orderStatusClass(shipment.status)}`}>{statusLabel(t, shipment.status)}</span>
           </div>
           <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <LuStore color="var(--primary-green)" size={16} />

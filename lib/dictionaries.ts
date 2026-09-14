@@ -573,6 +573,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.toast.orderCompleted": "Order #{id} completed successfully.",
     "farmer.toast.orderCancelled": "Order #{id} cancelled successfully.",
 
+    "notifications.title": "Notifications",
+    "notifications.markAllRead": "Mark all as read",
+    "farmer.notifications.n1.title": "New Order",
+    "farmer.notifications.n1.text": "New Order #ord_1001 received from Muhammad Ali",
+    "farmer.notifications.n1.time": "2 hrs ago",
+    "farmer.notifications.n2.title": "Quality Approved",
+    "farmer.notifications.n2.text": "Quality Grade check for Desi Onions approved",
+    "farmer.notifications.n2.time": "1 day ago",
+
     // Social feed keys
     "feed.tab.community": "Community Feed",
     "feed.tab.liked": "Liked Posts",
@@ -1174,6 +1183,15 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "farmer.toast.createSuccess": "فہرست کامیابی سے شائع کر دی گئی۔",
     "farmer.toast.orderCompleted": "آرڈر #{id} کامیابی سے مکمل ہو گیا۔",
     "farmer.toast.orderCancelled": "آرڈر #{id} منسوخ کر دیا گیا۔",
+
+    "notifications.title": "اطلاعات",
+    "notifications.markAllRead": "سب کو پڑھا ہوا نشان زد کریں",
+    "farmer.notifications.n1.title": "نیا آرڈر",
+    "farmer.notifications.n1.text": "آرڈر #ord_1001 محمد علی سے موصول ہوا",
+    "farmer.notifications.n1.time": "2 گھنٹے پہلے",
+    "farmer.notifications.n2.title": "معیار کی منظوری",
+    "farmer.notifications.n2.text": "دیسی پیاز کے لیے معیار کی جانچ منظور ہو گئی",
+    "farmer.notifications.n2.time": "1 دن پہلے",
 
     // Urdu Social feed keys
     "feed.tab.community": "کسان چوپال",

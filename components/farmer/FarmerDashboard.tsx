@@ -93,8 +93,8 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
   // Notifications bell state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: "n_1", text: "New Order #ord_1001 received from Muhammad Ali", time: "2 hrs ago", read: false },
-    { id: "n_2", text: "Quality Grade check for Desi Onions approved", time: "1 day ago", read: true },
+    { id: "n_1", read: false },
+    { id: "n_2", read: true },
   ]);
 
   const showToast = (message: string) => {
@@ -251,15 +251,15 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
                   color: "var(--text-main)"
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{language === "ur" ? "اطلاعات" : "Notifications"}</h4>
-                    <span 
+                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{t("notifications.title")}</h4>
+                    <span
                       onClick={() => {
                         markNotificationsRead();
                         setNotificationsOpen(false);
-                      }} 
+                      }}
                       style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}
                     >
-                      {language === "ur" ? "سب کو پڑھا ہوا نشان زد کریں" : "Mark all as read"}
+                      {t("notifications.markAllRead")}
                     </span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
@@ -272,21 +272,15 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                             <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>
-                              {idx === 0 
-                                ? (language === "ur" ? "نیا آرڈر" : "New Order") 
-                                : (language === "ur" ? "معیار کی منظوری" : "Quality Approved")}
+                              {idx === 0 ? t("farmer.notifications.n1.title") : t("farmer.notifications.n2.title")}
                             </strong>
                             {!n.read && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary-green)", marginTop: "4px" }}></span>}
                           </div>
                           <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>
-                            {language === "ur" 
-                              ? n.text.replace("New Order", "نیا آرڈر").replace("received from", "موصول ہوا از").replace("Quality Grade check for", "معیار کی جانچ برائے").replace("approved", "منظور شدہ")
-                              : n.text}
+                            {idx === 0 ? t("farmer.notifications.n1.text") : t("farmer.notifications.n2.text")}
                           </div>
                           <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>
-                            {language === "ur"
-                              ? n.time.replace("hrs ago", "گھنٹے پہلے").replace("day ago", "دن پہلے")
-                              : n.time}
+                            {idx === 0 ? t("farmer.notifications.n1.time") : t("farmer.notifications.n2.time")}
                           </div>
                         </div>
                       </div>

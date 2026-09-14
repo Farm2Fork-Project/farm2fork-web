@@ -49,7 +49,6 @@ test("ApiClient clears the session and normalizes a 401 response", async () => {
   let clears = 0;
   const client = new ApiClient({
     baseUrl: "http://localhost:3000/api",
-    getAccessToken: () => "buyer-token",
     clearSession: () => {
       clears += 1;
     },

@@ -5,9 +5,9 @@ test("ShipmentRepository requests only redacted available deliveries", async () 
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new ShipmentRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return [];
+        return [] as T;
       },
     },
   });
@@ -21,9 +21,9 @@ test("ShipmentRepository claims only the selected available order", async () => 
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new ShipmentRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return { id: "shipment-1" };
+        return { id: "shipment-1" } as T;
       },
     },
   });
@@ -42,9 +42,9 @@ test("ShipmentRepository sends the exact status and note to the assigned shipmen
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new ShipmentRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return { id: "shipment-1" };
+        return { id: "shipment-1" } as T;
       },
     },
   });

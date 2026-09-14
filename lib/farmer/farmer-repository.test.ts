@@ -5,9 +5,9 @@ test("FarmerRepository creates a product with the exact API DTO", async () => {
   const calls: Array<{ path: string; options?: unknown }> = [];
   const repository = new FarmerRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
-        return { id: "product-1" };
+        return { id: "product-1" } as T;
       },
     },
   });
@@ -45,9 +45,9 @@ test("FarmerRepository reads the authenticated farmer's product page", async () 
   const calls: string[] = [];
   const repository = new FarmerRepository({
     client: {
-      request: async (path) => {
+      request: async <T,>(path: string) => {
         calls.push(path);
-        return { data: [], page: 1, limit: 20, total: 0, totalPages: 0 };
+        return { data: [], page: 1, limit: 20, total: 0, totalPages: 0 } as T;
       },
     },
   });
@@ -60,9 +60,9 @@ test("FarmerRepository reads the authenticated farmer's order page", async () =>
   const calls: string[] = [];
   const repository = new FarmerRepository({
     client: {
-      request: async (path) => {
+      request: async <T,>(path: string) => {
         calls.push(path);
-        return { data: [], page: 1, limit: 20, total: 0, totalPages: 0 };
+        return { data: [], page: 1, limit: 20, total: 0, totalPages: 0 } as T;
       },
     },
   });

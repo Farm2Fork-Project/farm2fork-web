@@ -6,13 +6,14 @@ test("RoleAuthRepository restores a matching cookie-authenticated role", async (
   const saved: unknown[] = [];
   const repository = new RoleAuthRepository({
     client: {
-      request: async () => ({
-        id: "transporter-1",
-        email: "driver@example.com",
-        role: "transporter",
-        isVerified: true,
-        isActive: true,
-      }),
+      request: async <T,>() =>
+        ({
+          id: "transporter-1",
+          email: "driver@example.com",
+          role: "transporter",
+          isVerified: true,
+          isActive: true,
+        }) as T,
     },
     session: {
       clear: () => undefined,
@@ -44,13 +45,14 @@ test("RoleAuthRepository restores a matching cookie-authenticated role", async (
 test("RoleAuthRepository rejects a mismatched cookie-authenticated role", async () => {
   const repository = new RoleAuthRepository({
     client: {
-      request: async () => ({
-        id: "buyer-1",
-        email: "buyer@example.com",
-        role: "buyer",
-        isVerified: true,
-        isActive: true,
-      }),
+      request: async <T,>() =>
+        ({
+          id: "buyer-1",
+          email: "buyer@example.com",
+          role: "buyer",
+          isVerified: true,
+          isActive: true,
+        }) as T,
     },
   });
 

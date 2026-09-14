@@ -19,10 +19,10 @@ import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
-import FarmerProfile from "./ProfileScreen";
+import FarmerProfile from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
-import { LuLeaf } from "react-icons/lu";
+import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
   ApiOrder,
@@ -452,10 +452,17 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
           {activeTab === "scan" && <ScanScreen />}
 
-          {activeTab === "profile" && <FarmerProfile email={email} onLogout={() => {
-            if (onLogout) onLogout();
-            else console.log("Logout");
-          }} />}
+          {activeTab === "profile" && (
+            <FarmerProfile
+              email={email}
+              avatarIcon={<LuUser size={28} />}
+              signedInAs={t("settings.sidebar.signedInFarmer")}
+              onLogout={() => {
+                if (onLogout) onLogout();
+                else console.log("Logout");
+              }}
+            />
+          )}
         </main>
 
 

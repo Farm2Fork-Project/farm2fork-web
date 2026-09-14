@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 
 /* ───────── Shared Types ───────── */
@@ -22,6 +23,7 @@ export interface ProfileScreenProps {
   onLogout: () => void;
   signedInAs?: string;
   email?: string;
+  avatarIcon?: ReactNode;
 }
 
 export interface SignUpFormScreenProps {

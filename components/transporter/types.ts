@@ -13,11 +13,6 @@ export interface LoginScreenProps {
   onGoSignup: () => void;
 }
 
-export interface ProfileScreenProps {
-  onLogout: () => void;
-  email?: string;
-}
-
 export interface SignUpFormScreenProps {
   onBack: () => void;
   onSubmit: () => void;

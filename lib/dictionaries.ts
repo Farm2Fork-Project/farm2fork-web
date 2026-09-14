@@ -341,6 +341,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.uc.subtitle": "This section is currently being updated. Please check back later.",
     
     "settings.sidebar.signedIn": "Signed in as Buyer",
+    "settings.sidebar.signedInFarmer": "Signed in as Farmer",
     "settings.sidebar.email": "buyer@test.com",
     "settings.sidebar.appSettings": "App Settings",
     "settings.sidebar.notif": "Notification Settings",
@@ -933,6 +934,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "settings.uc.subtitle": "یہ سیکشن فی الحال اپ ڈیٹ کیا جا رہا ہے۔ براہ کرم بعد میں دوبارہ چیک کریں۔",
     
     "settings.sidebar.signedIn": "بطور خریدار سائن ان کیا گیا",
+    "settings.sidebar.signedInFarmer": "بطور کسان سائن ان کیا گیا",
     "settings.sidebar.email": "buyer@test.com",
     "settings.sidebar.appSettings": "ایپ کی ترتیبات",
     "settings.sidebar.notif": "نوٹیفکیشن کی ترتیبات",

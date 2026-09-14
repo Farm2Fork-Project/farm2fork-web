@@ -11,8 +11,6 @@ import {
   LuShield,
   LuFileText,
   LuLogOut,
-  LuToggleRight,
-  LuToggleLeft,
   LuChevronRight,
   LuTriangleAlert,
   LuLeaf
@@ -21,7 +19,12 @@ import {
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
 
-export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileScreenProps) {
+export default function ProfileScreen({
+  onLogout,
+  signedInAs,
+  email,
+  avatarIcon,
+}: ProfileScreenProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
   const [emailNotif, setEmailNotif] = useState(true);
@@ -44,8 +47,15 @@ export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileSc
                   <h3>{t("settings.notif.email")}</h3>
                   <p>{t("settings.notif.emailDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {emailNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={emailNotif}
+                      onChange={() => setEmailNotif(!emailNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
               <div className="setting-item" onClick={() => setPushNotif(!pushNotif)} style={{ cursor: "pointer" }}>
@@ -53,8 +63,15 @@ export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileSc
                   <h3>{t("settings.notif.push")}</h3>
                   <p>{t("settings.notif.pushDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {pushNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={pushNotif}
+                      onChange={() => setPushNotif(!pushNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
               <div className="setting-item" onClick={() => setSmsNotif(!smsNotif)} style={{ cursor: "pointer" }}>
@@ -62,8 +79,15 @@ export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileSc
                   <h3>{t("settings.notif.sms")}</h3>
                   <p>{t("settings.notif.smsDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {smsNotif ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={smsNotif}
+                      onChange={() => setSmsNotif(!smsNotif)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -104,8 +128,15 @@ export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileSc
                   <h3>{t("settings.lang.darkmode")}</h3>
                   <p>{t("settings.lang.darkmodeDesc")}</p>
                 </div>
-                <div className="setting-toggle">
-                  {darkMode ? <LuToggleRight size={28} color="var(--primary-green)" /> : <LuToggleLeft size={28} color="var(--primary-green)" />}
+                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
+                  <label className="toggle">
+                    <input
+                      type="checkbox"
+                      checked={darkMode}
+                      onChange={() => setDarkMode(!darkMode)}
+                    />
+                    <span className="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
             </div>
@@ -233,7 +264,7 @@ export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileSc
         <aside className="profile-sidebar">
           <div className="profile-user-card">
             <div className="profile-avatar">
-              <LuShoppingCart size={28} />
+              {avatarIcon ?? <LuShoppingCart size={28} />}
             </div>
             <div>
               <div className="profile-user-name">{signedInAs ?? t("settings.sidebar.signedIn")}</div>

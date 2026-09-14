@@ -25,6 +25,8 @@ import {
 } from "@/lib/cart/cart.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
+import ProfileScreen from "../ProfileScreen";
+import ScanScreen from "../ScanScreen";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -40,7 +42,7 @@ type BuyerRepositoryPort = Pick<
   | "simulatePaymentSuccess"
 >;
 
-type BuyerTab = "cart" | "marketplace" | "orders";
+type BuyerTab = "cart" | "marketplace" | "orders" | "scan" | "profile";
 
 export function BuyerApp({
   repository,
@@ -216,6 +218,12 @@ export function BuyerApp({
             <TabButton active={activeTab === "orders"} onClick={() => setActiveTab("orders")}>
               Orders
             </TabButton>
+            <TabButton active={activeTab === "scan"} onClick={() => setActiveTab("scan")}>
+              Trace
+            </TabButton>
+            <TabButton active={activeTab === "profile"} onClick={() => setActiveTab("profile")}>
+              Profile
+            </TabButton>
           </nav>
           <div className="topbar-right">
             <span className="topbar-user-role">{buyer.email}</span>
@@ -260,6 +268,10 @@ export function BuyerApp({
               settlingPaymentId={settlingPaymentId}
               shipments={shipments}
             />
+          ) : null}
+          {activeTab === "scan" ? <ScanScreen /> : null}
+          {activeTab === "profile" ? (
+            <ProfileScreen email={buyer.email} onLogout={onLogout} />
           ) : null}
         </main>
       </div>

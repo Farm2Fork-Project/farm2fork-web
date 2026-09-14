@@ -56,6 +56,8 @@ export interface LoginScreenProps {
 
 export interface ProfileScreenProps {
   onLogout: () => void;
+  signedInAs?: string;
+  email?: string;
 }
 
 export interface SignUpFormScreenProps {

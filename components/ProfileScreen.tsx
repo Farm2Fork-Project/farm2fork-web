@@ -21,7 +21,7 @@ import {
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
 
-export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
+export default function ProfileScreen({ onLogout, signedInAs, email }: ProfileScreenProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
   const [emailNotif, setEmailNotif] = useState(true);
@@ -236,8 +236,8 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
               <LuShoppingCart size={28} />
             </div>
             <div>
-              <div className="profile-user-name">{t("settings.sidebar.signedIn")}</div>
-              <div className="profile-user-email">{t("settings.sidebar.email")}</div>
+              <div className="profile-user-name">{signedInAs ?? t("settings.sidebar.signedIn")}</div>
+              <div className="profile-user-email">{email ?? t("settings.sidebar.email")}</div>
             </div>
           </div>
 

@@ -18,9 +18,9 @@ import Topbar from './Topbar'
 const initialLoans: LoanApplication[] = [
   {
     id: 'APP-8842-FG',
-    applicant: "Samuel 'Sammy' Greene",
-    farmName: 'Evergreen Hydroponics Co.',
-    location: 'Sonoma Valley, CA',
+    applicant: 'Bilal Ahmed',
+    farmName: 'Sahiwal Hydroponics Farms',
+    location: 'Sahiwal, Punjab',
     amount: 'PKR 12,500,000',
     term: '60 Months',
     interestRate: '5.25% Fixed',

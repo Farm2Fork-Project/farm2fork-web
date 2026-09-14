@@ -352,7 +352,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
 
           <div className="gap-sm flex flex-col">
             {[
-              { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of Sonoma Valley estate' },
+              { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of the registered farmland' },
               { key: 'taxReturns', title: 'Tax Filings & Audited Financials', desc: 'Last 2 consecutive years of declared income and capital assets' },
               { key: 'harvestLogs', title: 'Verified Harvest Yield Logs', desc: 'IoT sensor records of previous season crop metrics and weight logs' },
               { key: 'bankStatements', title: 'Primary Escrow Account Statements', desc: 'Cashflow analysis and credit transactional records' }

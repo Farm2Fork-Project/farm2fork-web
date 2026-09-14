@@ -31,7 +31,7 @@ import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 function TransporterApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const authRepository = useMemo(
     () => new RoleAuthRepository({ client: new ApiClient() }),
     [],
@@ -319,7 +319,7 @@ function TransporterApp() {
   };
 
   return (
-    <div className="app-shell animation-fade-in" dir={t("app.title") === "فارم ٹو فورک" ? "rtl" : "ltr"}>
+    <div className="app-shell animation-fade-in" dir={language === "ur" ? "rtl" : "ltr"}>
       <div className="app-main">
         <TopBar activeTab={activeTab} email={session.user.email} setActiveTab={setActiveTab} />
         <main className="app-content">{renderContent()}</main>

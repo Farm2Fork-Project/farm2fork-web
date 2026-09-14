@@ -138,7 +138,7 @@ function HomeContent() {
       authRepository.getCurrentFirebaseIdentityEmail(),
     );
     if (!email) {
-      setLoginError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      setLoginError("Your onboarding session expired. Sign in again to choose a role.");
       setAuthScreen("login");
       return;
     }

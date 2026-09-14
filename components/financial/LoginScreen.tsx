@@ -73,7 +73,7 @@ export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProp
     }
     try {
       await new FirebaseWebAuthRepository({ client: new ApiClient() }).sendPasswordReset(email.trim())
-      setError('If an account exists, Firebase has sent a password-reset email.')
+      setError('If an account exists, we\'ve sent a password-reset email.')
     } catch (resetError) {
       setError(resetError instanceof Error ? resetError.message : 'Could not send a password-reset email.')
     }

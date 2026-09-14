@@ -128,7 +128,7 @@ function TransporterApp() {
       firebaseAuthRepository.getCurrentFirebaseIdentityEmail(),
     );
     if (!email) {
-      setAuthError("Your Firebase onboarding session expired. Sign in again to choose a role.");
+      setAuthError("Your onboarding session expired. Sign in again to choose a role.");
       router.replace("/?auth=login");
       return;
     }

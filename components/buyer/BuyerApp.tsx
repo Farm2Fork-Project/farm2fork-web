@@ -256,6 +256,7 @@ export function BuyerApp({
             <Cart
               groups={groups}
               onConfirmedFarmers={clearConfirmedGroups}
+              onViewOrders={() => setActiveTab("orders")}
               repository={repository}
             />
           ) : null}
@@ -407,10 +408,12 @@ function Marketplace({
 function Cart({
   groups,
   onConfirmedFarmers,
+  onViewOrders,
   repository,
 }: {
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
+  onViewOrders: () => void;
   repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
 }) {
   if (groups.length === 0) {
@@ -439,6 +442,7 @@ function Cart({
       <CheckoutPanel
         groups={groups}
         onConfirmedFarmers={onConfirmedFarmers}
+        onViewOrders={onViewOrders}
         repository={repository}
       />
     </section>

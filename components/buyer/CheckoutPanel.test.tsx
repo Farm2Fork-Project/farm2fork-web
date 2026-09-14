@@ -57,12 +57,14 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
     .mockResolvedValueOnce({ id: "payment-1", status: "pending" })
     .mockResolvedValueOnce({ id: "payment-2", status: "pending" });
   const onConfirmedFarmers = vi.fn();
+  const onViewOrders = vi.fn();
 
   render(
     <CheckoutPanel
       groups={groups}
       repository={{ createOrder, initiatePayment }}
       onConfirmedFarmers={onConfirmedFarmers}
+      onViewOrders={onViewOrders}
     />,
   );
 
@@ -91,5 +93,9 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
   expect(initiatePayment).toHaveBeenNthCalledWith(1, "order-1", "jazzcash");
   expect(initiatePayment).toHaveBeenNthCalledWith(2, "order-2", "jazzcash");
   expect(onConfirmedFarmers).toHaveBeenCalledWith(["farmer-1", "farmer-2"]);
-  expect(screen.getByText("2 payments are pending.")).toBeVisible();
+  expect(screen.getByText("2 orders placed")).toBeVisible();
+  expect(screen.getAllByText("pending")).toHaveLength(2);
+
+  await user.click(screen.getByRole("button", { name: "View orders" }));
+  expect(onViewOrders).toHaveBeenCalled();
 });

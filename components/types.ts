@@ -53,6 +53,8 @@ export interface LoanApplication {
   dti: string
   riskProfile: 'Low' | 'Medium' | 'High'
   status: 'Ledger Pending' | 'Ledger Approved' | 'Ledger Rejected' | 'Ledger Needs Docs'
+  /** ISO date the application entered the credit queue. */
+  submittedAt?: string
 }
 
 export interface DashboardScreenProps {

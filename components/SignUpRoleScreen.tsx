@@ -1,5 +1,6 @@
 "use client";
 
+import type { KeyboardEvent } from "react";
 import {
   LuShoppingCart,
   LuStore,
@@ -14,6 +15,16 @@ import { useLanguage } from "./LanguageContext";
 
 export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: SignUpRoleScreenProps) {
   const { t } = useLanguage();
+
+  const handleRoleKeyDown = (
+    e: KeyboardEvent<HTMLDivElement>,
+    role: "buyer" | "farmer" | "transporter"
+  ) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelectRole(role);
+    }
+  };
 
   return (
     <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="role-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
@@ -33,6 +44,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
           <div
             className="role-card"
             onClick={() => onSelectRole("buyer")}
+            onKeyDown={(e) => handleRoleKeyDown(e, "buyer")}
             role="button"
             tabIndex={0}
             id="role-buyer"
@@ -47,7 +59,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
             <LuChevronRight size={20} className="role-card-arrow" />
           </div>
 
-          <div className="role-card" onClick={() => onSelectRole("farmer")} role="button" tabIndex={0} id="role-farmer">
+          <div className="role-card" onClick={() => onSelectRole("farmer")} onKeyDown={(e) => handleRoleKeyDown(e, "farmer")} role="button" tabIndex={0} id="role-farmer">
             <div className="role-card-icon">
               <LuStore size={24} />
             </div>
@@ -58,7 +70,7 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
             <LuChevronRight size={20} className="role-card-arrow" />
           </div>
 
-          <div className="role-card" onClick={() => onSelectRole("transporter")} role="button" tabIndex={0} id="role-transporter">
+          <div className="role-card" onClick={() => onSelectRole("transporter")} onKeyDown={(e) => handleRoleKeyDown(e, "transporter")} role="button" tabIndex={0} id="role-transporter">
             <div className="role-card-icon">
               <LuTruck size={24} />
             </div>

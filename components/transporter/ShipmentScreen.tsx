@@ -300,6 +300,7 @@ function ShipmentActions({
   t: (key: string) => string;
 }) {
   const nextStatus = NEXT_NORMAL_STATUS[shipment.status];
+  const [showFailedConfirm, setShowFailedConfirm] = useState(false);
   if (!nextStatus) return null;
 
   const noteId = `shipment-note-${shipment.id}`;
@@ -319,9 +320,38 @@ function ShipmentActions({
         <button className="btn btn-primary" disabled={disabled} onClick={() => onUpdateStatus(nextStatus)} type="button">
           {pending ? t("tship.updating") : normalActionLabel(t, nextStatus)}
         </button>
-        <button className="btn btn-outline" disabled={disabled} onClick={() => onUpdateStatus("failed")} type="button">
+        <button className="btn btn-outline" disabled={disabled} onClick={() => setShowFailedConfirm(true)} type="button">
           {t("tship.markFailed")}
         </button>
+        {showFailedConfirm ? (
+          <div className="modal-overlay" onClick={() => setShowFailedConfirm(false)}>
+            <div className="modal" onClick={(event) => event.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{t("tship.confirmFailedTitle")}</h2>
+                <button className="modal-close" onClick={() => setShowFailedConfirm(false)} type="button">
+                  ✕
+                </button>
+              </div>
+              <p style={{ color: "var(--text-muted)" }}>{t("tship.confirmFailedBody")}</p>
+              <div className="modal-actions">
+                <button className="btn btn-secondary" onClick={() => setShowFailedConfirm(false)} type="button">
+                  {t("tship.cancel")}
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ backgroundColor: "var(--error-red)" }}
+                  onClick={() => {
+                    setShowFailedConfirm(false);
+                    onUpdateStatus("failed");
+                  }}
+                  type="button"
+                >
+                  {t("tship.confirmFailedAction")}
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

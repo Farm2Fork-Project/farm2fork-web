@@ -576,6 +576,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     // Social feed keys
     "feed.tab.community": "Community Feed",
     "feed.tab.liked": "Liked Posts",
+    "feed.previewNotice": "Preview: posts and comments here aren't saved to a shared feed yet, and reset when you reload.",
     "feed.composer.placeholder": "What's on your mind, Hassan?",
     "feed.composer.title": "Create Post",
     "feed.composer.titlePlaceholder": "What's on your mind?",
@@ -1163,6 +1164,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     // Urdu Social feed keys
     "feed.tab.community": "کسان چوپال",
     "feed.tab.liked": "پسندیدہ پوسٹس",
+    "feed.previewNotice": "پیش نظارہ: یہاں پوسٹس اور تبصرے ابھی مشترکہ فیڈ میں محفوظ نہیں ہوتے، اور دوبارہ لوڈ کرنے پر ری سیٹ ہو جاتے ہیں۔",
     "feed.composer.placeholder": "حسن، آپ کے ذہن میں کیا ہے؟",
     "feed.composer.title": "پوسٹ بنائیں",
     "feed.composer.titlePlaceholder": "موضوع کا عنوان لکھیں...",

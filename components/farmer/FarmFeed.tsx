@@ -262,6 +262,22 @@ export default function FarmFeed() {
 
           {/* Center Feed */}
           <div className="flex flex-col gap-6 w-full max-w-[600px] shrink-0">
+            {/* Preview notice -- this feed is client-side only for now */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "8px",
+                padding: "10px 14px",
+                borderRadius: "var(--radius-lg)",
+                fontSize: "13px",
+                fontWeight: 500,
+                background: "var(--secondary-blue-soft)",
+                color: "var(--secondary-blue)",
+              }}
+            >
+              <span>{t("feed.previewNotice")}</span>
+            </div>
             {/* Inline Composer Card */}
             <div className="card mb-6 !p-5">
               <div className="flex gap-4 items-center cursor-pointer" onClick={() => setComposerExpanded(true)}>

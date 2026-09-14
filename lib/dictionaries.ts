@@ -102,8 +102,14 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "landing.footer.fyp": "Final Year Project · UCP",
 
     // Login Screen
-    "login.title": "Welcome Back",
-    "login.subtitle": "Log in to trace your orders and buy fresh produce.",
+    "login.backToHome": "Back to home",
+    "login.closeAriaLabel": "Close and return home",
+    "login.welcomeBack": "Welcome back",
+    "login.heading": "Sign in to Farm2Fork",
+    "login.description": "Manage orders, listings, deliveries, and produce records from one place.",
+    "login.togglePasswordVisibility": "Toggle password visibility",
+    "login.signingIn": "Signing in…",
+    "login.continueWithGoogle": "Continue with Google",
     "login.email": "Email / Phone",
     "login.emailPlaceholder": "buyer@example.com",
     "login.password": "Password",
@@ -116,7 +122,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "login.guest": "Continue as guest",
 
     // Sign Up Role Screen
-    "signupRole.header": "Create Account",
+    "signupRole.header": "Choose how you'll use Farm2Fork",
+    "signupRole.goBackAriaLabel": "Go back",
     "signupRole.want": "I want to…",
     "signupRole.buyerRole": "Buyer",
     "signupRole.buyerDescText": "Buy fresh produce, scan QR codes, and track your orders.",
@@ -719,8 +726,14 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "landing.footer.fyp": "فائنل ایئر پروجیکٹ · یو سی پی",
 
     // Login Screen
-    "login.title": "لاگ ان",
-    "login.subtitle": "خوش آمدید",
+    "login.backToHome": "ہوم پر واپس جائیں",
+    "login.closeAriaLabel": "بند کریں اور ہوم پر واپس جائیں",
+    "login.welcomeBack": "خوش آمدید",
+    "login.heading": "Farm2Fork میں سائن ان کریں",
+    "login.description": "ایک ہی جگہ سے آرڈرز، فہرستیں، ترسیلات اور پیداوار کے ریکارڈ کا نظم کریں۔",
+    "login.togglePasswordVisibility": "پاس ورڈ کی مرئیت تبدیل کریں",
+    "login.signingIn": "سائن ان ہو رہا ہے…",
+    "login.continueWithGoogle": "گوگل کے ساتھ جاری رکھیں",
     "login.email": "ای میل / فون",
     "login.emailPlaceholder": "user@example.com",
     "login.password": "پاس ورڈ",
@@ -733,7 +746,8 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "login.guest": "مہمان کے طور پر جاری رکھیں",
 
     // Sign Up Role Screen
-    "signupRole.header": "اکاؤنٹ بنائیں",
+    "signupRole.header": "منتخب کریں کہ آپ Farm2Fork کیسے استعمال کریں گے",
+    "signupRole.goBackAriaLabel": "واپس جائیں",
     "signupRole.want": "میں چاہتا ہوں...",
     "signupRole.buyerRole": "خریدار",
     "signupRole.buyerDescText": "تازہ پیداوار خریدیں، QR کوڈ اسکین کریں، اور اپنے آرڈرز کو ٹریک کریں۔",

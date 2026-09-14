@@ -38,7 +38,7 @@ No existing local competitor combines direct marketplace + blockchain traceabili
 
 **Implemented and real (not mocked):** buyer registration/login, live marketplace, farmer-grouped checkout, orders/payment-status views; farmer/transporter real onboarding and farmer product creation; transporter self-claim and tracked delivery-status transitions; admin panel screens exist for dashboard/users/products/orders/loans/audit-logs/config/moderation.
 
-**Explicitly not yet built or verified — do not design as if finished:** real JazzCash/Stripe gateway flow (payment settlement is simulated); user-owned browser/live-backend smoke testing of the full buyer path was still open as of the last progress update; HTTP-only cookie session security model; full Urdu localization (English-only is acceptable for admin, but buyer/farmer/transporter parity with the bilingual mobile app has not been confirmed as done — verify before assuming it exists or doesn't).
+**Explicitly not yet built or verified — do not design as if finished:** real JazzCash/Stripe gateway flow (payment settlement is simulated); user-owned browser/live-backend smoke testing of the full buyer path was still open as of the last progress update; HTTP-only cookie session security model; full Urdu localization — **now confirmed incomplete, not just unconfirmed:** farmer and transporter have full `useLanguage`/`t()`/RTL coverage in their own screens, but buyer's core screens (marketplace/cart/orders/checkout, all inline in `BuyerApp.tsx`), the entire financial module, and all 11 admin pages have zero i18n wiring — see `KNOWN_GAPS.md` for the full breakdown and why it's sized as its own workstream rather than a quick fix.
 
 **Known technical debt that constrains design work:** no Next.js `loading.tsx`, `error.tsx`, or `not-found.tsx` exist anywhere in the app — there is currently no custom loading, error-boundary, or 404 experience at the framework level, only whatever ad hoc states individual components implement. A large block of `app/globals.css` design-system rules (tokens, cards, buttons, tables, modals, etc.) appears duplicated near-verbatim in two places in the same file — treat this as a real risk that a visual fix applied to one copy silently doesn't apply to the other.
 
@@ -48,6 +48,7 @@ Product name is "Farm2Fork." The public landing page already has an established 
 
 ## Evidence on Hand
 
+- `KNOWN_GAPS.md` (this repo) — confirmed, sized gaps deliberately deferred out of the UI/UX audit pass: i18n/RTL coverage on buyer/financial/admin, the financial module's missing backend, admin's missing action wiring, the missing product-image field, and the duplicated per-role NotificationDropdown.
 - `farm2fork-mobile/Context.md` — full cross-repo master spec (data model, roles, module boundaries, sprint plan); note its section 12 describes web as admin-only — that has been superseded by the actual multi-role implementation and should not be treated as current scope.
 - `farm2fork-mobile/PROGRESS.md` — living, dated log of exactly what's merged/tested/open per slice across all repos, including the web-specific slices.
 - `docs/superpowers/plans/` and `docs/superpowers/specs/` (this repo) — dated design/implementation specs for individual web features (buyer API integration, role onboarding, shipment self-claim, local Google auth, marketplace simulator lifecycle).
@@ -64,4 +65,4 @@ Product name is "Farm2Fork." The public landing page already has an established 
 
 ## Accessibility & Inclusion
 
-Admin-only screens may stay English-only per the original spec (assumed English-literate administrators). Buyer/farmer/transporter parity with the bilingual (English/Urdu, RTL) mobile experience is a stated cross-platform goal in the design language doc but its actual implementation status on web has not been confirmed — verify before assuming feature parity.
+Admin-only screens may stay English-only per the original spec (assumed English-literate administrators). Buyer/farmer/transporter parity with the bilingual (English/Urdu, RTL) mobile experience is a stated cross-platform goal in the design language doc — farmer and transporter have it, buyer and financial do not. See `KNOWN_GAPS.md`.

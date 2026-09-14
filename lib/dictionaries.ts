@@ -591,7 +591,21 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.post.comment": "Comment",
     "feed.post.comments": "Comments",
     "feed.post.writeComment": "Write a comment...",
-    "feed.post.commentsCount": "{count} Comments"
+    "feed.post.commentsCount": "{count} Comments",
+    "feed.seed.post1.author": "Fatima Bibi",
+    "feed.seed.post1.title": "Sindh Mango Crop Advice",
+    "feed.seed.post1.content": "Due to early heatwaves in Sindh, ensure light watering every 3 days. Focus on organic pest repellents for grade A quality exports!",
+    "feed.seed.post1.tags": "Mangoes,FarmingTips,Organic",
+    "feed.seed.post1.comment1.author": "Rahim Yar",
+    "feed.seed.post1.comment1.content": "Thank you Fatima, this advice is very timely. Our orchards in Mirpur Khas are seeing high temperatures already.",
+    "feed.seed.post1.comment2.author": "Zainab Shah",
+    "feed.seed.post1.comment2.content": "Which pest repellents do you recommend specifically for exports? Neem oil mixtures?",
+    "feed.seed.post2.author": "Tariq Mehmood",
+    "feed.seed.post2.title": "Basmati Rice Price Trends",
+    "feed.seed.post2.content": "Expect price stabilization for Basmati Rice (1121) this season. Direct listings here are cutting out middleman cuts by 20%!",
+    "feed.seed.post2.tags": "MarketTrends,Rice,DirectMarket",
+    "feed.seed.post2.comment1.author": "Ali Raza",
+    "feed.seed.post2.comment1.content": "Agreed, direct prices are much better than selling in local mandi this month."
   },
   ur: {
     // General
@@ -1179,6 +1193,20 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.post.comment": "تبصرہ",
     "feed.post.comments": "تبصرے",
     "feed.post.writeComment": "تبصرہ لکھیں...",
-    "feed.post.commentsCount": "{count} تبصرے"
+    "feed.post.commentsCount": "{count} تبصرے",
+    "feed.seed.post1.author": "فاطمہ بی بی",
+    "feed.seed.post1.title": "سندھ میں آم کی فصل کا مشورہ",
+    "feed.seed.post1.content": "سندھ میں ابتدائی گرمی کی لہروں کی وجہ سے، ہر 3 دن بعد ہلکا پانی دینا یقینی بنائیں۔ گریڈ اے کوالٹی کی برآمدات کے لیے نامیاتی کیڑے مار ادویات پر توجہ دیں!",
+    "feed.seed.post1.tags": "آم,کھیتی_باڑی_مشورہ,نامیاتی",
+    "feed.seed.post1.comment1.author": "رحیم یار",
+    "feed.seed.post1.comment1.content": "فاطمہ، آپ کا بہت شکریہ، یہ مشورہ بہت بروقت ہے۔ میرپورخاص میں ہمارے باغات میں پہلے ہی زیادہ درجہ حرارت دیکھا جا رہا ہے۔",
+    "feed.seed.post1.comment2.author": "زینب شاہ",
+    "feed.seed.post1.comment2.content": "آپ خاص طور پر برآمدات کے لیے کون سی کیڑے مار دوا تجویز کرتی ہیں؟ نیم کے تیل کا آمیزہ؟",
+    "feed.seed.post2.author": "طارق محمود",
+    "feed.seed.post2.title": "باسمتی چاول کی قیمت کے رجحانات",
+    "feed.seed.post2.content": "اس سیزن میں باسمتی چاول (1121) کی قیمتوں میں استحکام کی توقع کریں۔ یہاں براہ راست لسٹنگ مڈل مین کے کٹوتی کو 20 فیصد تک کم کر رہی ہے!",
+    "feed.seed.post2.tags": "مارکیٹ_رجحانات,چاول,براہ_راست_مارکیٹ",
+    "feed.seed.post2.comment1.author": "علی رضا",
+    "feed.seed.post2.comment1.content": "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔"
   }
 };

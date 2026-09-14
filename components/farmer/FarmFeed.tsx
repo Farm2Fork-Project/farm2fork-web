@@ -183,13 +183,13 @@ export default function FarmFeed() {
       if (post.id === "feed_1") {
         return {
           ...post,
-          author: "فاطمہ بی بی",
-          title: "سندھ میں آم کی فصل کا مشورہ",
-          content: "سندھ میں ابتدائی گرمی کی لہروں کی وجہ سے، ہر 3 دن بعد ہلکا پانی دینا یقینی بنائیں۔ گریڈ اے کوالٹی کی برآمدات کے لیے نامیاتی کیڑے مار ادویات پر توجہ دیں!",
-          tags: ["آم", "کھیتی_باڑی_مشورہ", "نامیاتی"],
+          author: t("feed.seed.post1.author"),
+          title: t("feed.seed.post1.title"),
+          content: t("feed.seed.post1.content"),
+          tags: t("feed.seed.post1.tags").split(","),
           comments: post.comments.map(c => {
-            if (c.id === "c_1") return { ...c, author: "رحیم یار", content: "فاطمہ، آپ کا بہت شکریہ، یہ مشورہ بہت بروقت ہے۔ میرپورخاص میں ہمارے باغات میں پہلے ہی زیادہ درجہ حرارت دیکھا جا رہا ہے۔" };
-            if (c.id === "c_2") return { ...c, author: "زینب شاہ", content: "آپ خاص طور پر برآمدات کے لیے کون سی کیڑے مار دوا تجویز کرتی ہیں؟ نیم کے تیل کا آمیزہ؟" };
+            if (c.id === "c_1") return { ...c, author: t("feed.seed.post1.comment1.author"), content: t("feed.seed.post1.comment1.content") };
+            if (c.id === "c_2") return { ...c, author: t("feed.seed.post1.comment2.author"), content: t("feed.seed.post1.comment2.content") };
             return c;
           })
         };
@@ -197,12 +197,12 @@ export default function FarmFeed() {
       if (post.id === "feed_2") {
         return {
           ...post,
-          author: "طارق محمود",
-          title: "باسمتی چاول کی قیمت کے رجحانات",
-          content: "اس سیزن میں باسمتی چاول (1121) کی قیمتوں میں استحکام کی توقع کریں۔ یہاں براہ راست لسٹنگ مڈل مین کے کٹوتی کو 20 فیصد تک کم کر رہی ہے!",
-          tags: ["مارکیٹ_رجحانات", "چاول", "براہ_راست_مارکیٹ"],
+          author: t("feed.seed.post2.author"),
+          title: t("feed.seed.post2.title"),
+          content: t("feed.seed.post2.content"),
+          tags: t("feed.seed.post2.tags").split(","),
           comments: post.comments.map(c => {
-            if (c.id === "c_3") return { ...c, author: "علی رضا", content: "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔" };
+            if (c.id === "c_3") return { ...c, author: t("feed.seed.post2.comment1.author"), content: t("feed.seed.post2.comment1.content") };
             return c;
           })
         };

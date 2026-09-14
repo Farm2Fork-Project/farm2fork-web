@@ -30,7 +30,6 @@ export default function ProfileScreen({
   const [emailNotif, setEmailNotif] = useState(true);
   const [pushNotif, setPushNotif] = useState(true);
   const [smsNotif, setSmsNotif] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
   const { t, language, setLanguage, fontSize, setFontSize } = useLanguage();
 
   const renderContent = () => {
@@ -121,22 +120,6 @@ export default function ProfileScreen({
                 </div>
                 <div className="setting-action">
                   {fontSize === "small" ? t("settings.lang.fontSmall") : fontSize === "medium" ? t("settings.lang.fontMedium") : t("settings.lang.fontLarge")} <LuChevronRight size={16} />
-                </div>
-              </div>
-              <div className="setting-item" onClick={() => setDarkMode(!darkMode)} style={{ cursor: "pointer" }}>
-                <div className="setting-info">
-                  <h3>{t("settings.lang.darkmode")}</h3>
-                  <p>{t("settings.lang.darkmodeDesc")}</p>
-                </div>
-                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
-                  <label className="toggle">
-                    <input
-                      type="checkbox"
-                      checked={darkMode}
-                      onChange={() => setDarkMode(!darkMode)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
                 </div>
               </div>
             </div>

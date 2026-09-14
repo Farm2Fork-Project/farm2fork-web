@@ -8,11 +8,6 @@ export const TAB_TITLES: Record<AppTab, string> = {
   profile: "Profile",
 };
 
-export interface LoginScreenProps {
-  onLogin: () => void;
-  onGoSignup: () => void;
-}
-
 export interface SignUpFormScreenProps {
   onBack: () => void;
   onSubmit: () => void;

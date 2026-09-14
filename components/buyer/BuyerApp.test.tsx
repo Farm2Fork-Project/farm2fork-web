@@ -8,7 +8,6 @@ import { BuyerApp } from "./BuyerApp";
 afterEach(cleanup);
 
 const session: BuyerSession = {
-  accessToken: "buyer-token",
   user: {
     id: "buyer-1",
     email: "buyer@example.com",

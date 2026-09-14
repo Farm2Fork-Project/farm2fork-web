@@ -22,8 +22,11 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
   
   // Interactive UI States
   const [rejectComments, setRejectComments] = useState('')
+  const [rejectError, setRejectError] = useState('')
   const [showRejectModal, setShowRejectModal] = useState(false)
   const [showNeedsDocsModal, setShowNeedsDocsModal] = useState(false)
+  const [needsDocsError, setNeedsDocsError] = useState('')
+  const [showApproveModal, setShowApproveModal] = useState(false)
   
   // Document checklists
   const [missingDocs, setMissingDocs] = useState<string[]>([])
@@ -64,32 +67,31 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
     setLoan({ ...loan, status: newStatus })
   }
 
-  const handleApprove = () => {
-    if (window.confirm(`Are you sure you want to approve the credit line of ${loan?.amount} for ${loan?.farmName}?`)) {
-      updateLoanStatus('Ledger Approved')
-    }
+  const handleApproveConfirm = () => {
+    updateLoanStatus('Ledger Approved')
+    setShowApproveModal(false)
   }
 
   const handleRejectSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!rejectComments.trim()) {
-      alert('Please specify a rejection reason for the audit trail.')
+      setRejectError('Please specify a rejection reason for the audit trail.')
       return
     }
     updateLoanStatus('Ledger Rejected')
     setShowRejectModal(false)
-    alert(`Application rejected. Ledger entry: "${rejectComments}"`)
+    setRejectError('')
   }
 
   const handleNeedsDocsSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (missingDocs.length === 0) {
-      alert('Please select at least one document to request.')
+      setNeedsDocsError('Please select at least one document to request.')
       return
     }
     updateLoanStatus('Ledger Needs Docs')
     setShowNeedsDocsModal(false)
-    alert(`Documentation request submitted for: ${missingDocs.join(', ')}`)
+    setNeedsDocsError('')
   }
 
   const toggleMissingDoc = (docName: string) => {
@@ -295,7 +297,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
               <div className="gap-sm flex flex-col mt-lg">
                 {loan.status !== 'Ledger Approved' && (
                   <button
-                    onClick={handleApprove}
+                    onClick={() => setShowApproveModal(true)}
                     className="btn btn-primary"
                     style={{ width: '100%', justifyContent: 'center' }}
                   >
@@ -328,7 +330,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
               <div className="mt-xl pt-lg" style={{ borderTop: '1px solid var(--surface-medium)' }}>
                 <div className="flex items-center gap-sm text-[11px] text-muted">
                   <Shield className="w-4 h-4" style={{ color: 'var(--primary-green)', flexShrink: 0 }} />
-                  <span>Actions here directly update core system records on blockchain block consensus.</span>
+                  <span>Actions here update this application's saved record. Blockchain ledger recording is not yet connected.</span>
                 </div>
               </div>
 
@@ -350,7 +352,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
 
           <div className="gap-sm flex flex-col">
             {[
-              { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of Sonoma Valley estate' },
+              { key: 'landDeed', title: 'Land Title Registry Deeds', desc: 'Confirms ownership / cultivation rights of the registered farmland' },
               { key: 'taxReturns', title: 'Tax Filings & Audited Financials', desc: 'Last 2 consecutive years of declared income and capital assets' },
               { key: 'harvestLogs', title: 'Verified Harvest Yield Logs', desc: 'IoT sensor records of previous season crop metrics and weight logs' },
               { key: 'bankStatements', title: 'Primary Escrow Account Statements', desc: 'Cashflow analysis and credit transactional records' }
@@ -391,28 +393,54 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
         </main>
       </div>
 
+      {/* Approve Modal */}
+      {showApproveModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', padding: '16px' }}>
+          <div className="card" style={{ maxWidth: '450px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <div className="flex-between mb-md">
+              <h3 className="card-title">Approve Credit Application</h3>
+              <button onClick={() => setShowApproveModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-muted mb-lg">
+              Approve the credit line of {loan.amount} for {loan.farmName}?
+            </p>
+            <div className="flex-between gap-sm" style={{ justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setShowApproveModal(false)} className="btn btn-outline">
+                Cancel
+              </button>
+              <button type="button" onClick={handleApproveConfirm} className="btn btn-primary">
+                Approve Application
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Reject Modal */}
       {showRejectModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', padding: '16px' }}>
           <div className="card" style={{ maxWidth: '450px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
             <div className="flex-between mb-md">
               <h3 className="card-title">Reject Credit Request</h3>
-              <button onClick={() => setShowRejectModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <button onClick={() => { setShowRejectModal(false); setRejectError('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleRejectSubmit}>
-              <p className="text-xs text-muted mb-md">Please specify a refusal rationale. This reason will be published as an immutable log on the decentralised credit ledger.</p>
+              <p className="text-xs text-muted mb-md">Please specify a refusal rationale. This reason will be saved with the application record.</p>
               <textarea
                 value={rejectComments}
-                onChange={(e) => setRejectComments(e.target.value)}
+                onChange={(e) => { setRejectComments(e.target.value); setRejectError('') }}
                 placeholder="Applicant Debt-To-Income exceeds threshold..."
                 rows={4}
                 required
                 className="input mb-md"
               />
+              {rejectError ? <p className="text-xs mb-md" role="alert" style={{ color: 'var(--error-red)' }}>{rejectError}</p> : null}
               <div className="flex-between gap-sm" style={{ justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowRejectModal(false)} className="btn btn-outline">
+                <button type="button" onClick={() => { setShowRejectModal(false); setRejectError('') }} className="btn btn-outline">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ backgroundColor: 'var(--error-red)' }}>
@@ -430,13 +458,13 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
           <div className="card" style={{ maxWidth: '450px', width: '100%', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
             <div className="flex-between mb-md">
               <h3 className="card-title">Request Documentation</h3>
-              <button onClick={() => setShowNeedsDocsModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <button onClick={() => { setShowNeedsDocsModal(false); setNeedsDocsError('') }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <form onSubmit={handleNeedsDocsSubmit}>
               <p className="text-xs text-muted mb-md">Select the document files that require revision or resubmission by the applicant:</p>
-              
+
               <div className="gap-sm flex flex-col mb-lg">
                 {[
                   'Land Deed Deeds',
@@ -449,7 +477,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
                     <input
                       type="checkbox"
                       checked={missingDocs.includes(item)}
-                      onChange={() => toggleMissingDoc(item)}
+                      onChange={() => { toggleMissingDoc(item); setNeedsDocsError('') }}
                       style={{ accentColor: 'var(--primary-green)' }}
                     />
                     <span>{item}</span>
@@ -457,8 +485,9 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
                 ))}
               </div>
 
+              {needsDocsError ? <p className="text-xs mb-md" role="alert" style={{ color: 'var(--error-red)' }}>{needsDocsError}</p> : null}
               <div className="flex-between gap-sm" style={{ justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowNeedsDocsModal(false)} className="btn btn-outline">
+                <button type="button" onClick={() => { setShowNeedsDocsModal(false); setNeedsDocsError('') }} className="btn btn-outline">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ backgroundColor: 'var(--accent-yellow)', color: 'var(--text-dark)' }}>

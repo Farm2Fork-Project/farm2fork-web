@@ -13,11 +13,22 @@ import {
 } from "react-icons/lu";
 import { useLanguage } from "./LanguageContext";
 
+// Live traceability isn't wired to a backend yet (see PROGRESS.md); this ID
+// is the only query that returns the example journey below, so the screen
+// is honest about not being a real lookup instead of faking one for anything typed in.
+const DEMO_PRODUCT_ID = "DEMO-1001";
+
 export default function ScanScreen() {
-  const [scanned, setScanned] = useState(false);
+  const [query, setQuery] = useState("");
+  const [submittedQuery, setSubmittedQuery] = useState<string | null>(null);
   const { t } = useLanguage();
 
-  if (!scanned) {
+  const found =
+    submittedQuery !== null &&
+    submittedQuery.trim().toLowerCase() === DEMO_PRODUCT_ID.toLowerCase();
+  const notFound = submittedQuery !== null && !found;
+
+  if (!found) {
     return (
       <>
         <div className="qr-scanner-area">
@@ -28,18 +39,35 @@ export default function ScanScreen() {
               placeholder={t("scan.placeholder")}
               className="auth-input"
               style={{ flex: 1, marginBottom: 0 }}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") setSubmittedQuery(query);
+              }}
             />
             <button
               className="qr-simulate-btn"
-              onClick={() => setScanned(true)}
+              onClick={() => setSubmittedQuery(query)}
             >
               {t("scan.searchBtn")}
             </button>
           </div>
-          <p className="qr-description" style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
-            <LuInfo size={24} style={{ flexShrink: 0, color: "var(--primary-green)" }} />
-            <span>{t("scan.desc")}</span>
-          </p>
+          {notFound ? (
+            <p className="qr-description" style={{ display: "flex", alignItems: "flex-start", gap: "8px", textAlign: "left" }}>
+              <LuInfo size={24} style={{ flexShrink: 0, marginTop: "2px", color: "var(--error-red)" }} />
+              <span>
+                <strong style={{ display: "block" }}>
+                  {t("scan.notFoundTitle").replace("{query}", submittedQuery ?? "")}
+                </strong>
+                {t("scan.notFoundDesc").replace("{demoId}", DEMO_PRODUCT_ID)}
+              </span>
+            </p>
+          ) : (
+            <p className="qr-description" style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
+              <LuInfo size={24} style={{ flexShrink: 0, color: "var(--primary-green)" }} />
+              <span>{t("scan.tryDemo").replace("{demoId}", DEMO_PRODUCT_ID)}</span>
+            </p>
+          )}
         </div>
       </>
     );
@@ -47,7 +75,7 @@ export default function ScanScreen() {
 
   return (
     <>
-      <button className="pd-back-btn" onClick={() => setScanned(false)}>
+      <button className="pd-back-btn" onClick={() => setSubmittedQuery(null)}>
         <LuArrowLeft size={18} /> {t("scan.back")}
       </button>
 

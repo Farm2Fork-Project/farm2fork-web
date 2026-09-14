@@ -18,9 +18,9 @@ import Topbar from './Topbar'
 const initialLoans: LoanApplication[] = [
   {
     id: 'APP-8842-FG',
-    applicant: "Samuel 'Sammy' Greene",
-    farmName: 'Evergreen Hydroponics Co.',
-    location: 'Sonoma Valley, CA',
+    applicant: 'Bilal Ahmed',
+    farmName: 'Sahiwal Hydroponics Farms',
+    location: 'Sahiwal, Punjab',
     amount: 'PKR 12,500,000',
     term: '60 Months',
     interestRate: '5.25% Fixed',
@@ -29,6 +29,7 @@ const initialLoans: LoanApplication[] = [
     dti: '18%',
     riskProfile: 'Low',
     status: 'Ledger Pending',
+    submittedAt: '2025-12-08',
   },
   {
     id: 'APP-9102-XF',
@@ -43,6 +44,7 @@ const initialLoans: LoanApplication[] = [
     dti: '24%',
     riskProfile: 'Medium',
     status: 'Ledger Approved',
+    submittedAt: '2026-02-14',
   },
   {
     id: 'APP-7731-MN',
@@ -57,6 +59,7 @@ const initialLoans: LoanApplication[] = [
     dti: '12%',
     riskProfile: 'Low',
     status: 'Ledger Needs Docs',
+    submittedAt: '2026-03-22',
   },
   {
     id: 'APP-6544-JK',
@@ -71,8 +74,41 @@ const initialLoans: LoanApplication[] = [
     dti: '45%',
     riskProfile: 'High',
     status: 'Ledger Rejected',
+    submittedAt: '2026-05-03',
   }
 ]
+
+// Chart spans Dec through Jun; index 0 = Dec, 1 = Jan, ... 6 = Jun.
+const CHART_MONTHS = ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] as const
+
+function chartMonthIndex(isoDate: string): number {
+  const calendarMonth = new Date(isoDate).getUTCMonth() // 0 = Jan ... 11 = Dec
+  return calendarMonth === 11 ? 0 : calendarMonth + 1
+}
+
+function monthlyVolumePoints(loans: LoanApplication[]): { points: string; dots: { x: number; y: number }[] } {
+  const monthlyTotals = CHART_MONTHS.map((_, monthIndex) =>
+    loans.reduce((sum, loan) => {
+      if (!loan.submittedAt || chartMonthIndex(loan.submittedAt) !== monthIndex) return sum
+      const amount = parseInt(loan.amount.replace(/[^0-9]/g, '') || '0', 10)
+      return sum + amount
+    }, 0)
+  )
+
+  let running = 0
+  const cumulative = monthlyTotals.map((total) => (running += total))
+  const maxValue = Math.max(...cumulative, 1)
+
+  const coords = cumulative.map((value, i) => ({
+    x: Math.round(10 + (i * 470) / (CHART_MONTHS.length - 1)),
+    y: Math.round(130 - (value / maxValue) * 110),
+  }))
+
+  return {
+    points: coords.map((c) => `${c.x},${c.y}`).join(' '),
+    dots: coords.filter((c, i) => cumulative[i] > (cumulative[i - 1] ?? -1)),
+  }
+}
 
 export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSettings }: DashboardScreenProps) {
   const [mounted, setMounted] = useState(false)
@@ -135,6 +171,17 @@ export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSe
   }, [loans, mounted])
 
   if (!mounted) return null
+
+  const chartData = monthlyVolumePoints(loans)
+
+  const riskCounts = {
+    Low: loans.filter((l) => l.riskProfile === 'Low').length,
+    Medium: loans.filter((l) => l.riskProfile === 'Medium').length,
+    High: loans.filter((l) => l.riskProfile === 'High').length,
+  }
+  const riskPercent = (count: number) =>
+    loans.length > 0 ? Math.round((count / loans.length) * 100) : 0
+  const applicationsLabel = (count: number) => `${count} Application${count === 1 ? '' : 's'}`
 
   const filteredLoans = loans.filter(loan => {
     const matchesSearch = 
@@ -246,22 +293,18 @@ export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSe
           <div className="card" style={{ gridColumn: 'span 2' }}>
             <div className="flex-between mb-lg">
               <div>
-                <h3 className="card-title mb-xs">Monthly Credit Outflow</h3>
-                <p className="text-sm text-muted">Accumulative disbursed funds comparison (Projected vs Disbursed)</p>
+                <h3 className="card-title mb-xs">Credit Application Volume</h3>
+                <p className="text-sm text-muted">Cumulative credit requested across the application queue</p>
               </div>
               <div className="flex-between gap-md text-sm">
                 <span className="flex-between gap-sm text-primary-green font-semibold">
                   <span className="w-2.5 h-2.5 rounded-full bg-primary-green"></span>
-                  Disbursed
-                </span>
-                <span className="flex-between gap-sm text-muted font-semibold">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--surface-strong)' }}></span>
-                  Target
+                  Credit Volume
                 </span>
               </div>
             </div>
 
-            {/* Custom SVG Line Chart */}
+            {/* SVG Line Chart -- cumulative loan amounts by submission month */}
             <div className="chart-placeholder mt-md">
               <div className="chart-line">
                 <svg viewBox="0 0 500 150" preserveAspectRatio="none">
@@ -270,27 +313,26 @@ export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSe
                   <line x1="0" y1="75" x2="500" y2="75" stroke="var(--surface-medium)" strokeWidth="1" strokeDasharray="4" />
                   <line x1="0" y1="120" x2="500" y2="120" stroke="var(--surface-strong)" strokeWidth="1" />
 
-                  {/* Target Polyline */}
-                  <polyline
-                    fill="none"
-                    stroke="var(--surface-strong)"
-                    strokeWidth="3"
-                    strokeDasharray="4"
-                    points="10,110 90,95 170,85 250,75 330,60 410,40 480,25"
-                  />
-
-                  {/* Disbursed Polyline */}
+                  {/* Credit Volume Polyline */}
                   <polyline
                     fill="none"
                     stroke="var(--primary-green)"
                     strokeWidth="4"
-                    points="10,120 90,105 170,90 250,70 330,85 410,45"
+                    points={chartData.points}
                   />
 
                   {/* Data Points */}
-                  <circle cx="250" cy="70" r="5" fill="var(--primary-green)" stroke="var(--white)" strokeWidth="2" />
-                  <circle cx="330" cy="85" r="5" fill="var(--primary-green)" stroke="var(--white)" strokeWidth="2" />
-                  <circle cx="410" cy="45" r="5" fill="var(--primary-green)" stroke="var(--white)" strokeWidth="2" />
+                  {chartData.dots.map((dot) => (
+                    <circle
+                      key={`${dot.x}-${dot.y}`}
+                      cx={dot.x}
+                      cy={dot.y}
+                      r="5"
+                      fill="var(--primary-green)"
+                      stroke="var(--white)"
+                      strokeWidth="2"
+                    />
+                  ))}
                 </svg>
               </div>
             </div>
@@ -314,30 +356,30 @@ export default function DashboardScreen({ onSelectLoan, onLogout, onNavigateToSe
                 <div>
                   <div className="flex-between text-sm font-semibold mb-xs">
                     <span>Low Risk Profile</span>
-                    <span className="text-success font-bold">2 Applications</span>
+                    <span className="text-success font-bold">{applicationsLabel(riskCounts.Low)}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{ width: '50%' }}></div>
+                    <div className="progress-bar-fill" style={{ width: `${riskPercent(riskCounts.Low)}%` }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex-between text-sm font-semibold mb-xs">
                     <span>Medium Risk Profile</span>
-                    <span style={{ color: 'var(--secondary-blue)' }} className="font-bold">1 Application</span>
+                    <span style={{ color: 'var(--secondary-blue)' }} className="font-bold">{applicationsLabel(riskCounts.Medium)}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{ width: '25%', background: 'var(--secondary-blue)' }}></div>
+                    <div className="progress-bar-fill" style={{ width: `${riskPercent(riskCounts.Medium)}%`, background: 'var(--secondary-blue)' }}></div>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex-between text-sm font-semibold mb-xs">
                     <span>High Risk Profile</span>
-                    <span style={{ color: 'var(--error-red)' }} className="font-bold">1 Application</span>
+                    <span style={{ color: 'var(--error-red)' }} className="font-bold">{applicationsLabel(riskCounts.High)}</span>
                   </div>
                   <div className="progress-bar">
-                    <div className="progress-bar-fill" style={{ width: '25%', background: 'var(--error-red)' }}></div>
+                    <div className="progress-bar-fill" style={{ width: `${riskPercent(riskCounts.High)}%`, background: 'var(--error-red)' }}></div>
                   </div>
                 </div>
               </div>

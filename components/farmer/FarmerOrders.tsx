@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { ApiOrder } from "@/lib/api/contracts.ts";
+import { orderStatusClass } from "@/lib/status.ts";
 import { useLanguage } from "./LanguageContext";
 
 type OrderTab = "active" | "completed";
@@ -79,7 +80,7 @@ function FarmerOrderCard({ order }: { order: ApiOrder }) {
             )}
           </div>
         </div>
-        <span className="order-status processing">{order.status}</span>
+        <span className={`order-status ${orderStatusClass(order.status)}`}>{order.status}</span>
       </div>
 
       <div className="order-items">

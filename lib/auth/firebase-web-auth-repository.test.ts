@@ -12,7 +12,7 @@ test("exchanges a Firebase ID token for a cookie session and signs Firebase out"
   };
   const repository = new FirebaseWebAuthRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
         return {
           id: "buyer-1",
@@ -20,12 +20,14 @@ test("exchanges a Firebase ID token for a cookie session and signs Firebase out"
           role: "buyer",
           isVerified: true,
           isActive: true,
-        };
+        } as T;
       },
     },
     firebase: {
       createUserWithEmail: async () => user,
       signInWithEmail: async () => user,
+      signInWithGoogle: async () => null,
+      getGoogleRedirectResult: async () => null,
       currentUser: () => user,
       sendEmailVerification: async () => undefined,
       sendPasswordReset: async () => undefined,
@@ -67,10 +69,12 @@ test("creates an email/password Firebase identity and sends verification before 
     reload: async () => undefined,
   };
   const repository = new FirebaseWebAuthRepository({
-    client: { request: async () => ({}) },
+    client: { request: async <T,>() => ({}) as T },
     firebase: {
       createUserWithEmail: async () => user,
       signInWithEmail: async () => user,
+      signInWithGoogle: async () => null,
+      getGoogleRedirectResult: async () => null,
       currentUser: () => user,
       sendEmailVerification: async () => {
         verificationSent += 1;
@@ -107,6 +111,7 @@ test("maps an unverified email sign-in into a verification-required outcome", as
       createUserWithEmail: async () => user,
       signInWithEmail: async () => user,
       signInWithGoogle: async () => user,
+      getGoogleRedirectResult: async () => null,
       currentUser: () => user,
       sendEmailVerification: async () => undefined,
       sendPasswordReset: async () => undefined,
@@ -143,6 +148,7 @@ test("exchanges a Google identity and preserves onboarding-required state", asyn
       createUserWithEmail: async () => user,
       signInWithEmail: async () => user,
       signInWithGoogle: async () => user,
+      getGoogleRedirectResult: async () => null,
       currentUser: () => user,
       sendEmailVerification: async () => undefined,
       sendPasswordReset: async () => undefined,
@@ -165,7 +171,7 @@ test("exchanges the Firebase identity returned after a Google redirect", async (
   };
   const repository = new FirebaseWebAuthRepository({
     client: {
-      request: async (path, options) => {
+      request: async <T,>(path: string, options?: unknown) => {
         calls.push({ path, options });
         return {
           id: "buyer-1",
@@ -173,7 +179,7 @@ test("exchanges the Firebase identity returned after a Google redirect", async (
           role: "buyer",
           isVerified: true,
           isActive: true,
-        };
+        } as T;
       },
     },
     firebase: {
@@ -211,7 +217,7 @@ test("exchanges the Firebase identity returned after a Google redirect", async (
 
 test("exposes the active Firebase identity email for role onboarding", () => {
   const repository = new FirebaseWebAuthRepository({
-    client: { request: async () => ({}) },
+    client: { request: async <T,>() => ({}) as T },
     firebase: {
       createUserWithEmail: async () => null as never,
       signInWithEmail: async () => null as never,
@@ -234,7 +240,7 @@ test("exposes the active Firebase identity email for role onboarding", () => {
 test("signs Firebase out when onboarding is abandoned", async () => {
   let signedOut = 0;
   const repository = new FirebaseWebAuthRepository({
-    client: { request: async () => ({}) },
+    client: { request: async <T,>() => ({}) as T },
     firebase: {
       createUserWithEmail: async () => null as never,
       signInWithEmail: async () => null as never,

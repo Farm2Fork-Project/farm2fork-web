@@ -1,47 +1,12 @@
+import type { ReactNode } from "react";
 import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 
 /* ───────── Shared Types ───────── */
 export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter" | "verification";
-export type AppTab = "marketplace" | "scan" | "cart" | "orders" | "profile";
-
-/* ───────── Product Data ───────── */
-export const PRODUCTS = [
-  { id: 1, name: "Desi Onions", farm: "Hassan Organic Farm", price: 60, unit: "kg", grade: "A", available: true },
-  { id: 2, name: "Sindhri Mangoes", farm: "Sindh Mango Estate", price: 350, unit: "dozen", grade: "A", available: true },
-  { id: 3, name: "Kinnow Oranges", farm: "Sindh Mango Estate", price: 150, unit: "kg", grade: "A", available: true },
-  { id: 4, name: "Guava (Amrood)", farm: "Sindh Mango Estate", price: 100, unit: "kg", grade: "B", available: false },
-  { id: 5, name: "Maize (Corn)", farm: "Punjab Grain Fields", price: 55, unit: "kg", grade: "A", available: true },
-  { id: 6, name: "Fresh Doodh (Milk)", farm: "Green Dairy Valley", price: 180, unit: "litre", grade: "A", available: true },
-  { id: 7, name: "Desi Ghee", farm: "Green Dairy Valley", price: 2200, unit: "kg", grade: "A", available: true },
-  { id: 8, name: "Yoghurt (Dahi)", farm: "Green Dairy Valley", price: 160, unit: "kg", grade: "A", available: true },
-];
-
-export const CATEGORIES = ["All", "Vegetables", "Fruits", "Grains", "Dairy"];
-
-export const TAB_TITLES: Record<AppTab, string> = {
-  marketplace: "Marketplace",
-  scan: "Trace",
-  cart: "Your Cart",
-  orders: "Orders",
-  profile: "Profile",
-};
 
 export interface LandingScreenProps {
   onGetStarted: () => void;
   onLogin: () => void;
-}
-
-export interface MarketplaceScreenProps {
-  onViewProduct: (id: number) => void;
-}
-
-export interface ProductDetailScreenProps {
-  productId: number;
-  onBack: () => void;
-}
-
-export interface CartScreenProps {
-  onShopNow: () => void;
 }
 
 export interface LoginScreenProps {
@@ -56,6 +21,9 @@ export interface LoginScreenProps {
 
 export interface ProfileScreenProps {
   onLogout: () => void;
+  signedInAs?: string;
+  email?: string;
+  avatarIcon?: ReactNode;
 }
 
 export interface SignUpFormScreenProps {
@@ -69,11 +37,6 @@ export interface SignUpRoleScreenProps {
   onBack: () => void;
   onBackHome?: () => void;
   onSelectRole: (role: "buyer" | "farmer" | "transporter") => void;
-}
-
-export interface TopBarProps {
-  activeTab: AppTab;
-  setActiveTab: (tab: AppTab) => void;
 }
 
 /* ───────── Financial Partner Types ───────── */
@@ -90,6 +53,8 @@ export interface LoanApplication {
   dti: string
   riskProfile: 'Low' | 'Medium' | 'High'
   status: 'Ledger Pending' | 'Ledger Approved' | 'Ledger Rejected' | 'Ledger Needs Docs'
+  /** ISO date the application entered the credit queue. */
+  submittedAt?: string
 }
 
 export interface DashboardScreenProps {

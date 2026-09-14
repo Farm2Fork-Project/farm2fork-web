@@ -16,6 +16,7 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import type { BuyerRepository, ProductQuery } from "@/lib/buyer/buyer-repository.ts";
+import { orderStatusClass } from "@/lib/status.ts";
 import {
   addCartItem,
   groupCartItemsByFarmer,
@@ -24,6 +25,8 @@ import {
 } from "@/lib/cart/cart.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
+import ProfileScreen from "../ProfileScreen";
+import ScanScreen from "../ScanScreen";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -39,7 +42,7 @@ type BuyerRepositoryPort = Pick<
   | "simulatePaymentSuccess"
 >;
 
-type BuyerTab = "cart" | "marketplace" | "orders";
+type BuyerTab = "cart" | "marketplace" | "orders" | "scan" | "profile";
 
 export function BuyerApp({
   repository,
@@ -215,6 +218,12 @@ export function BuyerApp({
             <TabButton active={activeTab === "orders"} onClick={() => setActiveTab("orders")}>
               Orders
             </TabButton>
+            <TabButton active={activeTab === "scan"} onClick={() => setActiveTab("scan")}>
+              Trace
+            </TabButton>
+            <TabButton active={activeTab === "profile"} onClick={() => setActiveTab("profile")}>
+              Profile
+            </TabButton>
           </nav>
           <div className="topbar-right">
             <span className="topbar-user-role">{buyer.email}</span>
@@ -247,6 +256,7 @@ export function BuyerApp({
             <Cart
               groups={groups}
               onConfirmedFarmers={clearConfirmedGroups}
+              onViewOrders={() => setActiveTab("orders")}
               repository={repository}
             />
           ) : null}
@@ -259,6 +269,10 @@ export function BuyerApp({
               settlingPaymentId={settlingPaymentId}
               shipments={shipments}
             />
+          ) : null}
+          {activeTab === "scan" ? <ScanScreen /> : null}
+          {activeTab === "profile" ? (
+            <ProfileScreen email={buyer.email} onLogout={onLogout} />
           ) : null}
         </main>
       </div>
@@ -394,10 +408,12 @@ function Marketplace({
 function Cart({
   groups,
   onConfirmedFarmers,
+  onViewOrders,
   repository,
 }: {
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
+  onViewOrders: () => void;
   repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
 }) {
   if (groups.length === 0) {
@@ -426,6 +442,7 @@ function Cart({
       <CheckoutPanel
         groups={groups}
         onConfirmedFarmers={onConfirmedFarmers}
+        onViewOrders={onViewOrders}
         repository={repository}
       />
     </section>
@@ -489,7 +506,7 @@ function OrderCard({
               <div className="order-card-id">Order {order.id}</div>
               <div className="order-card-date">{new Date(order.createdAt).toLocaleDateString()}</div>
             </div>
-            <span className="order-status processing">{order.status}</span>
+            <span className={`order-status ${orderStatusClass(order.status)}`}>{order.status}</span>
           </div>
           <div className="order-items">
             {order.items.map((item) => (

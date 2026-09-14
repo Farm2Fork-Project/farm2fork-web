@@ -33,7 +33,7 @@ import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
-export default function FarmerDashboard({ onLogout }: { onLogout?: () => void }) {
+export default function FarmerDashboard({ email, onLogout }: { email?: string; onLogout?: () => void }) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -306,7 +306,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
               <div className="topbar-avatar" style={{ background: "linear-gradient(135deg, var(--primary-green), #14492a)", color: "white", fontWeight: "bold" }}>F</div>
               <div className="topbar-user-info">
                 <span className="topbar-user-name">{t("signupRole.farmerRole")}</span>
-                <span className="topbar-user-role">farmer@test.com</span>
+                <span className="topbar-user-role">{email}</span>
               </div>
             </div>
           </div>
@@ -452,7 +452,7 @@ export default function FarmerDashboard({ onLogout }: { onLogout?: () => void })
 
           {activeTab === "scan" && <ScanScreen />}
 
-          {activeTab === "profile" && <FarmerProfile onLogout={() => {
+          {activeTab === "profile" && <FarmerProfile email={email} onLogout={() => {
             if (onLogout) onLogout();
             else console.log("Logout");
           }} />}

@@ -41,6 +41,7 @@ export interface LoginScreenProps {
 
 export interface ProfileScreenProps {
   onLogout: () => void;
+  email?: string;
 }
 
 export interface SignUpFormScreenProps {
@@ -56,4 +57,5 @@ export interface SignUpRoleScreenProps {
 export interface TopBarProps {
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
+  email?: string;
 }

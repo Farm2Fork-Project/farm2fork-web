@@ -21,7 +21,7 @@ import {
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
 
-export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
+export default function ProfileScreen({ onLogout, email }: ProfileScreenProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
   const [emailNotif, setEmailNotif] = useState(true);
@@ -237,7 +237,7 @@ export default function ProfileScreen({ onLogout }: ProfileScreenProps) {
             </div>
             <div>
               <div className="profile-user-name">{t("tTopBar.signedIn")}</div>
-              <div className="profile-user-email">transporter@test.com</div>
+              <div className="profile-user-email">{email ?? "transporter@test.com"}</div>
             </div>
           </div>
 

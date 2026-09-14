@@ -305,7 +305,7 @@ function TransporterApp() {
     switch (activeTab) {
       case "shipments": return <ShipmentScreen repository={shipmentRepository} />;
       case "scan": return <ScanScreen />;
-      case "profile": return <TransporterProfileScreen onLogout={logout} />;
+      case "profile": return <TransporterProfileScreen email={session.user.email} onLogout={logout} />;
       default: return <div>Screen not found</div>;
     }
   };
@@ -313,7 +313,7 @@ function TransporterApp() {
   return (
     <div className="app-shell animation-fade-in" dir={t("app.title") === "فارم ٹو فورک" ? "rtl" : "ltr"}>
       <div className="app-main">
-        <TopBar activeTab={activeTab} setActiveTab={setActiveTab} />
+        <TopBar activeTab={activeTab} email={session.user.email} setActiveTab={setActiveTab} />
         <main className="app-content">{renderContent()}</main>
       </div>
     </div>

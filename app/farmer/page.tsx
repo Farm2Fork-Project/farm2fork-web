@@ -241,7 +241,7 @@ function FarmerApp() {
   if (isCheckingSession) return <p>Loading…</p>;
 
   if (session?.user.role === "farmer") {
-    return <FarmerDashboard onLogout={logout} />;
+    return <FarmerDashboard email={session.user.email} onLogout={logout} />;
   }
 
   if (isVerifyingEmail) {

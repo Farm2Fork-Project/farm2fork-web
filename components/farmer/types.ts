@@ -49,6 +49,7 @@ export interface LoginScreenProps {
 
 export interface ProfileScreenProps {
   onLogout: () => void;
+  email?: string;
 }
 
 export interface SignUpFormScreenProps {

@@ -2,15 +2,6 @@ import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 
 /* ───────── Shared Types ───────── */
 export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter" | "verification";
-export type AppTab = "marketplace" | "scan" | "cart" | "orders" | "profile";
-
-export const TAB_TITLES: Record<AppTab, string> = {
-  marketplace: "Marketplace",
-  scan: "Trace",
-  cart: "Your Cart",
-  orders: "Orders",
-  profile: "Profile",
-};
 
 export interface LandingScreenProps {
   onGetStarted: () => void;
@@ -44,11 +35,6 @@ export interface SignUpRoleScreenProps {
   onBack: () => void;
   onBackHome?: () => void;
   onSelectRole: (role: "buyer" | "farmer" | "transporter") => void;
-}
-
-export interface TopBarProps {
-  activeTab: AppTab;
-  setActiveTab: (tab: AppTab) => void;
 }
 
 /* ───────── Financial Partner Types ───────── */

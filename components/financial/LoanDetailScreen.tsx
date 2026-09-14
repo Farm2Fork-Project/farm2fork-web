@@ -328,7 +328,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
               <div className="mt-xl pt-lg" style={{ borderTop: '1px solid var(--surface-medium)' }}>
                 <div className="flex items-center gap-sm text-[11px] text-muted">
                   <Shield className="w-4 h-4" style={{ color: 'var(--primary-green)', flexShrink: 0 }} />
-                  <span>Actions here directly update core system records on blockchain block consensus.</span>
+                  <span>Actions here update this application's saved record. Blockchain ledger recording is not yet connected.</span>
                 </div>
               </div>
 
@@ -402,7 +402,7 @@ export default function LoanDetailScreen({ loanId, onBack, onNavigateToSettings 
               </button>
             </div>
             <form onSubmit={handleRejectSubmit}>
-              <p className="text-xs text-muted mb-md">Please specify a refusal rationale. This reason will be published as an immutable log on the decentralised credit ledger.</p>
+              <p className="text-xs text-muted mb-md">Please specify a refusal rationale. This reason will be saved with the application record.</p>
               <textarea
                 value={rejectComments}
                 onChange={(e) => setRejectComments(e.target.value)}

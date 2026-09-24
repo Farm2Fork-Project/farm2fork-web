@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   LuLeaf,
   LuPlus,
+  LuScanLine,
   LuShoppingCart,
   LuLogOut,
 } from "react-icons/lu";
@@ -27,6 +29,7 @@ import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
 import ProfileScreen from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
+import { useLanguage } from "../LanguageContext";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -317,6 +320,7 @@ function Marketplace({
   query: ProductQuery;
   selectedProduct: BuyerProduct | null;
 }) {
+  const { t } = useLanguage();
   if (selectedProduct || detailError) {
     return (
       <section>
@@ -342,6 +346,9 @@ function Marketplace({
               >
                 <LuShoppingCart size={20} /> Add to cart
               </button>
+              <Link className="pd-trace-link" href={`/trace/${selectedProduct.id}`}>
+                <LuScanLine size={18} aria-hidden="true" /> {t("product.viewJourney")}
+              </Link>
             </div>
           </div>
         ) : null}

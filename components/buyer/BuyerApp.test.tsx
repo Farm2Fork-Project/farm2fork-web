@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import type { ApiShipment } from "@/lib/api/contracts.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
+import { LanguageProvider } from "../LanguageContext";
 import { BuyerApp } from "./BuyerApp";
 
 afterEach(cleanup);
@@ -61,21 +62,23 @@ test("BuyerApp validates the session before it renders live marketplace data", a
   const listShipments = vi.fn().mockResolvedValue([]);
 
   render(
-    <BuyerApp
-      session={session}
-      repository={{
-        getCurrentBuyer,
-        listProducts,
-        getProduct: vi.fn(),
-        listOrders,
-        listPayments,
-        listShipments,
-        createOrder: vi.fn(),
-        initiatePayment: vi.fn(),
-        simulatePaymentSuccess: vi.fn(),
-      }}
-      onLogout={vi.fn()}
-    />,
+    <LanguageProvider>
+      <BuyerApp
+        session={session}
+        repository={{
+          getCurrentBuyer,
+          listProducts,
+          getProduct: vi.fn(),
+          listOrders,
+          listPayments,
+          listShipments,
+          createOrder: vi.fn(),
+          initiatePayment: vi.fn(),
+          simulatePaymentSuccess: vi.fn(),
+        }}
+        onLogout={vi.fn()}
+      />
+    </LanguageProvider>,
   );
 
   expect(screen.getByText("Loading your buyer account…")).toBeVisible();
@@ -112,26 +115,28 @@ test("BuyerApp shows only the shipment scoped to each real order", async () => {
   };
 
   render(
-    <BuyerApp
-      session={session}
-      repository={{
-        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
-        listProducts: vi.fn().mockResolvedValue({ data: [] }),
-        getProduct: vi.fn(),
-        listOrders: vi.fn().mockResolvedValue({
-          data: [{ id: "order-1", status: "paid", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
-        }),
-        listPayments: vi.fn().mockResolvedValue({ data: [] }),
-        listShipments: vi.fn().mockResolvedValue([
-          shipment,
-          { ...shipment, id: "shipment-2", orderId: "other-order", status: "delivered" },
-        ]),
-        createOrder: vi.fn(),
-        initiatePayment: vi.fn(),
-        simulatePaymentSuccess: vi.fn(),
-      }}
-      onLogout={vi.fn()}
-    />,
+    <LanguageProvider>
+      <BuyerApp
+        session={session}
+        repository={{
+          getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+          listProducts: vi.fn().mockResolvedValue({ data: [] }),
+          getProduct: vi.fn(),
+          listOrders: vi.fn().mockResolvedValue({
+            data: [{ id: "order-1", status: "paid", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
+          }),
+          listPayments: vi.fn().mockResolvedValue({ data: [] }),
+          listShipments: vi.fn().mockResolvedValue([
+            shipment,
+            { ...shipment, id: "shipment-2", orderId: "other-order", status: "delivered" },
+          ]),
+          createOrder: vi.fn(),
+          initiatePayment: vi.fn(),
+          simulatePaymentSuccess: vi.fn(),
+        }}
+        onLogout={vi.fn()}
+      />
+    </LanguageProvider>,
   );
 
   await userEvent.click(await screen.findByRole("button", { name: "Orders" }));
@@ -151,23 +156,25 @@ test("BuyerApp settles a pending payment and refreshes its timeline", async () =
     .mockResolvedValueOnce({ data: [{ id: "payment-1", orderId: "order-1", status: "success" }] });
 
   render(
-    <BuyerApp
-      session={session}
-      repository={{
-        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
-        listProducts: vi.fn().mockResolvedValue({ data: [] }),
-        getProduct: vi.fn(),
-        listOrders: vi.fn().mockResolvedValue({
-          data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
-        }),
-        listPayments,
-        listShipments: vi.fn().mockResolvedValue([]),
-        createOrder: vi.fn(),
-        initiatePayment: vi.fn(),
-        simulatePaymentSuccess,
-      }}
-      onLogout={vi.fn()}
-    />,
+    <LanguageProvider>
+      <BuyerApp
+        session={session}
+        repository={{
+          getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+          listProducts: vi.fn().mockResolvedValue({ data: [] }),
+          getProduct: vi.fn(),
+          listOrders: vi.fn().mockResolvedValue({
+            data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
+          }),
+          listPayments,
+          listShipments: vi.fn().mockResolvedValue([]),
+          createOrder: vi.fn(),
+          initiatePayment: vi.fn(),
+          simulatePaymentSuccess,
+        }}
+        onLogout={vi.fn()}
+      />
+    </LanguageProvider>,
   );
 
   await userEvent.click(await screen.findByRole("button", { name: "Orders" }));
@@ -184,25 +191,27 @@ test("BuyerApp disables a payment settlement action while it is pending", async 
   );
 
   render(
-    <BuyerApp
-      session={session}
-      repository={{
-        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
-        listProducts: vi.fn().mockResolvedValue({ data: [] }),
-        getProduct: vi.fn(),
-        listOrders: vi.fn().mockResolvedValue({
-          data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
-        }),
-        listPayments: vi.fn().mockResolvedValue({
-          data: [{ id: "payment-1", orderId: "order-1", status: "pending" }],
-        }),
-        listShipments: vi.fn().mockResolvedValue([]),
-        createOrder: vi.fn(),
-        initiatePayment: vi.fn(),
-        simulatePaymentSuccess,
-      }}
-      onLogout={vi.fn()}
-    />,
+    <LanguageProvider>
+      <BuyerApp
+        session={session}
+        repository={{
+          getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+          listProducts: vi.fn().mockResolvedValue({ data: [] }),
+          getProduct: vi.fn(),
+          listOrders: vi.fn().mockResolvedValue({
+            data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }],
+          }),
+          listPayments: vi.fn().mockResolvedValue({
+            data: [{ id: "payment-1", orderId: "order-1", status: "pending" }],
+          }),
+          listShipments: vi.fn().mockResolvedValue([]),
+          createOrder: vi.fn(),
+          initiatePayment: vi.fn(),
+          simulatePaymentSuccess,
+        }}
+        onLogout={vi.fn()}
+      />
+    </LanguageProvider>,
   );
 
   await userEvent.click(await screen.findByRole("button", { name: "Orders" }));

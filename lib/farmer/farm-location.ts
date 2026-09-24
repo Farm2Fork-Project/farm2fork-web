@@ -11,19 +11,23 @@ export const PAKISTAN_PROVINCES = [
 export type PakistanProvince = (typeof PAKISTAN_PROVINCES)[number];
 
 /**
- * A farm's pickup location. All three parts are required: transporters only
- * see and claim orders from farms with a complete location.
+ * A farm's pickup location. Everything is required: delivery fees are priced
+ * from the map pin and transporters are matched and navigated to it.
  */
 export interface FarmLocation {
   address: string;
   city: string;
   province: PakistanProvince;
+  lat: number;
+  lng: number;
 }
 
 export interface FarmLocationStatus {
   address?: string;
   city?: string;
   province?: string;
+  lat?: number;
+  lng?: number;
   complete: boolean;
 }
 

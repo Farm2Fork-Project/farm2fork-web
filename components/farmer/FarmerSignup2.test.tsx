@@ -4,7 +4,12 @@ import { afterEach, expect, test, vi } from "vitest";
 import { LanguageProvider } from "../LanguageContext";
 import FarmerSignup from "./FarmerSignup2";
 
-afterEach(cleanup);
+const FARM = { lat: 30.1968, lng: 71.4782 };
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 test("FarmerSignup submits the backend farmer registration fields", async () => {
   const user = userEvent.setup();
@@ -28,6 +33,21 @@ test("FarmerSignup submits the backend farmer registration fields", async () => 
   await user.type(screen.getByLabelText("City"), "Lahore");
   await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
   await user.click(screen.getByRole("button", { name: "wheat" }));
+
+  // The farm pin is required too.
+  await user.click(screen.getByRole("button", { name: /create account/i }));
+  expect(onSubmit).not.toHaveBeenCalled();
+  expect(screen.getByText("Pin your farm on the map.")).toBeTruthy();
+
+  vi.stubGlobal("navigator", {
+    ...navigator,
+    geolocation: {
+      getCurrentPosition: (ok: PositionCallback) =>
+        ok({ coords: { latitude: FARM.lat, longitude: FARM.lng } } as GeolocationPosition),
+    },
+  });
+  await user.click(screen.getByRole("button", { name: /use my current location/i }));
+  expect(screen.getByText("30.19680, 71.47820")).toBeTruthy();
   await user.click(screen.getByRole("button", { name: /create account/i }));
 
   expect(onSubmit).toHaveBeenCalledWith({
@@ -36,7 +56,12 @@ test("FarmerSignup submits the backend farmer registration fields", async () => 
     phone: "+923001234567",
     cnic: "35202-1234567-1",
     farmName: "Green Acres",
-    farmLocation: { address: "Chak 5, Canal Road", city: "Lahore", province: "Punjab" },
+    farmLocation: {
+      address: "Chak 5, Canal Road",
+      city: "Lahore",
+      province: "Punjab",
+      ...FARM,
+    },
     cropTypes: ["wheat"],
   });
 });

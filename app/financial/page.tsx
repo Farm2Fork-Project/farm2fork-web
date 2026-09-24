@@ -7,8 +7,9 @@ import LoanDetailScreen from '@/components/financial/LoanDetailScreen'
 import SettingsScreen from '@/components/financial/SettingsScreen'
 import LogoutModal from '@/components/financial/LogoutModal'
 import { ApiClient } from '@/lib/api/client.ts'
+import { LanguageProvider } from '@/components/LanguageContext'
 
-export default function Home() {
+function FinancialPortal() {
   const [mounted, setMounted] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [currentView, setCurrentView] = useState<'queue' | 'settings' | 'detail'>('queue')
@@ -85,5 +86,13 @@ export default function Home() {
         onCancel={() => setShowLogoutModal(false)}
       />
     </>
+  )
+}
+
+export default function FinancialPage() {
+  return (
+    <LanguageProvider>
+      <FinancialPortal />
+    </LanguageProvider>
   )
 }

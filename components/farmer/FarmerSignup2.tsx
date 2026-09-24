@@ -5,6 +5,8 @@ import { LuLeaf, LuArrowLeft, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
 import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
 import { PAKISTAN_PROVINCES, provinceKey } from "@/lib/farmer/farm-location.ts";
 import { useLanguage } from "./LanguageContext";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 
 interface FarmerSignupProps {
   onSubmit: (input: RegisterFarmerRequest) => Promise<void>;
@@ -34,6 +36,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
     farmProvince: "",
   });
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
+  const [farmPin, setFarmPin] = useState<GeoPoint | null>(null);
 
   function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -77,6 +80,10 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       setError(t("farmLocation.required"));
       return;
     }
+    if (!farmPin) {
+      setError(t("farmLocation.pinRequired"));
+      return;
+    }
 
     const landSizeAcres = formData.farmSize.trim()
       ? Number(formData.farmSize)
@@ -98,6 +105,8 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
           address: formData.farmAddress.trim(),
           city: formData.farmCity.trim(),
           province: formData.farmProvince,
+          lat: farmPin.lat,
+          lng: farmPin.lng,
         },
         ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
         ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
@@ -229,6 +238,9 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                     <option key={province} value={province}>{t(provinceKey(province))}</option>
                   ))}
                 </select>
+              </div>
+              <div className="auth-form-group">
+                <MapPinPicker value={farmPin} onChange={setFarmPin} purpose="farm" disabled={isSubmitting} />
               </div>
               <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>

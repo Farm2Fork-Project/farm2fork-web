@@ -1,8 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Search, Bell, HelpCircle, ArrowLeft, Leaf, LogOut } from 'lucide-react'
+import { Search, ArrowLeft, Leaf, LogOut } from 'lucide-react'
 import { TopbarProps } from '../types'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function Topbar({
   currentView,
@@ -90,15 +91,7 @@ export default function Topbar({
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="topbar-icon-btn" aria-label="Notifications">
-            <Bell size={18} />
-            <span className="badge-dot" />
-          </button>
-          <button className="topbar-icon-btn" aria-label="Help">
-            <HelpCircle size={18} />
-          </button>
-        </div>
+        <NotificationBell />
 
         <div className="flex items-center gap-3 pl-4 border-l border-surface-medium" style={{ borderLeft: '1px solid var(--surface-medium)', paddingLeft: 'var(--sp-lg)' }}>
           <div className="flex items-center gap-2.5" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

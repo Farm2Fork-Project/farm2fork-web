@@ -1,6 +1,7 @@
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { expect, test, vi } from "vitest";
+import { afterEach, expect, test, vi } from "vitest";
+import { LanguageProvider } from "@/components/LanguageContext";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { CheckoutPanel } from "./CheckoutPanel";
 
@@ -47,7 +48,55 @@ const groups: CartFarmerGroup[] = [
   },
 ];
 
-test("CheckoutPanel creates one order and pending payment for each farmer group", async () => {
+const LAHORE = { lat: 31.5204, lng: 74.3587 };
+
+function stubGeolocation() {
+  vi.stubGlobal("navigator", {
+    ...navigator,
+    geolocation: {
+      getCurrentPosition: (ok: PositionCallback) =>
+        ok({ coords: { latitude: LAHORE.lat, longitude: LAHORE.lng } } as GeolocationPosition),
+    },
+  });
+}
+
+function renderPanel(repository: Parameters<typeof CheckoutPanel>[0]["repository"]) {
+  const onConfirmedFarmers = vi.fn();
+  const onViewOrders = vi.fn();
+  render(
+    <LanguageProvider>
+      <CheckoutPanel
+        groups={groups}
+        repository={repository}
+        onConfirmedFarmers={onConfirmedFarmers}
+        onViewOrders={onViewOrders}
+      />
+    </LanguageProvider>,
+  );
+  return { onConfirmedFarmers, onViewOrders, user: userEvent.setup() };
+}
+
+async function fillAddress(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText("Street"), "12 Mall Road");
+  await user.type(screen.getByLabelText("City"), "Lahore");
+  await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
+}
+
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+
+test("CheckoutPanel prices each farmer group once the drop-off is pinned, then orders and pays", async () => {
+  stubGeolocation();
+  const quoteOrder = vi.fn().mockResolvedValue({
+    totalAmount: 240,
+    platformFeePercent: 5,
+    platformFeeAmount: 12,
+    deliveryFee: 1150,
+    deliveryDistanceKm: 39.7,
+    grandTotal: 1402,
+  });
   const createOrder = vi
     .fn()
     .mockResolvedValueOnce({ id: "order-1" })
@@ -56,39 +105,35 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
     .fn()
     .mockResolvedValueOnce({ id: "payment-1", status: "pending" })
     .mockResolvedValueOnce({ id: "payment-2", status: "pending" });
-  const onConfirmedFarmers = vi.fn();
-  const onViewOrders = vi.fn();
+  const { onConfirmedFarmers, onViewOrders, user } = renderPanel({
+    createOrder,
+    initiatePayment,
+    quoteOrder,
+  });
 
-  render(
-    <CheckoutPanel
-      groups={groups}
-      repository={{ createOrder, initiatePayment }}
-      onConfirmedFarmers={onConfirmedFarmers}
-      onViewOrders={onViewOrders}
-    />,
-  );
+  await fillAddress(user);
+  expect(screen.getAllByText("Pin the drop-off to see the delivery fee")).toHaveLength(2);
 
-  const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Street"), "12 Mall Road");
-  await user.type(screen.getByLabelText("City"), "Lahore");
-  await user.type(screen.getByLabelText("Province"), "Punjab");
+  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
+  expect(await screen.findAllByText("Rs 1,402")).toHaveLength(2);
+  expect(quoteOrder).toHaveBeenCalledTimes(2);
+  expect(quoteOrder.mock.calls[0][0].shippingAddress).toMatchObject(LAHORE);
+
   await user.click(screen.getByRole("button", { name: "Place orders" }));
 
+  const shippingAddress = {
+    street: "12 Mall Road",
+    city: "Lahore",
+    province: "Punjab",
+    ...LAHORE,
+  };
   expect(createOrder).toHaveBeenNthCalledWith(1, {
     items: [{ productId: "product-1", quantity: 2 }],
-    shippingAddress: {
-      street: "12 Mall Road",
-      city: "Lahore",
-      province: "Punjab",
-    },
+    shippingAddress,
   });
   expect(createOrder).toHaveBeenNthCalledWith(2, {
     items: [{ productId: "product-2", quantity: 1 }],
-    shippingAddress: {
-      street: "12 Mall Road",
-      city: "Lahore",
-      province: "Punjab",
-    },
+    shippingAddress,
   });
   expect(initiatePayment).toHaveBeenNthCalledWith(1, "order-1", "jazzcash");
   expect(initiatePayment).toHaveBeenNthCalledWith(2, "order-2", "jazzcash");
@@ -98,4 +143,28 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
 
   await user.click(screen.getByRole("button", { name: "View orders" }));
   expect(onViewOrders).toHaveBeenCalled();
+});
+
+test("CheckoutPanel refuses to order without a drop-off pin", async () => {
+  const createOrder = vi.fn();
+  const { user } = renderPanel({
+    createOrder,
+    initiatePayment: vi.fn(),
+    quoteOrder: vi.fn(),
+  });
+  await fillAddress(user);
+  await user.click(screen.getByRole("button", { name: "Place orders" }));
+  expect(screen.getByRole("alert")).toHaveTextContent("Pin the drop-off location");
+  expect(createOrder).not.toHaveBeenCalled();
+});
+
+test("CheckoutPanel explains when a farm can't be priced yet", async () => {
+  stubGeolocation();
+  const { user } = renderPanel({
+    createOrder: vi.fn(),
+    initiatePayment: vi.fn(),
+    quoteOrder: vi.fn().mockRejectedValue(new Error("400")),
+  });
+  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
+  expect(await screen.findAllByText(/hasn.t pinned its pickup location/)).toHaveLength(2);
 });

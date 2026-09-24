@@ -77,3 +77,26 @@ test("ApiClient normalizes a non-JSON 503 response", async () => {
     new ApiError(503, "Request failed with status 503.", "Service unavailable"),
   );
 });
+
+test("ApiClient sends FormData uploads untouched, keeping the CSRF header", async () => {
+  let captured: RequestInit | undefined;
+  const client = new ApiClient({
+    baseUrl: "http://localhost:3000/api",
+    fetchFn: async (_url, init) => {
+      captured = init;
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+  const form = new FormData();
+  form.append("crop", "mango");
+
+  await client.request("/ai/quality", { method: "POST", body: form });
+
+  expect(captured?.body).toBe(form);
+  const headers = new Headers(captured?.headers);
+  // The browser must set the multipart boundary itself.
+  expect(headers.get("Content-Type")).toBeNull();
+  expect(headers.get("X-Farm2Fork-CSRF")).toBe("1");
+});

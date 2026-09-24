@@ -17,14 +17,17 @@ import {
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
+import FarmLocationPrompt from "./FarmLocationPrompt";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
+import NotificationBell from "@/components/NotificationBell";
 import FarmerProfile from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
 import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
+  ApiFarmerSummary,
   ApiOrder,
   ApiProduct,
   CreateFarmerProductRequest,
@@ -33,11 +36,20 @@ import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
-export default function FarmerDashboard({ email, onLogout }: { email?: string; onLogout?: () => void }) {
+export default function FarmerDashboard({
+  email,
+  userId,
+  onLogout,
+}: {
+  email?: string;
+  userId?: string;
+  onLogout?: () => void;
+}) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [farm, setFarm] = useState<ApiFarmerSummary | null>(null);
   const [listingError, setListingError] = useState("");
   const repository = useMemo(
     () => new FarmerRepository({ client: new ApiClient() }),
@@ -48,7 +60,11 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
     let active = true;
     repository.listMyProducts()
       .then((response) => {
-        if (active) setListings(response.data.map(toListing));
+        if (active) {
+          setListings(response.data.map(toListing));
+          // Every product carries its farm's public identity (same farmer).
+          setFarm(response.data.find((p) => p.farmer)?.farmer ?? null);
+        }
       })
       .catch((error) => {
         if (active) {
@@ -90,47 +106,46 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Notifications bell state
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: "n_1", read: false },
-    { id: "n_2", read: true },
-  ]);
-
   const showToast = (message: string) => {
     setToastMessage(message);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Listing Handlers
-  const handleDeleteListing = (id: string) => {
-    setListings((current) => current.filter((item) => item.id !== id));
-    showToast(t("farmer.toast.deleteSuccess"));
+  // Listing Handlers - persisted through the API; the UI only changes (and
+  // only reports success) after the backend confirms.
+  const handleDeleteListing = async (id: string) => {
+    try {
+      await repository.deleteProduct(id);
+      setListings((current) => current.filter((item) => item.id !== id));
+      showToast(t("farmer.toast.deleteSuccess"));
+    } catch {
+      showToast(t("farmer.toast.actionFailed"));
+    }
   };
 
-  const handleToggleListingStatus = (id: string) => {
-    setListings((current) => current.map((item) =>
-      item.id === id
-        ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as any }
-        : item
-    ));
+  const handleToggleListingStatus = async (id: string) => {
     const item = listings.find((l) => l.id === id);
-    const newStatus = item?.status === "Available" ? "Out of Stock" : "Available";
-    showToast(t("farmer.toast.statusUpdate").replace("{status}", newStatus));
+    if (!item) return;
+    const next = item.status === "Available" ? "inactive" : "active";
+    try {
+      const updated = toListing(await repository.updateProductStatus(id, next));
+      setListings((current) =>
+        current.map((listing) => (listing.id === id ? updated : listing)),
+      );
+      showToast(t("farmer.toast.statusUpdate").replace("{status}", updated.status));
+    } catch {
+      showToast(t("farmer.toast.actionFailed"));
+    }
   };
 
   const handleCreateListing = async (listingData: CreateFarmerProductRequest) => {
     const created = await repository.createProduct(listingData);
+    if (created.farmer) setFarm(created.farmer);
     setListings((current) => [toListing(created), ...current]);
     setActiveTab("listings");
     showToast(t("farmer.toast.createSuccess"));
   };
 
-  const unreadNotificationsCount = notifications.filter(n => !n.read).length;
-
-  const markNotificationsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  };
 
   return (
     <div className="app-shell" dir={language === "ur" ? "rtl" : "ltr"}>
@@ -218,78 +233,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
             </nav>
 
           <div className="topbar-right">
-            {/* Notification bell and dropdown */}
-            <div className="relative" style={{ display: "flex", alignItems: "center" }}>
-              <button
-                onClick={() => {
-                  setNotificationsOpen(!notificationsOpen);
-                  if (!notificationsOpen) markNotificationsRead();
-                }}
-                className="topbar-icon-btn"
-                aria-label="Notifications"
-              >
-                <Bell size={19} />
-                {unreadNotificationsCount > 0 && (
-                  <span className="badge-dot" />
-                )}
-              </button>
-
-              {/* Notifications Popover */}
-              {notificationsOpen && (
-                <div style={{
-                  position: "absolute",
-                  top: "100%",
-                  right: 0,
-                  marginTop: "12px",
-                  backgroundColor: "var(--white)",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "12px",
-                  boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-                  width: "360px",
-                  zIndex: 150,
-                  padding: "16px",
-                  color: "var(--text-main)"
-                }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                    <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>{t("notifications.title")}</h4>
-                    <span
-                      onClick={() => {
-                        markNotificationsRead();
-                        setNotificationsOpen(false);
-                      }}
-                      style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}
-                    >
-                      {t("notifications.markAllRead")}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
-                    
-                    {notifications.map((n, idx) => (
-                      <div key={n.id} style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", background: n.read ? "transparent" : "rgba(34, 197, 94, 0.05)", cursor: "pointer" }}>
-                        <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: idx === 0 ? "rgba(34, 197, 94, 0.15)" : "rgba(59, 130, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: idx === 0 ? "var(--primary-green)" : "#3b82f6", flexShrink: 0 }}>
-                          {idx === 0 ? <ShoppingBag size={20} /> : <CheckCircle size={20} />}
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <strong style={{ fontSize: "14px", color: "var(--text-main)" }}>
-                              {idx === 0 ? t("farmer.notifications.n1.title") : t("farmer.notifications.n2.title")}
-                            </strong>
-                            {!n.read && <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary-green)", marginTop: "4px" }}></span>}
-                          </div>
-                          <div style={{ fontSize: "13px", color: "var(--text-muted)", marginTop: "4px", lineHeight: "1.4" }}>
-                            {idx === 0 ? t("farmer.notifications.n1.text") : t("farmer.notifications.n2.text")}
-                          </div>
-                          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "6px", fontWeight: 500 }}>
-                            {idx === 0 ? t("farmer.notifications.n1.time") : t("farmer.notifications.n2.time")}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
+            <NotificationBell />
 
             {/* User Profile Card */}
             <div 
@@ -422,9 +366,11 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
         {/* Main Page Content Wrapper matching buyer/transporter app-content */}
         <main className="app-content">
+          {activeTab === "listings" && <FarmLocationPrompt client={repository} />}
           {activeTab === "listings" && (
             <FarmerListings
               listings={listings}
+              farm={farm}
               onDelete={handleDeleteListing}
               onToggleStatus={handleToggleListingStatus}
               onAddClick={() => setActiveTab("create")}
@@ -433,6 +379,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
           {activeTab === "create" && (
             <CreateListingForm
+              aiClient={repository}
               onSubmit={handleCreateListing}
               onCancel={() => setActiveTab("listings")}
             />
@@ -442,7 +389,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
             ordersError ? <p role="alert">{ordersError}</p> : orders ? <FarmerOrders orders={orders} /> : <p>Loading orders…</p>
           )}
 
-          {activeTab === "feed" && <FarmFeed />}
+          {activeTab === "feed" && <FarmFeed currentUserId={userId} />}
 
           {activeTab === "scan" && <ScanScreen />}
 
@@ -476,5 +423,6 @@ function toListing(product: ApiProduct): Listing {
     unit: product.unit,
     quantity: product.quantity,
     status: product.status === "active" ? "Available" : "Out of Stock",
+    ledger: product.originLedgerStatus ?? "missing",
   };
 }

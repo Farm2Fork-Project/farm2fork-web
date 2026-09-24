@@ -9,6 +9,7 @@ import {
   type ApiShipment,
   type BuyerProduct,
   type CreateOrderRequest,
+  type OrderQuote,
   type InitiatePaymentResponse,
   type PaymentGateway,
   toBuyerProduct,
@@ -67,6 +68,14 @@ export class BuyerRepository {
     return toBuyerProduct(
       await this.client.request<ApiProduct>(`/products/${id}`),
     );
+  }
+
+  /** Prices one farmer's cart (incl. the fixed delivery fee); saves nothing. */
+  quoteOrder(input: CreateOrderRequest): Promise<OrderQuote> {
+    return this.client.request<OrderQuote>("/orders/quote", {
+      method: "POST",
+      body: input,
+    });
   }
 
   createOrder(input: CreateOrderRequest): Promise<ApiOrder> {

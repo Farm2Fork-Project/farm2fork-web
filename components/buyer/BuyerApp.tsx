@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   LuLeaf,
   LuPlus,
+  LuScanLine,
   LuShoppingCart,
   LuLogOut,
 } from "react-icons/lu";
@@ -27,6 +29,8 @@ import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
 import ProfileScreen from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
+import { useLanguage } from "../LanguageContext";
+import NotificationBell from "@/components/NotificationBell";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -39,6 +43,7 @@ type BuyerRepositoryPort = Pick<
   | "listPayments"
   | "listShipments"
   | "listProducts"
+  | "quoteOrder"
   | "simulatePaymentSuccess"
 >;
 
@@ -226,6 +231,7 @@ export function BuyerApp({
             </TabButton>
           </nav>
           <div className="topbar-right">
+            <NotificationBell />
             <span className="topbar-user-role">{buyer.email}</span>
             <button
               aria-label="Log out"
@@ -317,6 +323,7 @@ function Marketplace({
   query: ProductQuery;
   selectedProduct: BuyerProduct | null;
 }) {
+  const { t } = useLanguage();
   if (selectedProduct || detailError) {
     return (
       <section>
@@ -329,6 +336,9 @@ function Marketplace({
             <div className="pd-image"><LuLeaf className="leaf" size={100} /></div>
             <div className="pd-info">
               <h1>{selectedProduct.name}</h1>
+              {selectedProduct.farmer ? (
+                <p className="pd-farm">{farmLabel(selectedProduct.farmer)}</p>
+              ) : null}
               <p className="pd-price">{selectedProduct.price.toLocaleString()} PKR / {selectedProduct.unit}</p>
               <div className="pd-tags">
                 <span className="pd-tag">Grade {selectedProduct.qualityGrade ?? "not specified"}</span>
@@ -342,6 +352,9 @@ function Marketplace({
               >
                 <LuShoppingCart size={20} /> Add to cart
               </button>
+              <Link className="pd-trace-link" href={`/trace/${selectedProduct.id}`}>
+                <LuScanLine size={18} aria-hidden="true" /> {t("product.viewJourney")}
+              </Link>
             </div>
           </div>
         ) : null}
@@ -384,6 +397,9 @@ function Marketplace({
               </button>
               <div className="mp-card-body">
                 <div className="mp-card-name">{product.name}</div>
+                {product.farmer ? (
+                  <div className="mp-card-farm">{farmLabel(product.farmer)}</div>
+                ) : null}
                 <div className="mp-card-footer">
                   <div className="mp-card-price">{product.price.toLocaleString()} PKR / {product.unit}</div>
                   <button
@@ -414,7 +430,7 @@ function Cart({
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
-  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
+  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment" | "quoteOrder">;
 }) {
   if (groups.length === 0) {
     return (
@@ -561,4 +577,10 @@ function ShipmentTracking({ shipment }: { shipment: ApiShipment | undefined }) {
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
+/** "Green Valley Farm · Multan, Punjab" - public farm identity only. */
+function farmLabel(farmer: { farmName: string; city?: string; province?: string }): string {
+  const place = [farmer.city, farmer.province].filter(Boolean).join(", ");
+  return place ? `${farmer.farmName} · ${place}` : farmer.farmName;
 }

@@ -4213,58 +4213,63 @@ body {
   gap: var(--sp-lg);
 }
 /* ─── Spacing and Layout Utilities ─── */
-.flex-col { display: flex; flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.justify-end { justify-content: flex-end; }
+/* In @layer components so Tailwind's layered utilities (e.g. md:flex-row)
+   can override them. Unlayered, `.flex-col` beat every responsive
+   `md:flex-row` in the app and forced two-column layouts to stack. */
+@layer components {
+  .flex-col { display: flex; flex-direction: column; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+  .justify-center { justify-content: center; }
+  .justify-end { justify-content: flex-end; }
 
-.gap-xs { gap: var(--sp-xs); }
-.gap-sm { gap: var(--sp-sm); }
-.gap-md { gap: var(--sp-md); }
-.gap-lg { gap: var(--sp-lg); }
-.gap-xl { gap: var(--sp-xl); }
+  .gap-xs { gap: var(--sp-xs); }
+  .gap-sm { gap: var(--sp-sm); }
+  .gap-md { gap: var(--sp-md); }
+  .gap-lg { gap: var(--sp-lg); }
+  .gap-xl { gap: var(--sp-xl); }
 
-.p-xs { padding: var(--sp-xs); }
-.p-sm { padding: var(--sp-sm); }
-.p-md { padding: var(--sp-md); }
-.p-lg { padding: var(--sp-lg); }
-.p-xl { padding: var(--sp-xl); }
+  .p-xs { padding: var(--sp-xs); }
+  .p-sm { padding: var(--sp-sm); }
+  .p-md { padding: var(--sp-md); }
+  .p-lg { padding: var(--sp-lg); }
+  .p-xl { padding: var(--sp-xl); }
 
-.pt-xs { padding-top: var(--sp-xs); }
-.pt-sm { padding-top: var(--sp-sm); }
-.pt-md { padding-top: var(--sp-md); }
-.pt-lg { padding-top: var(--sp-lg); }
-.pt-xl { padding-top: var(--sp-xl); }
+  .pt-xs { padding-top: var(--sp-xs); }
+  .pt-sm { padding-top: var(--sp-sm); }
+  .pt-md { padding-top: var(--sp-md); }
+  .pt-lg { padding-top: var(--sp-lg); }
+  .pt-xl { padding-top: var(--sp-xl); }
 
-.pb-xs { padding-bottom: var(--sp-xs); }
-.pb-sm { padding-bottom: var(--sp-sm); }
-.pb-md { padding-bottom: var(--sp-md); }
-.pb-lg { padding-bottom: var(--sp-lg); }
-.pb-xl { padding-bottom: var(--sp-xl); }
+  .pb-xs { padding-bottom: var(--sp-xs); }
+  .pb-sm { padding-bottom: var(--sp-sm); }
+  .pb-md { padding-bottom: var(--sp-md); }
+  .pb-lg { padding-bottom: var(--sp-lg); }
+  .pb-xl { padding-bottom: var(--sp-xl); }
 
-.m-xs { margin: var(--sp-xs); }
-.m-sm { margin: var(--sp-sm); }
-.m-md { margin: var(--sp-md); }
-.m-lg { margin: var(--sp-lg); }
-.m-xl { margin: var(--sp-xl); }
+  .m-xs { margin: var(--sp-xs); }
+  .m-sm { margin: var(--sp-sm); }
+  .m-md { margin: var(--sp-md); }
+  .m-lg { margin: var(--sp-lg); }
+  .m-xl { margin: var(--sp-xl); }
 
-.mt-xs { margin-top: var(--sp-xs); }
-.mt-sm { margin-top: var(--sp-sm); }
-.mt-md { margin-top: var(--sp-md); }
-.mt-lg { margin-top: var(--sp-lg); }
-.mt-xl { margin-top: var(--sp-xl); }
+  .mt-xs { margin-top: var(--sp-xs); }
+  .mt-sm { margin-top: var(--sp-sm); }
+  .mt-md { margin-top: var(--sp-md); }
+  .mt-lg { margin-top: var(--sp-lg); }
+  .mt-xl { margin-top: var(--sp-xl); }
 
-.mb-xs { margin-bottom: var(--sp-xs); }
-.mb-sm { margin-bottom: var(--sp-sm); }
-.mb-md { margin-bottom: var(--sp-md); }
-.mb-lg { margin-bottom: var(--sp-lg); }
-.mb-xl { margin-bottom: var(--sp-xl); }
+  .mb-xs { margin-bottom: var(--sp-xs); }
+  .mb-sm { margin-bottom: var(--sp-sm); }
+  .mb-md { margin-bottom: var(--sp-md); }
+  .mb-lg { margin-bottom: var(--sp-lg); }
+  .mb-xl { margin-bottom: var(--sp-xl); }
 
-.ml-xs { margin-left: var(--sp-xs); }
-.mr-xs { margin-right: var(--sp-xs); }
-.ml-sm { margin-left: var(--sp-sm); }
-.mr-sm { margin-right: var(--sp-sm); }
+  .ml-xs { margin-left: var(--sp-xs); }
+  .mr-xs { margin-right: var(--sp-xs); }
+  .ml-sm { margin-left: var(--sp-sm); }
+  .mr-sm { margin-right: var(--sp-sm); }
+}
 
 /* ─── Premium Toast Alert ─── */
 .toast-alert {
@@ -5601,5 +5606,227 @@ ol.scan-timeline {
   [dir="rtl"] .scan-tl-card {
     margin-left: 0;
     margin-right: var(--sp-sm);
+  }
+}
+
+/* ─── Farmer AI listing assistant ─── */
+.ai-assist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+  padding: var(--sp-xl);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  border: 1px solid var(--surface-medium);
+}
+
+.ai-assist-head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  padding-bottom: var(--sp-md);
+  border-bottom: 1px solid var(--surface-medium);
+  color: var(--primary-green);
+}
+
+.ai-assist-head h3 {
+  margin: 0;
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ai-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.ai-block + .ai-block {
+  padding-top: var(--sp-lg);
+  border-top: 1px dashed var(--surface-medium);
+}
+
+.ai-block-title {
+  font-size: calc(13px * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.ai-label {
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.ai-input {
+  width: 100%;
+}
+
+.ai-action {
+  width: 100%;
+  min-height: 40px;
+  justify-content: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ai-result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  padding: var(--sp-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-light);
+  border: 1px solid var(--surface-medium);
+}
+
+.ai-result-main {
+  font-size: calc(15px * var(--font-scale, 1));
+  font-weight: 800;
+  color: var(--primary-green-dark);
+}
+
+.ai-note {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin: 0;
+  font-size: calc(12px * var(--font-scale, 1));
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.ai-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ai-note--warn {
+  color: #92610a;
+}
+
+.ai-note--error {
+  color: var(--error-red);
+}
+
+.ai-link {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 700;
+  font-size: calc(13px * var(--font-scale, 1));
+  color: var(--secondary-blue);
+  cursor: pointer;
+  text-decoration: underline;
+  min-height: 32px;
+}
+
+/* Listing ledger chip (farmer listings) */
+.ledger-chip {
+  display: inline-block;
+  margin: 4px 0 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: calc(11px * var(--font-scale, 1));
+  font-weight: 700;
+}
+
+.ledger-chip--confirmed {
+  background: var(--primary-green-soft);
+  color: var(--primary-green-dark);
+}
+
+.ledger-chip--pending {
+  background: var(--accent-yellow-soft);
+  color: #92610a;
+}
+
+.ledger-chip--failed {
+  background: #fdecea;
+  color: var(--error-red);
+}
+
+.ledger-chip--missing {
+  background: var(--surface-light);
+  color: var(--text-muted);
+}
+
+/* Trace: fresh Fabric read-back */
+.trace-onchain {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.trace-onchain--ok {
+  color: var(--primary-green);
+}
+
+.trace-onchain--bad {
+  color: var(--error-red);
+}
+
+.trace-origin--unverified {
+  background: #fdecea;
+  border-color: var(--error-red);
+}
+
+.trace-origin--unverified strong,
+.trace-origin--unverified .trace-origin-icon {
+  color: var(--error-red);
+}
+
+.trace-check-note {
+  margin: 0 0 var(--sp-lg);
+  font-size: calc(12.5px * var(--font-scale, 1));
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.pd-farm {
+  color: var(--text-muted);
+  font-weight: 600;
+  margin: 2px 0 var(--sp-sm);
+}
+
+/* Phone widths: portal headers wrap. Brand and account stay on the first
+   row; the nav (5+ links) gets its own full-width row that scrolls
+   horizontally, so the page never becomes wider than the screen. */
+@media (max-width: 768px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: var(--sp-sm) var(--sp-lg) 0;
+    row-gap: var(--sp-xs);
+  }
+  .topbar-left,
+  .topbar-right {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 48px;
+  }
+  .topbar-user-info {
+    display: none;
+  }
+  .topbar-nav {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    height: 48px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .topbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .topbar-link {
+    flex-shrink: 0;
   }
 }

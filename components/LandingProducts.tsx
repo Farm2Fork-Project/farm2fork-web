@@ -89,6 +89,16 @@ export default function LandingProducts({ onSignIn }: { onSignIn: () => void }) 
                 </div>
                 <div className="mp-card-body">
                   <h3 className="mp-card-name">{product.name}</h3>
+                  {product.farmer ? (
+                    <div className="mp-card-farm">
+                      {[
+                        product.farmer.farmName,
+                        [product.farmer.city, product.farmer.province].filter(Boolean).join(", "),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </div>
+                  ) : null}
                   <div className="mp-card-price">
                     {fill(t("landing.fresh.price"), {
                       price: price.format(product.price),

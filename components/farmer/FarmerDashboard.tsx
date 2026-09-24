@@ -25,6 +25,7 @@ import { useLanguage } from "./LanguageContext";
 import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
+  ApiFarmerSummary,
   ApiOrder,
   ApiProduct,
   CreateFarmerProductRequest,
@@ -38,6 +39,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
+  const [farm, setFarm] = useState<ApiFarmerSummary | null>(null);
   const [listingError, setListingError] = useState("");
   const repository = useMemo(
     () => new FarmerRepository({ client: new ApiClient() }),
@@ -48,7 +50,11 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
     let active = true;
     repository.listMyProducts()
       .then((response) => {
-        if (active) setListings(response.data.map(toListing));
+        if (active) {
+          setListings(response.data.map(toListing));
+          // Every product carries its farm's public identity (same farmer).
+          setFarm(response.data.find((p) => p.farmer)?.farmer ?? null);
+        }
       })
       .catch((error) => {
         if (active) {
@@ -102,25 +108,36 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Listing Handlers
-  const handleDeleteListing = (id: string) => {
-    setListings((current) => current.filter((item) => item.id !== id));
-    showToast(t("farmer.toast.deleteSuccess"));
+  // Listing Handlers - persisted through the API; the UI only changes (and
+  // only reports success) after the backend confirms.
+  const handleDeleteListing = async (id: string) => {
+    try {
+      await repository.deleteProduct(id);
+      setListings((current) => current.filter((item) => item.id !== id));
+      showToast(t("farmer.toast.deleteSuccess"));
+    } catch {
+      showToast(t("farmer.toast.actionFailed"));
+    }
   };
 
-  const handleToggleListingStatus = (id: string) => {
-    setListings((current) => current.map((item) =>
-      item.id === id
-        ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as any }
-        : item
-    ));
+  const handleToggleListingStatus = async (id: string) => {
     const item = listings.find((l) => l.id === id);
-    const newStatus = item?.status === "Available" ? "Out of Stock" : "Available";
-    showToast(t("farmer.toast.statusUpdate").replace("{status}", newStatus));
+    if (!item) return;
+    const next = item.status === "Available" ? "inactive" : "active";
+    try {
+      const updated = toListing(await repository.updateProductStatus(id, next));
+      setListings((current) =>
+        current.map((listing) => (listing.id === id ? updated : listing)),
+      );
+      showToast(t("farmer.toast.statusUpdate").replace("{status}", updated.status));
+    } catch {
+      showToast(t("farmer.toast.actionFailed"));
+    }
   };
 
   const handleCreateListing = async (listingData: CreateFarmerProductRequest) => {
     const created = await repository.createProduct(listingData);
+    if (created.farmer) setFarm(created.farmer);
     setListings((current) => [toListing(created), ...current]);
     setActiveTab("listings");
     showToast(t("farmer.toast.createSuccess"));
@@ -425,6 +442,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
           {activeTab === "listings" && (
             <FarmerListings
               listings={listings}
+              farm={farm}
               onDelete={handleDeleteListing}
               onToggleStatus={handleToggleListingStatus}
               onAddClick={() => setActiveTab("create")}
@@ -433,6 +451,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
           {activeTab === "create" && (
             <CreateListingForm
+              aiClient={repository}
               onSubmit={handleCreateListing}
               onCancel={() => setActiveTab("listings")}
             />
@@ -476,5 +495,6 @@ function toListing(product: ApiProduct): Listing {
     unit: product.unit,
     quantity: product.quantity,
     status: product.status === "active" ? "Available" : "Out of Stock",
+    ledger: product.originLedgerStatus ?? "missing",
   };
 }

@@ -36,11 +36,13 @@ export interface RegisterFarmerRequest {
   cnic: string;
   farmName: string;
   phone?: string;
-  /** Required: transporters can only pick up from a complete location. */
+  /** Required: delivery is priced from and dispatched to this pin. */
   farmLocation: {
     address: string;
     city: string;
     province: string;
+    lat: number;
+    lng: number;
   };
   cropTypes?: string[];
   landSizeAcres?: number;
@@ -192,6 +194,18 @@ export interface ApiOrderAddress {
   city: string;
   province: string;
   zip?: string;
+  /** Drop-off pin: required for new orders, absent on legacy ones. */
+  lat?: number;
+  lng?: number;
+}
+
+export interface OrderQuote {
+  totalAmount: number;
+  platformFeePercent: number;
+  platformFeeAmount: number;
+  deliveryFee: number;
+  deliveryDistanceKm: number;
+  grandTotal: number;
 }
 
 export interface CreateOrderRequest {
@@ -216,6 +230,9 @@ export interface ApiOrder {
   totalAmount: number;
   platformFeePercent: number;
   platformFeeAmount: number;
+  /** Fixed delivery price frozen at checkout (0 on legacy orders). */
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
   grandTotal: number;
   shippingAddress: ApiOrderAddress;
   status: string;
@@ -281,21 +298,6 @@ export interface ApiShipment {
   actualDelivery?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ApiAvailableDelivery {
-  orderId: string;
-  pickupCity: string;
-  pickupProvince: string;
-  deliveryCity: string;
-  deliveryProvince: string;
-  itemCount: number;
-  createdAt: string;
-}
-
-export interface UpdateShipmentStatusRequest {
-  status: ShipmentStatus;
-  note: string;
 }
 
 export interface InitiatePaymentResponse {

@@ -74,6 +74,7 @@ test("BuyerApp validates the session before it renders live marketplace data", a
           listShipments,
           createOrder: vi.fn(),
           initiatePayment: vi.fn(),
+          quoteOrder: vi.fn(),
           simulatePaymentSuccess: vi.fn(),
         }}
         onLogout={vi.fn()}
@@ -132,6 +133,7 @@ test("BuyerApp shows only the shipment scoped to each real order", async () => {
           ]),
           createOrder: vi.fn(),
           initiatePayment: vi.fn(),
+          quoteOrder: vi.fn(),
           simulatePaymentSuccess: vi.fn(),
         }}
         onLogout={vi.fn()}
@@ -170,6 +172,7 @@ test("BuyerApp settles a pending payment and refreshes its timeline", async () =
           listShipments: vi.fn().mockResolvedValue([]),
           createOrder: vi.fn(),
           initiatePayment: vi.fn(),
+          quoteOrder: vi.fn(),
           simulatePaymentSuccess,
         }}
         onLogout={vi.fn()}
@@ -207,6 +210,7 @@ test("BuyerApp disables a payment settlement action while it is pending", async 
           listShipments: vi.fn().mockResolvedValue([]),
           createOrder: vi.fn(),
           initiatePayment: vi.fn(),
+          quoteOrder: vi.fn(),
           simulatePaymentSuccess,
         }}
         onLogout={vi.fn()}

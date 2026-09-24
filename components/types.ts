@@ -40,23 +40,6 @@ export interface SignUpRoleScreenProps {
 }
 
 /* ───────── Financial Partner Types ───────── */
-export interface LoanApplication {
-  id: string
-  applicant: string
-  farmName: string
-  location: string
-  amount: string
-  term: string
-  interestRate: string
-  revenue: string
-  creditScore: number
-  dti: string
-  riskProfile: 'Low' | 'Medium' | 'High'
-  status: 'Ledger Pending' | 'Ledger Approved' | 'Ledger Rejected' | 'Ledger Needs Docs'
-  /** ISO date the application entered the credit queue. */
-  submittedAt?: string
-}
-
 export interface DashboardScreenProps {
   onSelectLoan: (id: string) => void
   onLogout: () => void

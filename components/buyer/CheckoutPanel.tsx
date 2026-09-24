@@ -1,11 +1,20 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { LuCircleCheckBig } from "react-icons/lu";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
-import type { ApiOrderAddress, PaymentGateway } from "@/lib/api/contracts.ts";
+import type { ApiOrderAddress, OrderQuote, PaymentGateway } from "@/lib/api/contracts.ts";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
+
+const rupees = new Intl.NumberFormat("en-PK");
+
+type QuoteState =
+  | { kind: "ready"; quote: OrderQuote }
+  | { kind: "unavailable" };
 
 function paymentStatusBadgeClass(status: string): string {
   if (status === "success") return "badge-soft-green";
@@ -15,7 +24,7 @@ function paymentStatusBadgeClass(status: string): string {
 
 type CheckoutRepository = Pick<
   BuyerRepository,
-  "createOrder" | "initiatePayment"
+  "createOrder" | "initiatePayment" | "quoteOrder"
 >;
 
 type CheckoutResult = {
@@ -43,10 +52,48 @@ export function CheckoutPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [results, setResults] = useState<CheckoutResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [dropoff, setDropoff] = useState<GeoPoint | null>(null);
+  // Keyed by pin + farmer, so a moved pin shows "calculating" until its
+  // own quote arrives; a missing entry means the request is in flight.
+  const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
+  const pinKey = dropoff ? `${dropoff.lat},${dropoff.lng}` : "";
+
+  useEffect(() => {
+    if (!dropoff) return;
+    let cancelled = false;
+    const key = `${dropoff.lat},${dropoff.lng}`;
+    for (const group of groups) {
+      repository
+        .quoteOrder(
+          toCreateOrderRequest(group, {
+            street: "-",
+            city: "-",
+            province: "-",
+            lat: dropoff.lat,
+            lng: dropoff.lng,
+          }),
+        )
+        .then(
+          (quote): QuoteState => ({ kind: "ready", quote }),
+          (): QuoteState => ({ kind: "unavailable" }),
+        )
+        .then((result) => {
+          if (cancelled) return;
+          setQuotes((current) => ({ ...current, [`${key}|${group.farmerId}`]: result }));
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [dropoff, groups, repository]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (groups.length === 0 || isSubmitting) return;
+    if (!dropoff) {
+      setError("Pin the drop-off location on the map first; the delivery fee is priced from it.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
@@ -56,7 +103,7 @@ export function CheckoutPanel({
     for (const group of groups) {
       try {
         const order = await repository.createOrder(
-          toCreateOrderRequest(group, address),
+          toCreateOrderRequest(group, { ...address, lat: dropoff.lat, lng: dropoff.lng }),
         );
         const payment = await repository.initiatePayment(order.id, gateway);
         confirmedFarmers.push(group.farmerId);
@@ -139,13 +186,20 @@ export function CheckoutPanel({
         </label>
         <label>
           Province
-          <input
+          <select
             required
             value={address.province}
             onChange={(event) =>
               setAddress((current) => ({ ...current, province: event.target.value }))
             }
-          />
+          >
+            <option value="">Select province</option>
+            {PAKISTAN_PROVINCES.map((province) => (
+              <option key={province} value={province}>
+                {province}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           ZIP code (optional)
@@ -156,6 +210,40 @@ export function CheckoutPanel({
             }
           />
         </label>
+      </div>
+
+      <div className="checkout-dropoff">
+        <strong>Drop-off location</strong>
+        <MapPinPicker value={dropoff} onChange={setDropoff} purpose="dropoff" disabled={isSubmitting} />
+      </div>
+
+      <div className="checkout-quotes" aria-live="polite">
+        {groups.map((group, index) => {
+          const state = quotes[`${pinKey}|${group.farmerId}`];
+          const label =
+            group.items[0]?.product.farmer?.farmName ?? `Order ${index + 1}`;
+          return (
+            <div className="checkout-quote" key={group.farmerId}>
+              <span className="checkout-quote-farm">{label}</span>
+              {!dropoff ? (
+                <span className="checkout-quote-note">Pin the drop-off to see the delivery fee</span>
+              ) : !state ? (
+                <span className="checkout-quote-note">Calculating delivery…</span>
+              ) : state.kind === "unavailable" ? (
+                <span className="checkout-quote-error">
+                  This farm hasn&apos;t pinned its pickup location yet, so it can&apos;t be ordered right now.
+                </span>
+              ) : (
+                <span>
+                  Items Rs {rupees.format(state.quote.totalAmount)} + fee Rs{" "}
+                  {rupees.format(state.quote.platformFeeAmount)} + delivery Rs{" "}
+                  {rupees.format(state.quote.deliveryFee)} ({state.quote.deliveryDistanceKm} km) ={" "}
+                  <strong>Rs {rupees.format(state.quote.grandTotal)}</strong>
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <label>

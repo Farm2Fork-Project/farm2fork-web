@@ -30,6 +30,7 @@ import { webSession } from "@/lib/auth/web-session.ts";
 import ProfileScreen from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "../LanguageContext";
+import NotificationBell from "@/components/NotificationBell";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -42,6 +43,7 @@ type BuyerRepositoryPort = Pick<
   | "listPayments"
   | "listShipments"
   | "listProducts"
+  | "quoteOrder"
   | "simulatePaymentSuccess"
 >;
 
@@ -229,6 +231,7 @@ export function BuyerApp({
             </TabButton>
           </nav>
           <div className="topbar-right">
+            <NotificationBell />
             <span className="topbar-user-role">{buyer.email}</span>
             <button
               aria-label="Log out"
@@ -427,7 +430,7 @@ function Cart({
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
-  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
+  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment" | "quoteOrder">;
 }) {
   if (groups.length === 0) {
     return (

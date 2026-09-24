@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 import {
   PAKISTAN_PROVINCES,
   provinceKey,
@@ -27,6 +29,7 @@ export default function FarmLocationPrompt({ client }: { client: FarmLocationCli
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [province, setProvince] = useState<PakistanProvince | "">("");
+  const [pin, setPin] = useState<GeoPoint | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -39,6 +42,9 @@ export default function FarmLocationPrompt({ client }: { client: FarmLocationCli
         setStatus(result);
         setAddress(result.address ?? "");
         setCity(result.city ?? "");
+        if (typeof result.lat === "number" && typeof result.lng === "number") {
+          setPin({ lat: result.lat, lng: result.lng });
+        }
         setProvince(
           (PAKISTAN_PROVINCES as readonly string[]).includes(result.province ?? "")
             ? (result.province as PakistanProvince)
@@ -59,11 +65,21 @@ export default function FarmLocationPrompt({ client }: { client: FarmLocationCli
       setError(t("farmLocation.required"));
       return;
     }
+    if (!pin) {
+      setError(t("farmLocation.pinRequired"));
+      return;
+    }
     setSaving(true);
     setError("");
     try {
       setStatus(
-        await client.updateFarmLocation({ address: address.trim(), city: city.trim(), province }),
+        await client.updateFarmLocation({
+          address: address.trim(),
+          city: city.trim(),
+          province,
+          lat: pin.lat,
+          lng: pin.lng,
+        }),
       );
     } catch {
       setError(t("farmer.toast.actionFailed"));
@@ -99,6 +115,9 @@ export default function FarmLocationPrompt({ client }: { client: FarmLocationCli
             ))}
           </select>
         </label>
+        <div className="farm-location-pin">
+          <MapPinPicker value={pin} onChange={setPin} purpose="farm" disabled={saving} />
+        </div>
         <button type="submit" className="btn btn-primary" disabled={saving}>
           {saving ? t("farmer.ai.working") : t("farmLocation.save")}
         </button>

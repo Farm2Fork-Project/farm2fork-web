@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   LuArrowRight,
   LuBadgeCheck,
@@ -13,6 +14,7 @@ import {
   LuUsers,
 } from "react-icons/lu";
 import { LandingScreenProps } from "./types";
+import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
 
 const scrollTo = (id: string) => {
@@ -95,6 +97,8 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           </div>
         </section>
 
+        <LandingProducts onSignIn={onLogin} />
+
         <section id="how-it-works" className="market-process market-section">
           <div className="market-section-heading">
             <p>{t("landing.process.pretitle")}</p>
@@ -128,13 +132,13 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
               {t("landing.trace.title1")} <em>{t("landing.trace.title2")}</em>
             </h2>
             <p>{t("landing.trace.desc")}</p>
-            <button className="market-text-link" onClick={onLogin}>
+            <Link className="market-text-link" href="/trace">
               {t("landing.trace.btn")}{" "}
               <LuArrowRight 
                 size={17} 
                 style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
               />
-            </button>
+            </Link>
           </div>
           <ol className="market-route" aria-label="Produce journey">
             <li>

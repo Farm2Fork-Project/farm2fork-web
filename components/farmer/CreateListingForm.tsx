@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { PlusCircle, Leaf, Sparkles, DollarSign, Package } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import AiListingAssistant, { type AiAssistantClient } from "./AiListingAssistant";
 import type {
   CreateFarmerProductRequest,
   FarmerProductUnit,
@@ -11,9 +12,11 @@ import type {
 interface CreateListingFormProps {
   onSubmit: (listingData: CreateFarmerProductRequest) => Promise<void>;
   onCancel: () => void;
+  /** Enables the AI price/quality assistant when provided. */
+  aiClient?: AiAssistantClient;
 }
 
-export default function CreateListingForm({ onSubmit, onCancel }: CreateListingFormProps) {
+export default function CreateListingForm({ onSubmit, onCancel, aiClient }: CreateListingFormProps) {
   const { t } = useLanguage();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Vegetables");
@@ -137,8 +140,20 @@ export default function CreateListingForm({ onSubmit, onCancel }: CreateListingF
           </div>
 
           {/* Right Column: Pricing & Actions */}
-          <div className="w-full md:w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col gap-5 sticky top-6">
+          <div className="w-full md:w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col gap-5">
             
+            {aiClient ? (
+              <AiListingAssistant
+                client={aiClient}
+                productName={name}
+                category={category}
+                unit={unit}
+                grade={grade as "A" | "B" | "C"}
+                onApplyPrice={(value) => setPrice(String(value))}
+                onApplyGrade={setGrade}
+              />
+            ) : null}
+
             {/* Pricing & Stock Card */}
             <div className="card shadow-sm flex flex-col gap-5 p-6 rounded-xl bg-white border border-gray-100">
               <div className="flex items-center gap-2 pb-3 border-b border-gray-100">

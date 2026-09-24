@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { 
   Tractor, 
   MapPin, 
-  Star, 
   Trash2, 
   Eye, 
   EyeOff, 
@@ -33,10 +32,14 @@ export interface Listing {
   quantity: number;
   status: "Available" | "Out of Stock";
   description: string;
+  /** Ledger state of the listing's `listed` provenance record. */
+  ledger: "pending" | "confirmed" | "failed" | "missing";
 }
 
 interface FarmerListingsProps {
   listings?: Listing[];
+  /** The farmer's public farm identity, from their own products. */
+  farm?: { farmName: string; city?: string; province?: string } | null;
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
   onAddClick: () => void;
@@ -51,12 +54,16 @@ const CATEGORIES = [
 ];
 
 export default function FarmerListings({
+  farm,
   listings = [],
   onDelete,
   onToggleStatus,
   onAddClick,
 }: FarmerListingsProps) {
   const { t } = useLanguage();
+  const allListings = listings;
+  const activeCount = listings.filter((l) => l.status === "Available").length;
+  const farmPlace = [farm?.city, farm?.province].filter(Boolean).join(", ");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
@@ -218,25 +225,28 @@ export default function FarmerListings({
               <Tractor size={32} color="white" />
             </div>
             <div>
-              <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>{t("farmer.listings.farmName")}</h2>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, opacity: 0.85 }}>
-                <MapPin size={14} />
-                <span style={{ fontSize: 14, fontWeight: 500 }}>{t("farmer.listings.farmLocation")}</span>
-              </div>
+              {/* Real farm identity and counts only. This banner used to show a
+                  hardcoded "Green Acres Farm / 4.8 / 1,204 sales" to every farmer. */}
+              <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>
+                {farm?.farmName ?? t("farmer.listings.yourFarm")}
+              </h2>
+              {farmPlace ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, opacity: 0.85 }}>
+                  <MapPin size={14} />
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>{farmPlace}</span>
+                </div>
+              ) : null}
             </div>
           </div>
 
           <div style={{ display: "flex", gap: 40, borderInlineStart: "1px solid rgba(255,255,255,0.2)", paddingInlineStart: 40 }}>
             <div>
-              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.rating")}</p>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Star size={18} fill="#F0B429" color="#F0B429" />
-                <span style={{ fontSize: 22, fontWeight: 800 }}>4.8</span>
-              </div>
+              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.active")}</p>
+              <span style={{ fontSize: 22, fontWeight: 800 }}>{activeCount}</span>
             </div>
             <div>
-              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.salesLog")}</p>
-              <span style={{ fontSize: 22, fontWeight: 800 }}>{t("farmer.listings.salesCount")}</span>
+              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.hidden")}</p>
+              <span style={{ fontSize: 22, fontWeight: 800 }}>{allListings.length - activeCount}</span>
             </div>
           </div>
         </div>
@@ -349,6 +359,9 @@ export default function FarmerListings({
 
                 <div className="mp-card-body">
                   <div className="mp-card-name">{listing.name}</div>
+                  <span className={`ledger-chip ledger-chip--${listing.ledger}`}>
+                    {t(`farmer.ledger.${listing.ledger}`)}
+                  </span>
                   <div className="mp-card-farm">
                     {t("farmer.listings.stock")
                       .replace("{stock}", String(listing.quantity))

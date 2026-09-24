@@ -1,9 +1,15 @@
 import type { ApiRequestOptions } from "../api/client.ts";
+import type { FarmLocation, FarmLocationStatus } from "./farm-location.ts";
 import type {
+  AiStatus,
   ApiOrder,
   ApiPage,
   ApiProduct,
   CreateFarmerProductRequest,
+  GradableCrop,
+  PriceSuggestion,
+  PriceSuggestionRequest,
+  QualityCheckResult,
 } from "../api/contracts.ts";
 
 type ApiRequester = {
@@ -29,6 +35,56 @@ export class FarmerRepository {
     return this.client.request<ApiProduct>("/products", {
       method: "POST",
       body: input,
+    });
+  }
+
+  /** Soft delete: the listing becomes inactive (history and trace are kept). */
+  deleteProduct(id: string): Promise<{ id: string; deleted: boolean }> {
+    return this.client.request<{ id: string; deleted: boolean }>(
+      `/products/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    );
+  }
+
+  updateProductStatus(
+    id: string,
+    status: "active" | "inactive",
+  ): Promise<ApiProduct> {
+    return this.client.request<ApiProduct>(
+      `/products/${encodeURIComponent(id)}`,
+      { method: "PATCH", body: { status } },
+    );
+  }
+
+  getFarmLocation(): Promise<FarmLocationStatus> {
+    return this.client.request<FarmLocationStatus>("/farmers/me/farm-location");
+  }
+
+  updateFarmLocation(location: FarmLocation): Promise<FarmLocationStatus> {
+    return this.client.request<FarmLocationStatus>("/farmers/me/farm-location", {
+      method: "PATCH",
+      body: location,
+    });
+  }
+
+  aiStatus(): Promise<AiStatus> {
+    return this.client.request<AiStatus>("/ai/status");
+  }
+
+  suggestPrice(input: PriceSuggestionRequest): Promise<PriceSuggestion> {
+    return this.client.request<PriceSuggestion>("/ai/price", {
+      method: "POST",
+      body: input,
+    });
+  }
+
+  checkQuality(photo: File, crop: GradableCrop): Promise<QualityCheckResult> {
+    const form = new FormData();
+    form.append("crop", crop);
+    form.append("image", photo);
+    return this.client.request<QualityCheckResult>("/ai/quality", {
+      method: "POST",
+      body: form,
     });
   }
 }

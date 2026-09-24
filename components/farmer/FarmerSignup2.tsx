@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { LuLeaf, LuArrowLeft, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
 import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
+import { PAKISTAN_PROVINCES, provinceKey } from "@/lib/farmer/farm-location.ts";
 import { useLanguage } from "./LanguageContext";
 
 interface FarmerSignupProps {
@@ -28,11 +29,13 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
     confirmation: "",
     farmName: "",
     farmSize: "",
-    farmLocation: "",
+    farmAddress: "",
+    farmCity: "",
+    farmProvince: "",
   });
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
 
-  function updateField(event: React.ChangeEvent<HTMLInputElement>) {
+  function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
@@ -70,6 +73,10 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       setError("Farm name is required.");
       return;
     }
+    if (!formData.farmAddress.trim() || !formData.farmCity.trim() || !formData.farmProvince) {
+      setError(t("farmLocation.required"));
+      return;
+    }
 
     const landSizeAcres = formData.farmSize.trim()
       ? Number(formData.farmSize)
@@ -87,9 +94,11 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         cnic: formData.cnic.trim(),
         farmName: formData.farmName.trim(),
         ...(formData.phone.trim() ? { phone: formData.phone.trim() } : {}),
-        ...(formData.farmLocation.trim()
-          ? { farmLocation: { address: formData.farmLocation.trim() } }
-          : {}),
+        farmLocation: {
+          address: formData.farmAddress.trim(),
+          city: formData.farmCity.trim(),
+          province: formData.farmProvince,
+        },
         ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
         ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
       });
@@ -202,9 +211,24 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <label htmlFor="farmer-farm-size">Farm size (acres)</label>
                 <input id="farmer-farm-size" name="farmSize" className="auth-input" type="number" min="0" step="any" value={formData.farmSize} onChange={updateField} disabled={isSubmitting} />
               </div>
+              {/* Pickup location: all three parts are required so transporters
+                  can collect this farm's orders. */}
               <div className="auth-form-group">
-                <label htmlFor="farmer-location">Farm location</label>
-                <input id="farmer-location" name="farmLocation" className="auth-input" value={formData.farmLocation} onChange={updateField} disabled={isSubmitting} />
+                <label htmlFor="farmer-address">{t("farmLocation.address")}</label>
+                <input id="farmer-address" name="farmAddress" className="auth-input" required value={formData.farmAddress} onChange={updateField} disabled={isSubmitting} placeholder={t("farmLocation.addressPlaceholder")} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-city">{t("farmLocation.city")}</label>
+                <input id="farmer-city" name="farmCity" className="auth-input" required value={formData.farmCity} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-province">{t("farmLocation.province")}</label>
+                <select id="farmer-province" name="farmProvince" className="auth-input" required value={formData.farmProvince} onChange={updateField} disabled={isSubmitting}>
+                  <option value="">{t("farmLocation.provincePlaceholder")}</option>
+                  {PAKISTAN_PROVINCES.map((province) => (
+                    <option key={province} value={province}>{t(provinceKey(province))}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>

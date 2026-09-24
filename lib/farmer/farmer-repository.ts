@@ -1,4 +1,5 @@
 import type { ApiRequestOptions } from "../api/client.ts";
+import type { FarmLocation, FarmLocationStatus } from "./farm-location.ts";
 import type {
   AiStatus,
   ApiOrder,
@@ -53,6 +54,17 @@ export class FarmerRepository {
       `/products/${encodeURIComponent(id)}`,
       { method: "PATCH", body: { status } },
     );
+  }
+
+  getFarmLocation(): Promise<FarmLocationStatus> {
+    return this.client.request<FarmLocationStatus>("/farmers/me/farm-location");
+  }
+
+  updateFarmLocation(location: FarmLocation): Promise<FarmLocationStatus> {
+    return this.client.request<FarmLocationStatus>("/farmers/me/farm-location", {
+      method: "PATCH",
+      body: location,
+    });
   }
 
   aiStatus(): Promise<AiStatus> {

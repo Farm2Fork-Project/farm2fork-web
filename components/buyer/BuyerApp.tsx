@@ -333,6 +333,9 @@ function Marketplace({
             <div className="pd-image"><LuLeaf className="leaf" size={100} /></div>
             <div className="pd-info">
               <h1>{selectedProduct.name}</h1>
+              {selectedProduct.farmer ? (
+                <p className="pd-farm">{farmLabel(selectedProduct.farmer)}</p>
+              ) : null}
               <p className="pd-price">{selectedProduct.price.toLocaleString()} PKR / {selectedProduct.unit}</p>
               <div className="pd-tags">
                 <span className="pd-tag">Grade {selectedProduct.qualityGrade ?? "not specified"}</span>
@@ -391,6 +394,9 @@ function Marketplace({
               </button>
               <div className="mp-card-body">
                 <div className="mp-card-name">{product.name}</div>
+                {product.farmer ? (
+                  <div className="mp-card-farm">{farmLabel(product.farmer)}</div>
+                ) : null}
                 <div className="mp-card-footer">
                   <div className="mp-card-price">{product.price.toLocaleString()} PKR / {product.unit}</div>
                   <button
@@ -568,4 +574,10 @@ function ShipmentTracking({ shipment }: { shipment: ApiShipment | undefined }) {
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : "Something went wrong. Please try again.";
+}
+
+/** "Green Valley Farm · Multan, Punjab" - public farm identity only. */
+function farmLabel(farmer: { farmName: string; city?: string; province?: string }): string {
+  const place = [farmer.city, farmer.province].filter(Boolean).join(", ");
+  return place ? `${farmer.farmName} · ${place}` : farmer.farmName;
 }

@@ -61,11 +61,15 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
 
   const { product, farmer, events, summary } = trace;
   const listedEvent = events.find((event) => event.type === "listed");
-  const origin: "verified" | "pending" | "missing" = summary.originVerified
-    ? "verified"
-    : listedEvent
-      ? "pending"
-      : "missing";
+  const originOnChain = listedEvent?.ledger.onChain;
+  const origin: "verified" | "pending" | "missing" | "unverified" =
+    summary.originVerified
+      ? "verified"
+      : originOnChain === "mismatch" || originOnChain === "not_found"
+        ? "unverified"
+        : listedEvent
+          ? "pending"
+          : "missing";
   const farmPlace = [farmer?.city, farmer?.province].filter(Boolean).join(", ");
 
   return (
@@ -76,6 +80,8 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
             <span className="trace-origin-icon" aria-hidden="true">
               {origin === "verified" ? (
                 <LuShieldCheck size={22} />
+              ) : origin === "unverified" ? (
+                <LuTriangleAlert size={22} />
               ) : origin === "pending" ? (
                 <LuHourglass size={22} />
               ) : (
@@ -151,6 +157,10 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
             </span>
           ) : null}
         </div>
+
+        {summary.ledgerCheck === "unavailable" && summary.confirmedEvents > 0 ? (
+          <p className="trace-check-note">{t("trace.ledgerCheckUnavailable")}</p>
+        ) : null}
 
         {events.length === 0 ? (
           <p className="trace-empty">{t("trace.empty")}</p>
@@ -240,6 +250,16 @@ function LedgerProof({
         ) : null}
         {ledger.blockNumber !== undefined ? (
           <span>{fill(t("trace.ledger.block"), { block: ledger.blockNumber })}</span>
+        ) : null}
+        {ledger.onChain === "verified" ? (
+          <span className="trace-onchain trace-onchain--ok">
+            <LuShieldCheck size={12} aria-hidden="true" /> {t("trace.onChain.verified")}
+          </span>
+        ) : ledger.onChain ? (
+          <span className="trace-onchain trace-onchain--bad">
+            <LuTriangleAlert size={12} aria-hidden="true" />{" "}
+            {t(ledger.onChain === "mismatch" ? "trace.onChain.mismatch" : "trace.onChain.notFound")}
+          </span>
         ) : null}
       </div>
     );

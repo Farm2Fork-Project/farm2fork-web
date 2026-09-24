@@ -71,3 +71,43 @@ test("FarmerRepository reads the authenticated farmer's order page", async () =>
 
   expect(calls).toEqual(["/orders?limit=20"]);
 });
+
+test("FarmerRepository persists deletes and status changes through the API", async () => {
+  const calls: Array<{ path: string; options?: unknown }> = [];
+  const repository = new FarmerRepository({
+    client: {
+      request: async <T,>(path: string, options?: unknown) => {
+        calls.push({ path, options });
+        return {} as T;
+      },
+    },
+  });
+
+  await repository.deleteProduct("p/1");
+  await repository.updateProductStatus("p1", "inactive");
+
+  expect(calls).toEqual([
+    { path: "/products/p%2F1", options: { method: "DELETE" } },
+    { path: "/products/p1", options: { method: "PATCH", body: { status: "inactive" } } },
+  ]);
+});
+
+test("FarmerRepository uploads a quality photo as multipart form data", async () => {
+  const calls: Array<{ path: string; options?: { method?: string; body?: unknown } }> = [];
+  const repository = new FarmerRepository({
+    client: {
+      request: async <T,>(path: string, options?: { method?: string; body?: unknown }) => {
+        calls.push({ path, options });
+        return {} as T;
+      },
+    },
+  });
+  const photo = new File([new Uint8Array([1, 2, 3])], "mango.jpg", { type: "image/jpeg" });
+
+  await repository.checkQuality(photo, "mango");
+
+  expect(calls[0].path).toBe("/ai/quality");
+  const body = calls[0].options?.body as FormData;
+  expect(body.get("crop")).toBe("mango");
+  expect((body.get("image") as File).name).toBe("mango.jpg");
+});

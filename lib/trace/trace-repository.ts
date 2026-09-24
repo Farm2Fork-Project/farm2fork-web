@@ -22,6 +22,8 @@ export interface TraceLedger {
   blockNumber?: number;
   channelName?: string;
   confirmedAt?: string;
+  /** Present when the backend re-read this event from the Fabric peer. */
+  onChain?: "verified" | "mismatch" | "not_found";
 }
 
 export interface TraceEvent {
@@ -50,6 +52,8 @@ export interface ProductTrace {
     totalEvents: number;
     confirmedEvents: number;
     originVerified: boolean;
+    /** checked = confirmed events were re-read from Fabric just now. */
+    ledgerCheck?: "checked" | "unavailable";
   };
 }
 

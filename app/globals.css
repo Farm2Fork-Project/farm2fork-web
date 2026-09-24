@@ -5830,3 +5830,64 @@ ol.scan-timeline {
     flex-shrink: 0;
   }
 }
+
+/* Farmer: incomplete pickup location prompt */
+.farm-location-prompt {
+  margin-bottom: var(--sp-xxl);
+  padding: var(--sp-xl);
+  border-radius: var(--radius-lg);
+  background: var(--accent-yellow-soft);
+  border: 1px solid var(--accent-yellow);
+}
+
+.farm-location-head {
+  display: flex;
+  gap: var(--sp-md);
+  align-items: flex-start;
+  color: #92610a;
+  margin-bottom: var(--sp-lg);
+}
+
+.farm-location-head h2 {
+  margin: 0 0 4px;
+  font-size: calc(16px * var(--font-scale, 1));
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.farm-location-head p {
+  margin: 0;
+  font-size: calc(13.5px * var(--font-scale, 1));
+  color: var(--text-dark);
+  line-height: 1.5;
+}
+
+.farm-location-form {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: var(--sp-md);
+  align-items: end;
+}
+
+.farm-location-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: calc(12px * var(--font-scale, 1));
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.farm-location-form .auth-input {
+  margin-bottom: 0;
+}
+
+.farm-location-form .btn {
+  min-height: 44px;
+}
+
+@media (max-width: 768px) {
+  .farm-location-form {
+    grid-template-columns: 1fr;
+  }
+}

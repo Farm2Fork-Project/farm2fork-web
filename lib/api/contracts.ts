@@ -36,8 +36,11 @@ export interface RegisterFarmerRequest {
   cnic: string;
   farmName: string;
   phone?: string;
-  farmLocation?: {
-    address?: string;
+  /** Required: transporters can only pick up from a complete location. */
+  farmLocation: {
+    address: string;
+    city: string;
+    province: string;
   };
   cropTypes?: string[];
   landSizeAcres?: number;

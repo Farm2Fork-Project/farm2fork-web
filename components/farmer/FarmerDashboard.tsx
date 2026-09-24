@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
+import FarmLocationPrompt from "./FarmLocationPrompt";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
 import FarmerProfile from "../ProfileScreen";
@@ -439,6 +440,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
         {/* Main Page Content Wrapper matching buyer/transporter app-content */}
         <main className="app-content">
+          {activeTab === "listings" && <FarmLocationPrompt client={repository} />}
           {activeTab === "listings" && (
             <FarmerListings
               listings={listings}

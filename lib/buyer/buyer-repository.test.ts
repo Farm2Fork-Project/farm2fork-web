@@ -59,3 +59,17 @@ test("BuyerRepository settles a pending payment through the local simulator", as
     },
   ]);
 });
+
+test("buyer browsing requests only active farmer listings", async () => {
+  let requested = "";
+  const repository = new BuyerRepository({
+    client: {
+      request: async <T,>(path: string) => {
+        requested = path;
+        return { data: [] } as T;
+      },
+    },
+  });
+  await repository.listProducts({ search: "Mangoes" });
+  expect(requested).toBe("/products?search=Mangoes&status=active");
+});

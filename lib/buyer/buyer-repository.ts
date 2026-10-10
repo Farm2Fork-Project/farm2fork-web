@@ -58,7 +58,7 @@ export class BuyerRepository {
 
   async listProducts(query: ProductQuery = {}): Promise<ApiPage<BuyerProduct>> {
     const response = await this.client.request<ApiPage<ApiProduct>>(
-      withQuery("/products", query),
+      withQuery("/products", { ...query, status: "active" }),
     );
     return { ...response, data: response.data.map(toBuyerProduct) };
   }

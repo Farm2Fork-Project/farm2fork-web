@@ -1,7 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { LuCircleCheckBig } from "react-icons/lu";
+import { IcCart, IcCheckCircle } from "@/components/icons";
+import { paymentSimulatorEnabled, safepayCheckoutUrl } from "@/lib/buyer/payment-checkout.ts";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
@@ -30,6 +31,7 @@ type CheckoutRepository = Pick<
 type CheckoutResult = {
   farmerId: string;
   paymentStatus: string;
+  checkoutUrl?: string;
 };
 
 export function CheckoutPanel({
@@ -37,18 +39,20 @@ export function CheckoutPanel({
   repository,
   onConfirmedFarmers,
   onViewOrders,
+  simulatorEnabled = paymentSimulatorEnabled(),
 }: {
   groups: CartFarmerGroup[];
   repository: CheckoutRepository;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
+  simulatorEnabled?: boolean;
 }) {
   const [address, setAddress] = useState<ApiOrderAddress>({
     street: "",
     city: "",
     province: "",
   });
-  const [gateway, setGateway] = useState<PaymentGateway>("jazzcash");
+  const [gateway, setGateway] = useState<PaymentGateway>("safepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [results, setResults] = useState<CheckoutResult[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -56,12 +60,15 @@ export function CheckoutPanel({
   // Keyed by pin + farmer, so a moved pin shows "calculating" until its
   // own quote arrives; a missing entry means the request is in flight.
   const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
-  const pinKey = dropoff ? `${dropoff.lat},${dropoff.lng}` : "";
+  const pinKey = dropoff ? JSON.stringify({
+    pin: dropoff,
+    items: groups.map((group) => ({ farmerId: group.farmerId, items: group.items.map((item) => ({ productId: item.product.id, quantity: item.quantity })) })),
+  }) : "";
 
   useEffect(() => {
     if (!dropoff) return;
     let cancelled = false;
-    const key = `${dropoff.lat},${dropoff.lng}`;
+    const key = pinKey;
     for (const group of groups) {
       repository
         .quoteOrder(
@@ -85,7 +92,7 @@ export function CheckoutPanel({
     return () => {
       cancelled = true;
     };
-  }, [dropoff, groups, repository]);
+  }, [dropoff, groups, repository, pinKey]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,6 +104,11 @@ export function CheckoutPanel({
 
     setIsSubmitting(true);
     setError(null);
+    if (!groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")) {
+      setError("Wait for a delivery quote for every farmer before placing orders.");
+      setIsSubmitting(false);
+      return;
+    }
     const confirmedFarmers: string[] = [];
     const nextResults: CheckoutResult[] = [];
 
@@ -105,12 +117,17 @@ export function CheckoutPanel({
         const order = await repository.createOrder(
           toCreateOrderRequest(group, { ...address, lat: dropoff.lat, lng: dropoff.lng }),
         );
-        const payment = await repository.initiatePayment(order.id, gateway);
+        // An order already exists even if its gateway handoff fails. Recover it
+        // from Orders instead of creating another order from the same cart group.
         confirmedFarmers.push(group.farmerId);
-        nextResults.push({
+        const result: CheckoutResult = {
           farmerId: group.farmerId,
-          paymentStatus: payment.status,
-        });
+          paymentStatus: "not initiated",
+        };
+        nextResults.push(result);
+        const response = await repository.initiatePayment(order.id, gateway);
+        result.paymentStatus = response.payment.status;
+        result.checkoutUrl = safepayCheckoutUrl(response);
       } catch (checkoutError) {
         const message =
           checkoutError instanceof Error
@@ -131,29 +148,71 @@ export function CheckoutPanel({
   if (results.length > 0) {
     return (
       <div className="checkout-panel">
-        <div className="card" style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "var(--sp-md)" }}>
-          <LuCircleCheckBig size={40} color="var(--success)" />
+        <div
+          className="card"
+          style={{
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "var(--sp-md)",
+          }}
+        >
+          <IcCheckCircle size={40} color="var(--success)" />
           <h3 style={{ margin: 0 }}>
-            {results.length === 1 ? "Order placed" : `${results.length} orders placed`}
+            {results.length === 1
+              ? "Order placed"
+              : `${results.length} orders placed`}
           </h3>
           <p style={{ margin: 0, color: "var(--text-muted)" }}>
-            Each farmer group is now its own order with a pending payment.
+            Your orders are saved. Open each pending checkout to pay. Status is
+            confirmed by the payment provider.
           </p>
-          <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "var(--sp-sm)" }}>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--sp-sm)",
+            }}
+          >
             {results.map((result, index) => (
-              <div className="flex-between" key={result.farmerId}>
-                <span>Farmer group {index + 1}</span>
-                <span className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}>
-                  {result.paymentStatus}
-                </span>
+              <div key={result.farmerId}>
+                <div className="flex-between">
+                  <span>Farmer group {index + 1}</span>
+                  <span
+                    className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}
+                  >
+                    {result.paymentStatus}
+                  </span>
+                </div>
+                {result.checkoutUrl ? (
+                  <a className="btn btn-primary" href={result.checkoutUrl}>
+                    Pay farmer group {index + 1} with Safepay
+                  </a>
+                ) : null}
               </div>
             ))}
           </div>
           {error ? <p role="alert">{error}</p> : null}
-          <button className="btn btn-primary" onClick={onViewOrders} type="button">
+          <button
+            className="btn btn-primary"
+            onClick={onViewOrders}
+            type="button"
+          >
             View orders
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (groups.length === 0) {
+    return (
+      <div className="cart-empty">
+        <IcCart size={72} />
+        <h2>Your cart is empty</h2>
+        <p>Add active marketplace products to create separate farmer orders.</p>
       </div>
     );
   }
@@ -163,6 +222,7 @@ export function CheckoutPanel({
       <h3>Checkout</h3>
       <p>Each farmer group becomes its own order and pending payment.</p>
 
+      <fieldset disabled={isSubmitting} style={{ border: 0, margin: 0, padding: 0 }}>
       <div className="checkout-address-grid">
         <label>
           Street
@@ -217,6 +277,8 @@ export function CheckoutPanel({
         <MapPinPicker value={dropoff} onChange={setDropoff} purpose="dropoff" disabled={isSubmitting} />
       </div>
 
+      </fieldset>
+
       <div className="checkout-quotes" aria-live="polite">
         {groups.map((group, index) => {
           const state = quotes[`${pinKey}|${group.farmerId}`];
@@ -249,15 +311,21 @@ export function CheckoutPanel({
       <label>
         Payment gateway
         <select
+          disabled={isSubmitting}
           value={gateway}
           onChange={(event) => setGateway(event.target.value as PaymentGateway)}
         >
-          <option value="jazzcash">JazzCash</option>
-          <option value="stripe">Stripe</option>
+          <option value="safepay">Safepay</option>
+          {simulatorEnabled ? (
+            <>
+              <option value="jazzcash">JazzCash (local simulation)</option>
+              <option value="stripe">Stripe (local simulation)</option>
+            </>
+          ) : null}
         </select>
       </label>
 
-      <button className="cart-shop-btn" disabled={isSubmitting} type="submit">
+      <button className="cart-shop-btn" disabled={isSubmitting || !dropoff || !groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")} type="submit">
         {isSubmitting ? "Placing orders…" : "Place orders"}
       </button>
 

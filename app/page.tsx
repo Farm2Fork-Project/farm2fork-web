@@ -29,6 +29,7 @@ import {
   type WebSession,
   webSession,
 } from "@/lib/auth/web-session.ts";
+import { wrongRoleMessage } from "@/lib/auth/wrong-role.ts";
 
 function HomeContent() {
   const router = useRouter();
@@ -94,7 +95,7 @@ function HomeContent() {
       return;
     }
     if (result.user.role !== "buyer") {
-      throw new ApiError(403, "This account cannot access the buyer application.");
+      throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
     }
     setSession({ user: result.user as BuyerSession["user"] });
     setAuthScreen("landing");
@@ -180,7 +181,7 @@ function HomeContent() {
         return;
       }
       if (result.user.role !== "buyer") {
-        throw new ApiError(403, "This account cannot access the buyer application.");
+        throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
       }
       setSession({ user: result.user as BuyerSession["user"] });
       setAuthScreen("landing");
@@ -196,7 +197,7 @@ function HomeContent() {
       const { email: _email, password: _password, ...onboarding } = input;
       const user = await authRepository.onboardBuyer(onboarding);
       if (user.role !== "buyer") {
-        throw new ApiError(403, "This account cannot access the buyer application.");
+        throw new ApiError(403, wrongRoleMessage("buyer", user.role));
       }
       setSession({ user: user as BuyerSession["user"] });
       setGoogleIdentityEmail("");
@@ -246,7 +247,7 @@ function HomeContent() {
     try {
       const result = await authRepository.refreshEmailVerification();
       if (result.kind === "session") {
-        if (result.user.role !== "buyer") throw new ApiError(403, "This account cannot access the buyer application.");
+        if (result.user.role !== "buyer") throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
         setSession({ user: result.user as BuyerSession["user"] });
         setAuthScreen("landing");
         return;
@@ -257,7 +258,7 @@ function HomeContent() {
           return;
         }
         const user = await authRepository.onboardBuyer(pendingOnboarding);
-        if (user.role !== "buyer") throw new ApiError(403, "This account cannot access the buyer application.");
+        if (user.role !== "buyer") throw new ApiError(403, wrongRoleMessage("buyer", user.role));
         setSession({ user: user as BuyerSession["user"] });
         setAuthScreen("landing");
         return;
@@ -272,7 +273,9 @@ function HomeContent() {
   if (isCheckingSession) return <p>Loading…</p>;
 
   if (session) {
-    return <BuyerApp onLogout={logout} repository={repository} session={session} />;
+    const paymentReturn = searchParams.get("payment_return");
+    return <BuyerApp onLogout={logout} repository={repository} session={session}
+      paymentReturn={paymentReturn === "complete" || paymentReturn === "cancel" ? paymentReturn : undefined} />;
   }
 
   return (

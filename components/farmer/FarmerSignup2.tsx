@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { LuLeaf, LuArrowLeft, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
+import { IcLeaf as LuLeaf, IcArrowLeft as LuArrowLeft, IcEye as LuEye, IcEyeOff as LuEyeOff, IcCheck as LuCheck } from "@/components/icons";
 import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
 import { PAKISTAN_PROVINCES, provinceKey } from "@/lib/farmer/farm-location.ts";
 import { useLanguage } from "./LanguageContext";

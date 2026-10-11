@@ -1,21 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  LuArrowRight,
-  LuBadgeCheck,
-  LuGlobe,
-  LuLeaf,
-  LuMapPin,
-  LuScanLine,
-  LuShoppingBasket,
-  LuSprout,
-  LuTruck,
-  LuUsers,
-} from "react-icons/lu";
 import { LandingScreenProps } from "./types";
 import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
 
 const scrollTo = (id: string) => {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
@@ -30,7 +19,7 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
     <div className="market-landing" dir={isRtl ? "rtl" : "ltr"}>
       <header className="market-header">
         <button className="market-brand" onClick={() => scrollTo("home")} aria-label="Farm2Fork home">
-          <span className="market-brand-mark"><LuLeaf size={22} /></span>
+          <span className="market-brand-mark"><IcLeaf size={22} /></span>
           <span>{t("app.title")}</span>
         </button>
 
@@ -52,7 +41,7 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
             onClick={() => setLanguage(language === "en" ? "ur" : "en")}
             aria-label="Change language"
           >
-            <LuGlobe size={17} /> {language === "en" ? "اردو" : "English"}
+            <IcGlobe size={17} /> {language === "en" ? "اردو" : "English"}
           </button>
           <button className="market-signin" onClick={onLogin}>
             {t("landing.nav.signIn")}
@@ -75,9 +64,9 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
             <div className="market-hero-actions">
               <button className="market-primary" onClick={onGetStarted}>
                 {t("landing.getStarted")}{" "}
-                <LuArrowRight 
-                  size={18} 
-                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+                <IcArrowRight
+                  size={18}
+                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
                 />
               </button>
               <button className="market-text-link" onClick={() => scrollTo("how-it-works")}>
@@ -85,14 +74,14 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
               </button>
             </div>
             <div className="market-audience-strip" aria-label="Farm2Fork users">
-              <span><LuSprout /> {t("landing.hero.farmers")}</span>
-              <span><LuShoppingBasket /> {t("landing.hero.buyers")}</span>
-              <span><LuTruck /> {t("landing.hero.transporters")}</span>
+              <span><IcSprout /> {t("landing.hero.farmers")}</span>
+              <span><IcCrate /> {t("landing.hero.buyers")}</span>
+              <span><IcTruck /> {t("landing.hero.transporters")}</span>
             </div>
           </div>
           <div className="market-hero-image" role="img" aria-label="Pakistani farmer with fresh produce at a local market">
             <div className="market-photo-caption">
-              <LuMapPin size={17} /> {t("landing.hero.badge")}
+              <IcMapPin size={17} /> {t("landing.hero.badge")}
             </div>
           </div>
         </section>
@@ -108,17 +97,17 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           </div>
           <div className="market-process-row">
             <article>
-              <span>01</span><LuSprout size={28} />
+              <IcSprout size={28} />
               <h3>{t("landing.process.step1.title")}</h3>
               <p>{t("landing.process.step1.desc")}</p>
             </article>
             <article>
-              <span>02</span><LuUsers size={28} />
+              <IcUsers size={28} />
               <h3>{t("landing.process.step2.title")}</h3>
               <p>{t("landing.process.step2.desc")}</p>
             </article>
             <article>
-              <span>03</span><LuTruck size={28} />
+              <IcTruck size={28} />
               <h3>{t("landing.process.step3.title")}</h3>
               <p>{t("landing.process.step3.desc")}</p>
             </article>
@@ -127,43 +116,43 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
 
         <section id="traceability" className="market-trace market-section">
           <div className="market-trace-copy">
-            <LuScanLine className="market-large-icon" size={36} />
+            <IcScan className="market-large-icon" size={36} />
             <h2>
               {t("landing.trace.title1")} <em>{t("landing.trace.title2")}</em>
             </h2>
             <p>{t("landing.trace.desc")}</p>
             <Link className="market-text-link" href="/trace">
               {t("landing.trace.btn")}{" "}
-              <LuArrowRight 
-                size={17} 
-                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+              <IcArrowRight
+                size={17}
+                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
               />
             </Link>
           </div>
           <ol className="market-route" aria-label="Produce journey">
             <li>
-              <span><LuSprout /></span>
+              <span><IcSprout /></span>
               <div>
                 <strong>{t("landing.trace.step1")}</strong>
                 <small>{t("landing.trace.step1.sub")}</small>
               </div>
             </li>
             <li>
-              <span><LuShoppingBasket /></span>
+              <span><IcCrate /></span>
               <div>
                 <strong>{t("landing.trace.step2")}</strong>
                 <small>{t("landing.trace.step2.sub")}</small>
               </div>
             </li>
             <li>
-              <span><LuTruck /></span>
+              <span><IcTruck /></span>
               <div>
                 <strong>{t("landing.trace.step3")}</strong>
                 <small>{t("landing.trace.step3.sub")}</small>
               </div>
             </li>
             <li>
-              <span><LuBadgeCheck /></span>
+              <span><IcBadgeCheck /></span>
               <div>
                 <strong>{t("landing.trace.step4")}</strong>
                 <small>{t("landing.trace.step4.sub")}</small>
@@ -181,17 +170,17 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           </div>
           <div className="market-people-list">
             <article>
-              <LuSprout />
+              <IcSprout />
               <h3>{t("landing.people.farmers.title")}</h3>
               <p>{t("landing.people.farmers.desc")}</p>
             </article>
             <article>
-              <LuShoppingBasket />
+              <IcCrate />
               <h3>{t("landing.people.buyers.title")}</h3>
               <p>{t("landing.people.buyers.desc")}</p>
             </article>
             <article>
-              <LuTruck />
+              <IcTruck />
               <h3>{t("landing.people.transporters.title")}</h3>
               <p>{t("landing.people.transporters.desc")}</p>
             </article>
@@ -205,9 +194,9 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           </div>
           <button className="market-primary market-primary-light" onClick={onGetStarted}>
             {t("landing.cta.btn")}{" "}
-            <LuArrowRight 
-              size={18} 
-              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+            <IcArrowRight
+              size={18}
+              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
             />
           </button>
         </section>
@@ -215,7 +204,7 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
 
       <footer className="market-footer">
         <div className="market-brand">
-          <span className="market-brand-mark"><LuLeaf size={20} /></span>
+          <span className="market-brand-mark"><IcLeaf size={20} /></span>
           <span>{t("app.title")}</span>
         </div>
         <p>{t("landing.footer.desc")}</p>

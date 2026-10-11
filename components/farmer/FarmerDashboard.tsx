@@ -1,30 +1,15 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Tractor,
-  ShoppingBag,
-  PlusCircle,
-  Rss,
-  User,
-  Search,
-  Bell,
-  CheckCircle,
-  X,
-  Menu,
-  FileText,
-  QrCode,
-} from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
-import FarmLocationPrompt from "./FarmLocationPrompt";
+import { FarmPickupLocation } from "./FarmPickupLocation";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
 import NotificationBell from "@/components/NotificationBell";
 import FarmerProfile from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
-import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
   ApiFarmerSummary,
@@ -33,6 +18,7 @@ import type {
   CreateFarmerProductRequest,
 } from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
+import { IcBag as ShoppingBag, IcBell as Bell, IcCheckCircle as CheckCircle, IcClose as X, IcFeed as Rss, IcLeaf, IcMenu as Menu, IcPlusCircle as PlusCircle, IcQr as QrCode, IcTractor as Tractor, IcUser, IcUser as User } from "@/components/icons";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
@@ -51,6 +37,8 @@ export default function FarmerDashboard({
   const [listings, setListings] = useState<Listing[]>([]);
   const [farm, setFarm] = useState<ApiFarmerSummary | null>(null);
   const [listingError, setListingError] = useState("");
+  const [orders, setOrders] = useState<ApiOrder[] | null>(null);
+  const [ordersError, setOrdersError] = useState("");
   const repository = useMemo(
     () => new FarmerRepository({ client: new ApiClient() }),
     [],
@@ -100,8 +88,6 @@ export default function FarmerDashboard({
     };
   }, [activeTab, repository]);
 
-  const [orders, setOrders] = useState<ApiOrder[] | null>(null);
-  const [ordersError, setOrdersError] = useState("");
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -184,7 +170,7 @@ export default function FarmerDashboard({
               <Menu size={22} />
             </button>
             <div className="topbar-logo">
-              <LuLeaf size={24} className="logo-icon" />
+              <IcLeaf size={24} className="logo-icon" />
               <h2>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</h2>
             </div>
           </div>
@@ -236,8 +222,8 @@ export default function FarmerDashboard({
             <NotificationBell />
 
             {/* User Profile Card */}
-            <div 
-              className="topbar-user" 
+            <div
+              className="topbar-user"
               onClick={() => setActiveTab("profile")}
               style={{ cursor: "pointer" }}
             >
@@ -366,8 +352,8 @@ export default function FarmerDashboard({
 
         {/* Main Page Content Wrapper matching buyer/transporter app-content */}
         <main className="app-content">
-          {activeTab === "listings" && <FarmLocationPrompt client={repository} />}
-          {activeTab === "listings" && (
+          {activeTab === "listings" && <FarmPickupLocation repository={repository} />}
+          {activeTab === "listings" && (<>
             <FarmerListings
               listings={listings}
               farm={farm}
@@ -375,7 +361,7 @@ export default function FarmerDashboard({
               onToggleStatus={handleToggleListingStatus}
               onAddClick={() => setActiveTab("create")}
             />
-          )}
+          </>)}
 
           {activeTab === "create" && (
             <CreateListingForm
@@ -396,7 +382,7 @@ export default function FarmerDashboard({
           {activeTab === "profile" && (
             <FarmerProfile
               email={email}
-              avatarIcon={<LuUser size={28} />}
+              avatarIcon={<IcUser size={28} />}
               signedInAs={t("settings.sidebar.signedInFarmer")}
               onLogout={() => {
                 if (onLogout) onLogout();

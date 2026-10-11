@@ -1,22 +1,10 @@
 'use client'
 
+import { IcClose as X, IcLeaf as Leaf, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
+import { BookOpen, HelpCircle, LayoutDashboard, LogOut, Settings, SlidersHorizontal, Store, TrendingUp } from "lucide-react";
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import {
-  LayoutDashboard,
-  Store,
-  Wheat,
-  BookOpen,
-  TrendingUp,
-  Settings,
-  SlidersHorizontal,
-  HelpCircle,
-  Leaf,
-  LogOut,
-  MessageSquare,
-  X
-} from 'lucide-react'
 import GenerateReportModal from './GenerateReportModal'
 
 const navItems = [
@@ -101,9 +89,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <div
             onClick={() => setShowLogout(true)}
             className="sidebar-link hover:-translate-y-[1px] hover:brightness-110 transition-all duration-200"
-            style={{ 
-              cursor: 'pointer', 
-              marginTop: '12px', 
+            style={{
+              cursor: 'pointer',
+              marginTop: '12px',
               color: '#ffffff',
               backgroundColor: '#ef4444',
               border: 'none',

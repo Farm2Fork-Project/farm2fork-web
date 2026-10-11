@@ -1,13 +1,8 @@
 'use client'
 
+import { IcCheckCircle as CheckCircle, IcUser as User } from "@/components/icons";
+import { Save, Settings, Shield } from "lucide-react";
 import React, { useState, useEffect } from 'react'
-import {
-  Save,
-  CheckCircle,
-  User,
-  Shield,
-  Settings
-} from 'lucide-react'
 import { SettingsScreenProps, UserProfile } from '../types'
 import Topbar from './Topbar'
 
@@ -31,6 +26,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
     const stored = localStorage.getItem('farm2fork_user_profile')
     if (stored) {
       try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- Restore browser-only saved form preferences after hydration.
         setProfile(JSON.parse(stored))
       } catch (e) {
         console.error(e)
@@ -47,9 +43,9 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
 
   return (
     <div className="app-shell" style={{ flexDirection: 'column' }}>
-      
+
       {/* Top Bar Navigation with horizontal layout links */}
-      <Topbar 
+      <Topbar
         currentView="settings"
         onNavigateToQueue={onBackToQueue}
         onNavigateToSettings={() => {}}
@@ -62,7 +58,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
       {/* Dashboard Panels */}
       <div className="app-main">
         <main className="app-content">
-        
+
         <div className="page-header">
           <div className="page-header-row">
             <div>
@@ -77,9 +73,9 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
           <button
             onClick={() => setActiveTab('profile')}
             className="btn"
-            style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              justifyContent: 'center',
               borderRadius: 'var(--radius-pill)',
               backgroundColor: activeTab === 'profile' ? 'var(--primary-green-soft)' : 'transparent',
               color: activeTab === 'profile' ? 'var(--primary-green)' : 'var(--text-muted)',
@@ -94,9 +90,9 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
           <button
             onClick={() => setActiveTab('preferences')}
             className="btn"
-            style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              justifyContent: 'center',
               borderRadius: 'var(--radius-pill)',
               backgroundColor: activeTab === 'preferences' ? 'var(--primary-green-soft)' : 'transparent',
               color: activeTab === 'preferences' ? 'var(--primary-green)' : 'var(--text-muted)',
@@ -111,9 +107,9 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
           <button
             onClick={() => setActiveTab('notifications')}
             className="btn"
-            style={{ 
-              flex: 1, 
-              justifyContent: 'center', 
+            style={{
+              flex: 1,
+              justifyContent: 'center',
               borderRadius: 'var(--radius-pill)',
               backgroundColor: activeTab === 'notifications' ? 'var(--primary-green-soft)' : 'transparent',
               color: activeTab === 'notifications' ? 'var(--primary-green)' : 'var(--text-muted)',
@@ -129,7 +125,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
         {/* Tab Content Form */}
         <div className="card">
           <form onSubmit={handleSave} className="flex flex-col gap-xl">
-            
+
             {activeTab === 'profile' && (
               <div className="flex flex-col gap-xl">
                 <div className="flex items-center gap-sm pb-md" style={{ borderBottom: '1px solid var(--surface-medium)' }}>

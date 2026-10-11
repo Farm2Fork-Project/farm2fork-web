@@ -20,6 +20,7 @@ import {
 import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
+import { wrongRoleMessage } from "@/lib/auth/wrong-role.ts";
 
 function FarmerApp() {
   const router = useRouter();
@@ -62,7 +63,7 @@ function FarmerApp() {
       return;
     }
     if (result.user.role !== "farmer") {
-      throw new ApiError(403, "This account cannot access the farmer application.");
+      throw new ApiError(403, wrongRoleMessage("farmer", result.user.role));
     }
     setSession({ user: result.user as WebSession["user"] & { role: "farmer" } });
   }, [beginRoleSelection]);
@@ -142,7 +143,7 @@ function FarmerApp() {
         return;
       }
       if (result.user.role !== "farmer") {
-        throw new ApiError(403, "This account cannot access the farmer application.");
+        throw new ApiError(403, wrongRoleMessage("farmer", result.user.role));
       }
       setSession({ user: result.user });
     } catch (error) {
@@ -159,7 +160,7 @@ function FarmerApp() {
       if (googleIdentityEmail) {
         const { email: _email, password: _password, ...onboarding } = input;
         const user = await authRepository.onboardFarmer(onboarding);
-        if (user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+        if (user.role !== "farmer") throw new ApiError(403, wrongRoleMessage("farmer", user.role));
         setSession({ user });
         setGoogleIdentityEmail("");
         firebaseOnboardingIntent.clear();
@@ -215,7 +216,7 @@ function FarmerApp() {
     try {
       const result = await authRepository.refreshEmailVerification();
       if (result.kind === "session") {
-        if (result.user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+        if (result.user.role !== "farmer") throw new ApiError(403, wrongRoleMessage("farmer", result.user.role));
         setSession({ user: result.user });
         router.replace("/farmer");
         return;
@@ -226,7 +227,7 @@ function FarmerApp() {
           return;
         }
         const user = await authRepository.onboardFarmer(pendingOnboarding);
-        if (user.role !== "farmer") throw new ApiError(403, "This account cannot access the farmer application.");
+        if (user.role !== "farmer") throw new ApiError(403, wrongRoleMessage("farmer", user.role));
         setSession({ user });
         router.replace("/farmer");
         return;

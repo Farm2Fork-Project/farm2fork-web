@@ -1,4 +1,5 @@
-import { Filter, PackageCheck, Search, Truck } from 'lucide-react'
+import { IcSearch as Search } from "@/components/icons";
+import { Filter, PackageCheck, Truck } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const orders = [

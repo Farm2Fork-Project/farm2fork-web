@@ -1,7 +1,8 @@
 'use client'
 
+import { IcClose as X } from "@/components/icons";
+import { LogOut } from "lucide-react";
 import React from 'react'
-import { LogOut, X } from 'lucide-react'
 import { LogoutModalProps } from '../types'
 
 

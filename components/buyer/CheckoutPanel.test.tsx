@@ -103,8 +103,8 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
     .mockResolvedValueOnce({ id: "order-2" });
   const initiatePayment = vi
     .fn()
-    .mockResolvedValueOnce({ id: "payment-1", status: "pending" })
-    .mockResolvedValueOnce({ id: "payment-2", status: "pending" });
+    .mockResolvedValueOnce({ payment: { id: "payment-1", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=one" })
+    .mockResolvedValueOnce({ payment: { id: "payment-2", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=two" });
   const { onConfirmedFarmers, onViewOrders, user } = renderPanel({
     createOrder,
     initiatePayment,
@@ -135,8 +135,8 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
     items: [{ productId: "product-2", quantity: 1 }],
     shippingAddress,
   });
-  expect(initiatePayment).toHaveBeenNthCalledWith(1, "order-1", "jazzcash");
-  expect(initiatePayment).toHaveBeenNthCalledWith(2, "order-2", "jazzcash");
+  expect(initiatePayment).toHaveBeenNthCalledWith(1, "order-1", "safepay");
+  expect(initiatePayment).toHaveBeenNthCalledWith(2, "order-2", "safepay");
   expect(onConfirmedFarmers).toHaveBeenCalledWith(["farmer-1", "farmer-2"]);
   expect(screen.getByText("2 orders placed")).toBeVisible();
   expect(screen.getAllByText("pending")).toHaveLength(2);
@@ -154,7 +154,7 @@ test("CheckoutPanel refuses to order without a drop-off pin", async () => {
   });
   await fillAddress(user);
   await user.click(screen.getByRole("button", { name: "Place orders" }));
-  expect(screen.getByRole("alert")).toHaveTextContent("Pin the drop-off location");
+  expect(screen.getByRole("button", { name: "Place orders" })).toBeDisabled();
   expect(createOrder).not.toHaveBeenCalled();
 });
 

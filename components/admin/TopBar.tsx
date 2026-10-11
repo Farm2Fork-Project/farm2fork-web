@@ -1,7 +1,8 @@
 'use client'
 
+import { IcBell as Bell, IcFile as FileText, IcMenu as Menu, IcSearch as Search } from "@/components/icons";
+import { Activity, AlertTriangle, HelpCircle, LifeBuoy, Mail, UserPlus } from "lucide-react";
 import React, { useEffect, useState, useRef } from 'react'
-import { Menu, Search, Bell, HelpCircle, UserPlus, AlertTriangle, Activity, FileText, LifeBuoy, Mail } from 'lucide-react'
 import Image from 'next/image'
 import SupportTicketModal from './SupportTicketModal'
 import AdminDocsModal from './AdminDocsModal'
@@ -54,15 +55,15 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
 
       <div className="topbar-actions">
         <div style={{ position: 'relative' }} ref={notifRef}>
-          <button 
-            className="topbar-icon-btn" 
+          <button
+            className="topbar-icon-btn"
             aria-label="Notifications"
             onClick={() => { setShowNotif(!showNotif); setShowHelp(false); }}
           >
             <Bell size={20} />
             <span className="badge-dot" />
           </button>
-          
+
           {showNotif && (
             <div style={{
               position: "absolute",
@@ -83,7 +84,7 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
                 <span style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}>Mark all read</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
-                
+
                 <div style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", background: "rgba(59, 130, 246, 0.05)", cursor: "pointer" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "rgba(59, 130, 246, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", flexShrink: 0 }}>
                     <UserPlus size={20} />
@@ -130,14 +131,14 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
         </div>
 
         <div style={{ position: 'relative' }} ref={helpRef}>
-          <button 
-            className="topbar-icon-btn" 
+          <button
+            className="topbar-icon-btn"
             aria-label="Help"
             onClick={() => { setShowHelp(!showHelp); setShowNotif(false); }}
           >
             <HelpCircle size={20} />
           </button>
-          
+
           {showHelp && (
             <div style={{
               position: "absolute",
@@ -153,26 +154,26 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
               padding: "8px",
               color: "var(--text-main)"
             }}>
-              <div 
+              <div
                 onClick={() => { setShowDocsModal(true); setShowHelp(false); }}
-                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }} 
+                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }}
                 className="hover:bg-gray-50"
               >
                 <FileText size={18} color="var(--text-muted)" />
                 <span style={{ fontSize: "14px", fontWeight: 500 }}>Admin Documentation</span>
               </div>
-              <div 
+              <div
                 onClick={() => { setShowEngModal(true); setShowHelp(false); }}
-                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }} 
+                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }}
                 className="hover:bg-gray-50"
               >
                 <LifeBuoy size={18} color="var(--text-muted)" />
                 <span style={{ fontSize: "14px", fontWeight: 500 }}>Contact Engineering</span>
               </div>
               <div style={{ height: "1px", background: "var(--border-color)", margin: "4px 0" }}></div>
-              <div 
+              <div
                 onClick={() => { setShowSupportModal(true); setShowHelp(false); }}
-                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }} 
+                style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 12px", borderRadius: "8px", cursor: "pointer", transition: "background 0.2s" }}
                 className="hover:bg-gray-50"
               >
                 <Mail size={18} color="var(--text-muted)" />
@@ -192,7 +193,7 @@ export default function TopBar({ onToggleSidebar }: { onToggleSidebar: () => voi
           </div>
         </div>
       </div>
-      
+
       {showSupportModal && <SupportTicketModal onClose={() => setShowSupportModal(false)} />}
       {showDocsModal && <AdminDocsModal onClose={() => setShowDocsModal(false)} />}
       {showEngModal && <EngineeringContactModal onClose={() => setShowEngModal(false)} />}

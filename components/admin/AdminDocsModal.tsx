@@ -1,16 +1,15 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useHydrated } from '@/lib/react/use-hydrated';
+
+import { IcClose as X } from "@/components/icons";
+import { Book, Server, Shield, Users } from "lucide-react";
+import React from 'react'
 import { createPortal } from 'react-dom'
-import { X, Book, Server, Shield, Users } from 'lucide-react'
 
 export default function AdminDocsModal({ onClose }: { onClose: () => void }) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated();
 
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
 
   if (!mounted) return null
 
@@ -30,7 +29,7 @@ export default function AdminDocsModal({ onClose }: { onClose: () => void }) {
             <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>User Management</h3>
             <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Learn how to onboard farmers, verify KYC, and manage buyer access limits.</p>
           </div>
-          
+
           <div style={{ padding: 'var(--sp-lg)', border: '1px solid var(--surface-medium)', borderRadius: 'var(--radius-lg)', cursor: 'pointer' }} className="hover:bg-gray-50">
             <Shield size={24} color="var(--secondary-blue)" style={{ marginBottom: '8px' }} />
             <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>Moderation & Safety</h3>

@@ -12,6 +12,8 @@ import type {
   QualityCheckResult,
 } from "../api/contracts.ts";
 
+export type { FarmLocation as FarmLocationInput, FarmLocationStatus as FarmLocation } from "./farm-location.ts";
+
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
 };

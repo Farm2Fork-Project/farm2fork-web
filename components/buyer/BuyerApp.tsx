@@ -2,13 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  LuLeaf,
-  LuPlus,
-  LuScanLine,
-  LuShoppingCart,
-  LuLogOut,
-} from "react-icons/lu";
+import { useLanguage } from "../LanguageContext";
+import NotificationBell from "@/components/NotificationBell";
 import type {
   ApiOrder,
   ApiPage,
@@ -29,13 +24,14 @@ import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
 import ProfileScreen from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
-import { useLanguage } from "../LanguageContext";
-import NotificationBell from "@/components/NotificationBell";
+import { paymentSimulatorEnabled, safepayCheckoutUrl, type PaymentReturn } from "@/lib/buyer/payment-checkout.ts";
 import { CheckoutPanel } from "./CheckoutPanel";
+import { IcCart, IcCrate, IcLeaf, IcLogOut, IcPlus, IcScan, IcStore } from "@/components/icons";
 
 type BuyerRepositoryPort = Pick<
   BuyerRepository,
   | "createOrder"
+  | "quoteOrder"
   | "getCurrentBuyer"
   | "getProduct"
   | "initiatePayment"
@@ -53,14 +49,18 @@ export function BuyerApp({
   repository,
   session,
   onLogout,
+  paymentReturn,
+  simulatorEnabled = paymentSimulatorEnabled(),
 }: {
   repository: BuyerRepositoryPort;
   session: BuyerSession;
   onLogout: () => void;
+  paymentReturn?: PaymentReturn;
+  simulatorEnabled?: boolean;
 }) {
   const [buyer, setBuyer] = useState<BuyerSession["user"] | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<BuyerTab>("marketplace");
+  const [activeTab, setActiveTab] = useState<BuyerTab>(paymentReturn ? "orders" : "marketplace");
   const [query, setQuery] = useState<ProductQuery>({
     limit: 20,
     sortBy: "createdAt",
@@ -75,6 +75,9 @@ export function BuyerApp({
   const [payments, setPayments] = useState<ApiPayment[] | null>(null);
   const [shipments, setShipments] = useState<ApiShipment[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [checkoutLinks, setCheckoutLinks] = useState<Record<string, string>>({});
+  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  const [initiatingOrderId, setInitiatingOrderId] = useState<string | null>(null);
   const [settlingPaymentId, setSettlingPaymentId] = useState<string | null>(null);
 
   const refreshOrders = useCallback(async () => {
@@ -140,6 +143,30 @@ export function BuyerApp({
     if (!buyer || activeTab !== "orders") return;
     void refreshOrders();
   }, [activeTab, buyer, refreshOrders]);
+
+  useEffect(() => {
+    if (!buyer || activeTab !== "orders") return;
+    const onFocus = () => { void refreshOrders(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [activeTab, buyer, refreshOrders]);
+
+  async function continuePayment(orderId: string) {
+    if (initiatingOrderId) return;
+    setInitiatingOrderId(orderId);
+    setPaymentErrors((current) => ({ ...current, [orderId]: "" }));
+    setCheckoutLinks((current) => ({ ...current, [orderId]: "" }));
+    try {
+      const response = await repository.initiatePayment(orderId, "safepay");
+      const url = safepayCheckoutUrl(response);
+      if (url) setCheckoutLinks((current) => ({ ...current, [orderId]: url }));
+      await refreshOrders();
+    } catch (error) {
+      setPaymentErrors((current) => ({ ...current, [orderId]: toErrorMessage(error) }));
+    } finally {
+      setInitiatingOrderId(null);
+    }
+  }
 
   const groups = useMemo(() => groupCartItemsByFarmer(cart), [cart]);
 
@@ -209,7 +236,7 @@ export function BuyerApp({
               }}
               type="button"
             >
-              <LuLeaf size={22} className="logo-icon" />
+              <IcLeaf size={22} className="logo-icon" />
               <h2>Farm2Fork</h2>
             </button>
           </div>
@@ -239,7 +266,7 @@ export function BuyerApp({
               onClick={onLogout}
               type="button"
             >
-              <LuLogOut size={18} />
+              <IcLogOut size={18} />
             </button>
           </div>
         </header>
@@ -264,11 +291,20 @@ export function BuyerApp({
               onConfirmedFarmers={clearConfirmedGroups}
               onViewOrders={() => setActiveTab("orders")}
               repository={repository}
+              simulatorEnabled={simulatorEnabled}
             />
           ) : null}
           {activeTab === "orders" ? (
             <Orders
               error={ordersError}
+              onBrowse={() => setActiveTab("marketplace")}
+              onRefresh={() => { void refreshOrders(); }}
+              onContinuePayment={continuePayment}
+              paymentReturn={paymentReturn}
+              simulatorEnabled={simulatorEnabled}
+              checkoutLinks={checkoutLinks}
+              paymentErrors={paymentErrors}
+              initiatingOrderId={initiatingOrderId}
               onSimulatePayment={settlePayment}
               orders={orders}
               payments={payments}
@@ -333,7 +369,7 @@ function Marketplace({
         {detailError ? <p role="alert">{detailError}</p> : null}
         {selectedProduct ? (
           <div className="pd-layout">
-            <div className="pd-image"><LuLeaf className="leaf" size={100} /></div>
+            <div className="pd-image"><IcLeaf className="leaf" size={100} /></div>
             <div className="pd-info">
               <h1>{selectedProduct.name}</h1>
               {selectedProduct.farmer ? (
@@ -350,10 +386,10 @@ function Marketplace({
                 onClick={() => onAddToCart(selectedProduct)}
                 type="button"
               >
-                <LuShoppingCart size={20} /> Add to cart
+                <IcCart size={20} /> Add to cart
               </button>
               <Link className="pd-trace-link" href={`/trace/${selectedProduct.id}`}>
-                <LuScanLine size={18} aria-hidden="true" /> {t("product.viewJourney")}
+                <IcScan size={18} aria-hidden="true" /> {t("product.viewJourney")}
               </Link>
             </div>
           </div>
@@ -392,7 +428,7 @@ function Marketplace({
           {products.map((product) => (
             <article className="mp-card" key={product.id}>
               <button className="mp-card-img" onClick={() => onOpenProduct(product.id)} type="button">
-                <LuLeaf className="leaf" size={56} />
+                <IcLeaf className="leaf" size={56} />
                 <span className="mp-card-grade">Grade {product.qualityGrade ?? "N/A"}</span>
               </button>
               <div className="mp-card-body">
@@ -409,7 +445,7 @@ function Marketplace({
                     onClick={() => onAddToCart(product)}
                     type="button"
                   >
-                    <LuPlus size={18} />
+                    <IcPlus size={18} />
                   </button>
                 </div>
               </div>
@@ -426,78 +462,128 @@ function Cart({
   onConfirmedFarmers,
   onViewOrders,
   repository,
+  simulatorEnabled,
 }: {
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
   repository: Pick<BuyerRepository, "createOrder" | "initiatePayment" | "quoteOrder">;
+  simulatorEnabled: boolean;
 }) {
-  if (groups.length === 0) {
-    return (
-      <div className="cart-empty">
-        <LuShoppingCart size={72} />
-        <h2>Your cart is empty</h2>
-        <p>Add active marketplace products to create separate farmer orders.</p>
-      </div>
-    );
-  }
 
   return (
     <section>
-      {groups.map((group, index) => (
-        <article className="order-card" key={group.farmerId}>
-          <h2>Farmer group {index + 1}</h2>
-          {group.items.map((item) => (
-            <div className="order-item-row" key={item.productId}>
-              <span>{item.product.name} × {item.quantity}</span>
-              <span>{item.product.price * item.quantity} PKR</span>
-            </div>
+      <div className="page-header">
+        <h1>Your cart</h1>
+        <p>Each farmer&apos;s items become a separate order with its own payment.</p>
+      </div>
+      <div className="cart-layout">
+        <div className="cart-groups">
+          {groups.map((group, index) => (
+            <article className="order-card cart-group" key={group.farmerId}>
+              <h2>
+                <IcStore size={20} /> Farmer group {index + 1}
+              </h2>
+              {group.items.map((item) => (
+                <div className="order-item-row" key={item.productId}>
+                  <span>{item.product.name} × {item.quantity}</span>
+                  <span>{item.product.price * item.quantity} PKR</span>
+                </div>
+              ))}
+              <div className="order-item-row cart-group-subtotal">
+                <span>Items subtotal</span>
+                <span>{group.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0)} PKR</span>
+              </div>
+            </article>
           ))}
-        </article>
-      ))}
-      <CheckoutPanel
-        groups={groups}
-        onConfirmedFarmers={onConfirmedFarmers}
-        onViewOrders={onViewOrders}
-        repository={repository}
-      />
+        </div>
+        <CheckoutPanel
+          groups={groups}
+          onConfirmedFarmers={onConfirmedFarmers}
+          onViewOrders={onViewOrders}
+          repository={repository}
+          simulatorEnabled={simulatorEnabled}
+        />
+      </div>
     </section>
   );
 }
 
+type PaymentActions = {
+  onContinuePayment: (orderId: string) => void;
+  simulatorEnabled: boolean;
+  checkoutLinks: Record<string, string>;
+  paymentErrors: Record<string, string>;
+  initiatingOrderId: string | null;
+};
+
 function Orders({
   error,
+  onRefresh,
+  paymentReturn,
   onSimulatePayment,
+  onBrowse,
   orders,
   payments,
   settlingPaymentId,
   shipments,
-}: {
+  ...paymentActions
+}: PaymentActions & {
   error: string | null;
+  onBrowse?: () => void;
+  onRefresh: () => void;
+  paymentReturn?: PaymentReturn;
   onSimulatePayment: (paymentId: string) => void;
   orders: ApiOrder[] | null;
   payments: ApiPayment[] | null;
   settlingPaymentId: string | null;
   shipments: ApiShipment[] | null;
 }) {
-  if (error) return <p role="alert">{error}</p>;
-  if (!orders || !payments || !shipments) return <p>Loading orders and payments…</p>;
-  if (orders.length === 0) return <p>No orders yet.</p>;
+
+  const header = (
+    <div className="page-header-row orders-header">
+      <div className="page-header">
+        <h1>Orders</h1>
+        <p>Track payment and delivery for every order you have placed.</p>
+      </div>
+      <button className="btn btn-secondary" type="button" onClick={onRefresh}>Refresh payment status</button>
+    </div>
+  );
+
+  if (!orders || !payments || !shipments) return <section>{header}{error ? <p role="alert">{error}</p> : <p>Loading orders and payments…</p>}</section>;
+
 
   const shipmentsByOrder = new Map(shipments.map((shipment) => [shipment.orderId, shipment]));
 
   return (
-    <section className="orders-grid">
-      {orders.map((order) => (
-        <OrderCard
-          key={order.id}
-          onSimulatePayment={onSimulatePayment}
-          order={order}
-          payment={payments.find((candidate) => candidate.orderId === order.id)}
-          settlingPaymentId={settlingPaymentId}
-          shipment={shipmentsByOrder.get(order.id)}
-        />
-      ))}
+    <section>
+      {header}
+      {paymentReturn ? <p role="status" className="orders-notice">{paymentReturn === "cancel"
+        ? "Checkout was closed. Your saved orders remain available below."
+        : "You returned from checkout. Payment status below comes from the server; confirmation may take a moment."}</p> : null}
+      {error ? <p role="alert">{error}</p> : null}
+      {orders.length === 0 ? (
+        <div className="empty-state">
+          <IcCrate size={56} />
+          <h2>No orders yet</h2>
+          <p>Orders you place from the marketplace show up here with live payment and delivery status.</p>
+          {onBrowse ? <button className="btn btn-primary" type="button" onClick={onBrowse}>Browse the marketplace</button> : null}
+        </div>
+      ) : (
+        <div className="orders-grid">
+          {orders.map((order) => (
+            <OrderCard
+              key={order.id}
+              {...paymentActions}
+              onSimulatePayment={onSimulatePayment}
+              order={order}
+              payment={payments.find((candidate) => candidate.orderId === order.id)}
+              settlingPaymentId={settlingPaymentId}
+              shipment={shipmentsByOrder.get(order.id)}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -508,7 +594,12 @@ function OrderCard({
   payment,
   settlingPaymentId,
   shipment,
-}: {
+  onContinuePayment,
+  simulatorEnabled,
+  checkoutLinks,
+  paymentErrors,
+  initiatingOrderId,
+}: PaymentActions & {
   onSimulatePayment: (paymentId: string) => void;
   order: ApiOrder;
   payment: ApiPayment | undefined;
@@ -535,10 +626,10 @@ function OrderCard({
           <div className="order-totals">
             <div className="order-total-row grand"><span>Grand total</span><span>{order.grandTotal} PKR</span></div>
           </div>
-          <p>
+          <p className="order-payment" data-status={payment?.status ?? "not initiated"}>
             Payment: {payment?.status ?? "not initiated"}
           </p>
-          {payment?.status === "pending" ? (
+          {simulatorEnabled && payment?.status === "pending" && payment.gateway !== "safepay" ? (
             <button
               className="cart-shop-btn"
               disabled={settlingPaymentId === payment.id}
@@ -550,19 +641,27 @@ function OrderCard({
                 : "Simulate payment success"}
             </button>
           ) : null}
+          {order.status === "pending" && payment?.status !== "success" && payment?.status !== "refunded" ? <div className="order-actions">
+            <button className="cart-shop-btn" type="button" disabled={initiatingOrderId !== null}
+              onClick={() => onContinuePayment(order.id)}>
+              {initiatingOrderId === order.id ? "Preparing checkout…" : "Continue payment"}
+            </button>
+            {payment?.status === "pending" && checkoutLinks[order.id] ? <a className="btn btn-primary" href={checkoutLinks[order.id]}>Open Safepay checkout</a> : null}
+            {paymentErrors[order.id] ? <p role="alert">{paymentErrors[order.id]}</p> : null}
+          </div> : null}
           <ShipmentTracking shipment={shipment} />
         </article>
   );
 }
 
 function ShipmentTracking({ shipment }: { shipment: ApiShipment | undefined }) {
-  if (!shipment) return <p>Shipment: awaiting assignment</p>;
+  if (!shipment) return <p className="order-shipment" data-status="awaiting">Shipment: awaiting assignment</p>;
 
   return (
-    <div>
-      <p>Shipment: {shipment.status}</p>
+    <div className="shipment-tracking">
+      <p className="order-shipment" data-status={shipment.status}>Shipment: {shipment.status}</p>
       {shipment.statusHistory.length > 0 ? (
-        <ol>
+        <ol className="shipment-timeline">
           {shipment.statusHistory.map((entry) => (
             <li key={`${entry.status}-${entry.timestamp}`}>
               {entry.status} · {new Date(entry.timestamp).toLocaleString()}

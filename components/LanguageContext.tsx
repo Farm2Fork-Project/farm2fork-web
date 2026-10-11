@@ -24,6 +24,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedLang = localStorage.getItem("app_lang");
     if (savedLang === "ur" || savedLang === "en") {
+      // Restore the persisted browser preference after server hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguage(savedLang);
     }
     const savedFont = localStorage.getItem("app_font_size") as FontSize;

@@ -1,13 +1,14 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { ArrowRight, Mail, Lock, Eye, EyeOff, ShieldCheck, Leaf } from 'lucide-react'
 import { FinancialLoginScreenProps } from '../types'
 import { ApiClient } from '@/lib/api/client.ts'
 import {
   FirebaseWebAuthRepository,
   type FirebaseWebAuthResult,
 } from '@/lib/auth/firebase-web-auth-repository.ts'
+import { IcEye as Eye, IcEyeOff as EyeOff, IcLeaf as Leaf } from "@/components/icons";
+import { ArrowRight, Lock, Mail, ShieldCheck } from "lucide-react";
 
 
 export default function LoginScreen({ onLoginSuccess }: FinancialLoginScreenProps) {

@@ -1,19 +1,18 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useHydrated } from '@/lib/react/use-hydrated';
+
+import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Send } from 'lucide-react'
+import { IcClose as X } from "@/components/icons";
+import { Send } from "lucide-react";
 
 export default function SupportTicketModal({ onClose }: { onClose: () => void }) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated();
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [priority, setPriority] = useState('Normal')
 
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
 
   if (!mounted) return null
 
@@ -39,7 +38,7 @@ export default function SupportTicketModal({ onClose }: { onClose: () => void })
               <option>Urgent</option>
             </select>
           </div>
-          
+
           <div className="filter-group">
             <label className="filter-label">Subject</label>
             <input
@@ -68,8 +67,8 @@ export default function SupportTicketModal({ onClose }: { onClose: () => void })
           <button className="btn btn-outline" onClick={onClose}>
             Cancel
           </button>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             style={{ gap: '8px' }}
             onClick={() => {
               // Mock submission

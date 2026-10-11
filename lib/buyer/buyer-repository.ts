@@ -3,18 +3,19 @@ import {
   ApiError,
   type ApiAuthUser,
   type ApiOrder,
+  type ApiOrderQuote,
   type ApiPage,
   type ApiPayment,
   type ApiProduct,
   type ApiShipment,
   type BuyerProduct,
   type CreateOrderRequest,
-  type OrderQuote,
   type InitiatePaymentResponse,
   type PaymentGateway,
   toBuyerProduct,
 } from "../api/contracts.ts";
 import type { BuyerSession } from "../auth/web-session.ts";
+import { wrongRoleMessage } from "../auth/wrong-role.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
@@ -52,14 +53,14 @@ export class BuyerRepository {
   async getCurrentBuyer(): Promise<BuyerSession["user"]> {
     const user = await this.client.request<ApiAuthUser>("/auth/me");
     if (user.role !== "buyer") {
-      throw new ApiError(403, "This account cannot access the buyer application.");
+      throw new ApiError(403, wrongRoleMessage("buyer", user.role));
     }
     return user as BuyerSession["user"];
   }
 
   async listProducts(query: ProductQuery = {}): Promise<ApiPage<BuyerProduct>> {
     const response = await this.client.request<ApiPage<ApiProduct>>(
-      withQuery("/products", query),
+      withQuery("/products", { ...query, status: "active" }),
     );
     return { ...response, data: response.data.map(toBuyerProduct) };
   }
@@ -70,12 +71,8 @@ export class BuyerRepository {
     );
   }
 
-  /** Prices one farmer's cart (incl. the fixed delivery fee); saves nothing. */
-  quoteOrder(input: CreateOrderRequest): Promise<OrderQuote> {
-    return this.client.request<OrderQuote>("/orders/quote", {
-      method: "POST",
-      body: input,
-    });
+  quoteOrder(input: CreateOrderRequest): Promise<ApiOrderQuote> {
+    return this.client.request<ApiOrderQuote>("/orders/quote", { method: "POST", body: input });
   }
 
   createOrder(input: CreateOrderRequest): Promise<ApiOrder> {
@@ -89,18 +86,17 @@ export class BuyerRepository {
     return this.client.request<ApiPage<ApiOrder>>(withQuery("/orders", query));
   }
 
-  async initiatePayment(
+  initiatePayment(
     orderId: string,
     gateway: PaymentGateway,
-  ): Promise<ApiPayment> {
-    const response = await this.client.request<InitiatePaymentResponse>(
+  ): Promise<InitiatePaymentResponse> {
+    return this.client.request<InitiatePaymentResponse>(
       "/payments",
       {
         method: "POST",
         body: { orderId, gateway },
       },
     );
-    return response.payment;
   }
 
   simulatePaymentSuccess(paymentId: string): Promise<ApiPayment> {

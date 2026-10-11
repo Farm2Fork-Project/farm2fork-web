@@ -189,6 +189,15 @@ export interface ApiPage<T> {
   totalPages: number;
 }
 
+export interface ApiOrderQuote {
+  totalAmount: number;
+  platformFeePercent: number;
+  platformFeeAmount: number;
+  deliveryFee: number;
+  deliveryDistanceKm: number;
+  grandTotal: number;
+}
+
 export interface ApiOrderAddress {
   street: string;
   city: string;
@@ -242,7 +251,7 @@ export interface ApiOrder {
   updatedAt: string;
 }
 
-export type PaymentGateway = 'jazzcash' | 'stripe';
+export type PaymentGateway = 'jazzcash' | 'stripe' | 'safepay';
 
 export interface CreatePaymentRequest {
   orderId: string;
@@ -287,6 +296,8 @@ export interface ApiShipmentStatusHistory {
 }
 
 export interface ApiShipment {
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
   id: string;
   orderId: string;
   transporterId: string;
@@ -300,8 +311,27 @@ export interface ApiShipment {
   updatedAt: string;
 }
 
+export interface ApiAvailableDelivery {
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
+  distanceToPickupKm?: number;
+  orderId: string;
+  pickupCity: string;
+  pickupProvince: string;
+  deliveryCity: string;
+  deliveryProvince: string;
+  itemCount: number;
+  createdAt: string;
+}
+
+export interface UpdateShipmentStatusRequest {
+  status: ShipmentStatus;
+  note: string;
+}
+
 export interface InitiatePaymentResponse {
   payment: ApiPayment;
+  checkoutUrl?: string;
 }
 
 export class ApiError extends Error {
@@ -330,3 +360,12 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     farmer: product.farmer ?? null,
   };
 }
+
+export interface ApiTransporterStatus {
+  online: boolean;
+  locationFresh: boolean;
+  lastLocationAt?: string;
+  activeShipmentId?: string;
+  radiusKm: number;
+}
+export interface ApiCoordinates { lat: number; lng: number }

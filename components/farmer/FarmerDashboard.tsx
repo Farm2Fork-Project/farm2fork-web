@@ -16,6 +16,7 @@ import {
   QrCode,
 } from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
+import { FarmPickupLocation } from "./FarmPickupLocation";
 import CreateListingForm from "./CreateListingForm";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
@@ -39,6 +40,8 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [listings, setListings] = useState<Listing[]>([]);
   const [listingError, setListingError] = useState("");
+  const [orders, setOrders] = useState<ApiOrder[] | null>(null);
+  const [ordersError, setOrdersError] = useState("");
   const repository = useMemo(
     () => new FarmerRepository({ client: new ApiClient() }),
     [],
@@ -84,8 +87,6 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
     };
   }, [activeTab, repository]);
 
-  const [orders, setOrders] = useState<ApiOrder[] | null>(null);
-  const [ordersError, setOrdersError] = useState("");
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -111,7 +112,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
   const handleToggleListingStatus = (id: string) => {
     setListings((current) => current.map((item) =>
       item.id === id
-        ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as any }
+        ? { ...item, status: (item.status === "Available" ? "Out of Stock" : "Available") as Listing["status"] }
         : item
     ));
     const item = listings.find((l) => l.id === id);
@@ -422,14 +423,15 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
 
         {/* Main Page Content Wrapper matching buyer/transporter app-content */}
         <main className="app-content">
-          {activeTab === "listings" && (
+          {activeTab === "listings" && (<>
+            <FarmPickupLocation repository={repository} />
             <FarmerListings
               listings={listings}
               onDelete={handleDeleteListing}
               onToggleStatus={handleToggleListingStatus}
               onAddClick={() => setActiveTab("create")}
             />
-          )}
+          </>)}
 
           {activeTab === "create" && (
             <CreateListingForm

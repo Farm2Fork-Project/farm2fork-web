@@ -6,6 +6,22 @@ import type {
   CreateFarmerProductRequest,
 } from "../api/contracts.ts";
 
+export type FarmLocation = {
+  address?: string;
+  city?: string;
+  province?: string;
+  lat?: number;
+  lng?: number;
+  complete: boolean;
+};
+export type FarmLocationInput = {
+  address: string;
+  city: string;
+  province: string;
+  lat: number;
+  lng: number;
+};
+
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
 };
@@ -15,6 +31,16 @@ export class FarmerRepository {
 
   constructor({ client }: { client: ApiRequester }) {
     this.client = client;
+  }
+
+  getFarmLocation(): Promise<FarmLocation> {
+    return this.client.request<FarmLocation>("/farmers/me/farm-location");
+  }
+  updateFarmLocation(input: FarmLocationInput): Promise<FarmLocation> {
+    return this.client.request<FarmLocation>("/farmers/me/farm-location", {
+      method: "PATCH",
+      body: input,
+    });
   }
 
   listMyProducts(): Promise<ApiPage<ApiProduct>> {

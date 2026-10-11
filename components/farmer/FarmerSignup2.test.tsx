@@ -22,7 +22,7 @@ test("FarmerSignup submits the backend farmer registration fields", async () => 
   await user.click(screen.getByRole("button", { name: /next step/i }));
 
   await user.type(screen.getByLabelText("Farm name"), "Green Acres");
-  await user.type(screen.getByLabelText("Farm location"), "Lahore");
+  expect(screen.getByText(/After creating your account/)).toBeVisible();
   await user.click(screen.getByRole("button", { name: "wheat" }));
   await user.click(screen.getByRole("button", { name: /create account/i }));
 
@@ -32,7 +32,6 @@ test("FarmerSignup submits the backend farmer registration fields", async () => 
     phone: "+923001234567",
     cnic: "35202-1234567-1",
     farmName: "Green Acres",
-    farmLocation: { address: "Lahore" },
     cropTypes: ["wheat"],
   });
 });

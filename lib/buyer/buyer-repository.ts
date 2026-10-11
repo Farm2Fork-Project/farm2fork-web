@@ -3,6 +3,7 @@ import {
   ApiError,
   type ApiAuthUser,
   type ApiOrder,
+  type ApiOrderQuote,
   type ApiPage,
   type ApiPayment,
   type ApiProduct,
@@ -67,6 +68,10 @@ export class BuyerRepository {
     return toBuyerProduct(
       await this.client.request<ApiProduct>(`/products/${id}`),
     );
+  }
+
+  quoteOrder(input: CreateOrderRequest): Promise<ApiOrderQuote> {
+    return this.client.request<ApiOrderQuote>("/orders/quote", { method: "POST", body: input });
   }
 
   createOrder(input: CreateOrderRequest): Promise<ApiOrder> {

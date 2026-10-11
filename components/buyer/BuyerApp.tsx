@@ -33,6 +33,7 @@ import { CheckoutPanel } from "./CheckoutPanel";
 type BuyerRepositoryPort = Pick<
   BuyerRepository,
   | "createOrder"
+  | "quoteOrder"
   | "getCurrentBuyer"
   | "getProduct"
   | "initiatePayment"
@@ -455,7 +456,7 @@ function Cart({
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
-  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
+  repository: Pick<BuyerRepository, "createOrder" | "initiatePayment" | "quoteOrder">;
   simulatorEnabled: boolean;
 }) {
 

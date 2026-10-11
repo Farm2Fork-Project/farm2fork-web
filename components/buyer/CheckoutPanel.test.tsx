@@ -5,6 +5,16 @@ import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 afterEach(cleanup);
+const quoteOrder = vi
+  .fn()
+  .mockResolvedValue({
+    totalAmount: 200,
+    platformFeePercent: 5,
+    platformFeeAmount: 10,
+    deliveryFee: 180,
+    deliveryDistanceKm: 2.5,
+    grandTotal: 390,
+  });
 
 const groups: CartFarmerGroup[] = [
   {
@@ -72,7 +82,7 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
   render(
     <CheckoutPanel
       groups={groups}
-      repository={{ createOrder, initiatePayment }}
+      repository={{ createOrder, initiatePayment, quoteOrder }}
       onConfirmedFarmers={onConfirmedFarmers}
       onViewOrders={onViewOrders}
     />,
@@ -82,7 +92,10 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
   await user.type(screen.getByLabelText("Street"), "12 Mall Road");
   await user.type(screen.getByLabelText("City"), "Lahore");
   await user.type(screen.getByLabelText("Province"), "Punjab");
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
+  await user.type(screen.getByLabelText("Delivery latitude"), "31.5204");
+  await user.type(screen.getByLabelText("Delivery longitude"), "74.3587");
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  await user.click(await screen.findByRole("button", { name: "Place orders" }));
 
   expect(createOrder).toHaveBeenNthCalledWith(1, {
     items: [{ productId: "product-1", quantity: 2 }],
@@ -90,6 +103,8 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
       street: "12 Mall Road",
       city: "Lahore",
       province: "Punjab",
+      lat: 31.5204,
+      lng: 74.3587,
     },
   });
   expect(createOrder).toHaveBeenNthCalledWith(2, {
@@ -98,6 +113,8 @@ test("CheckoutPanel creates one order and pending payment for each farmer group"
       street: "12 Mall Road",
       city: "Lahore",
       province: "Punjab",
+      lat: 31.5204,
+      lng: 74.3587,
     },
   });
   expect(initiatePayment).toHaveBeenNthCalledWith(1, "order-1", "safepay");
@@ -130,7 +147,10 @@ async function fillAndSubmit() {
   await user.type(screen.getByLabelText("Street"), "12 Mall Road");
   await user.type(screen.getByLabelText("City"), "Lahore");
   await user.type(screen.getByLabelText("Province"), "Punjab");
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
+  await user.type(screen.getByLabelText("Delivery latitude"), "31.5204");
+  await user.type(screen.getByLabelText("Delivery longitude"), "74.3587");
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  await user.click(await screen.findByRole("button", { name: "Place orders" }));
 }
 
 test("keeps a created order recoverable when payment initiation fails", async () => {
@@ -142,7 +162,7 @@ test("keeps a created order recoverable when payment initiation fails", async ()
   render(
     <CheckoutPanel
       groups={groups}
-      repository={{ createOrder, initiatePayment }}
+      repository={{ createOrder, initiatePayment, quoteOrder }}
       onConfirmedFarmers={onConfirmedFarmers}
       onViewOrders={vi.fn()}
     />,
@@ -162,17 +182,16 @@ test.each([undefined, "javascript:alert(1)", "https://untrusted.example/pay"])(
       <CheckoutPanel
         groups={[groups[0]]}
         repository={{
+          quoteOrder,
           createOrder: vi.fn().mockResolvedValue({ id: "order-1" }),
-          initiatePayment: vi
-            .fn()
-            .mockResolvedValue({
-              payment: {
-                id: "payment-1",
-                status: "pending",
-                gateway: "safepay",
-              },
-              checkoutUrl,
-            }),
+          initiatePayment: vi.fn().mockResolvedValue({
+            payment: {
+              id: "payment-1",
+              status: "pending",
+              gateway: "safepay",
+            },
+            checkoutUrl,
+          }),
         }}
         onConfirmedFarmers={vi.fn()}
         onViewOrders={vi.fn()}
@@ -183,3 +202,93 @@ test.each([undefined, "javascript:alert(1)", "https://untrusted.example/pay"])(
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   },
 );
+
+test("requires a fresh server quote after the address or cart changes", async () => {
+  const repository = {
+    quoteOrder: vi
+      .fn()
+      .mockResolvedValue({
+        totalAmount: 200,
+        platformFeePercent: 5,
+        platformFeeAmount: 10,
+        deliveryFee: 180,
+        deliveryDistanceKm: 2.5,
+        grandTotal: 390,
+      }),
+    createOrder: vi.fn(),
+    initiatePayment: vi.fn(),
+  };
+  const props = {
+    groups: groups.slice(0, 1),
+    repository,
+    onConfirmedFarmers: vi.fn(),
+    onViewOrders: vi.fn(),
+  };
+  const view = render(<CheckoutPanel {...props} />);
+  const user = userEvent.setup();
+  for (const [label, value] of [
+    ["Street", "Farm road"],
+    ["City", "Lahore"],
+    ["Province", "Punjab"],
+    ["Delivery latitude", "31.5204"],
+    ["Delivery longitude", "74.3587"],
+  ]) {
+    await user.type(screen.getByLabelText(label), value);
+  }
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  await screen.findByRole("button", { name: "Place orders" });
+  expect(repository.createOrder).not.toHaveBeenCalled();
+  await user.type(screen.getByLabelText("Street"), " updated");
+  expect(
+    screen.getByRole("button", { name: "Get delivery quote" }),
+  ).toBeVisible();
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  await screen.findByRole("button", { name: "Place orders" });
+  view.rerender(
+    <CheckoutPanel
+      {...props}
+      groups={[
+        { ...groups[0], items: [{ ...groups[0].items[0], quantity: 3 }] },
+      ]}
+    />,
+  );
+  expect(
+    screen.getByRole("button", { name: "Get delivery quote" }),
+  ).toBeVisible();
+  expect(repository.createOrder).not.toHaveBeenCalled();
+});
+
+test("quote failures leave the cart ready to retry without creating orders", async () => {
+  const repository = {
+    quoteOrder: vi
+      .fn()
+      .mockRejectedValue(new Error("Farmer pickup location is incomplete")),
+    createOrder: vi.fn(),
+    initiatePayment: vi.fn(),
+  };
+  render(
+    <CheckoutPanel
+      groups={groups}
+      repository={repository}
+      onConfirmedFarmers={vi.fn()}
+      onViewOrders={vi.fn()}
+    />,
+  );
+  const user = userEvent.setup();
+  for (const [label, value] of [
+    ["Street", "Farm road"],
+    ["City", "Lahore"],
+    ["Province", "Punjab"],
+    ["Delivery latitude", "31.5204"],
+    ["Delivery longitude", "74.3587"],
+  ])
+    await user.type(screen.getByLabelText(label), value);
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  expect(
+    await screen.findByText("Farmer pickup location is incomplete"),
+  ).toBeVisible();
+  expect(repository.createOrder).not.toHaveBeenCalled();
+  expect(
+    screen.getByRole("button", { name: "Get delivery quote" }),
+  ).toBeEnabled();
+});

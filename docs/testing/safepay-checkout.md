@@ -58,8 +58,8 @@ repository against that backend. It checks two farmer orders, server-calculated
 totals, hosted URLs and return destinations, cancel/resume, failed-payment retry,
 unauthorized access, signed settlement/replay, final paid status, depleted stock
 and exactly two persisted payment/outbox records. Gateway requests use the
-server-calculated 210 PKR amount as 21000 subunits and preserve order IDs on
-resume. MongoDB binaries may be downloaded on the first run.
+persisted server total, including delivery, converted to subunits and preserve
+order IDs on resume. MongoDB binaries may be downloaded on the first run.
 
 Verified on 2026-10-11: 72 web tests passed; two live harness tests skip without
 their environment configuration. The checkout harness passed when invoked as
@@ -74,8 +74,8 @@ The harness uses seeded JWT identities, synthetic signed callbacks and local
 gateway responses. Account acquisition, Firebase session cookies, real Safepay
 event shapes/hosted checkout, browser visuals and deployed Fabric transactions
 are outside its scope. Shipment reads are a separate fixture in the component
-harness. The backend Safepay implementation is pre-existing uncommitted work;
-this increment preserves those files.
+harness. Notification and transport dispatch are stubbed; ledger outbox persistence is
+real.
 
 Before live use, verify sandbox checkout and its actual success/failure/cancel
 callbacks with the configured merchant and deployed return origins. Signed-in native browser-to-app return still needs device verification.
@@ -95,3 +95,25 @@ two environment-gated skips. Web TypeScript and production build pass; the
 existing web checkout harness also passes after this addition. Mobile behavior,
 harness commands and device checks are documented in
 `farm2fork-mobile/docs/testing/safepay-checkout.md`.
+
+## Delivery quote and pickup setup — 2026-10-11
+
+The backend rebase introduced required delivery coordinates and delivery fees.
+Checkout now validates latitude/longitude in Pakistan, fetches one backend quote
+per farmer and displays items, platform fee, delivery fee, estimated distance and
+total before Place orders. Editing an address or cart invalidates the quote.
+Quoting creates no order and quote failures keep the cart available for retry.
+The backend recalculates authoritative totals when placing orders.
+
+Farmers save a complete pickup address, city, province and map coordinates in
+Listings. Existing incomplete profiles can be repaired there. Signup directs new
+farmers to this step instead of sending an incomplete address-only object.
+Coordinates are entered explicitly using a map app; no automatic GPS acquisition
+or default pins are supplied.
+
+Current verification: 81 web tests passed, two environment-gated skips; TypeScript
+and production build passed. The real checkout harness passed with initially
+incomplete farmer profiles updated over HTTP and gateway amounts matched against
+persisted totals including delivery. Changed-file ESLint has no errors and three
+existing unused-import/parameter warnings. Merchant-hosted checkout, Firebase
+acquisition, browser appearance and deployed Fabric remain separate runtime checks.

@@ -28,7 +28,6 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
     confirmation: "",
     farmName: "",
     farmSize: "",
-    farmLocation: "",
   });
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
 
@@ -87,9 +86,6 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         cnic: formData.cnic.trim(),
         farmName: formData.farmName.trim(),
         ...(formData.phone.trim() ? { phone: formData.phone.trim() } : {}),
-        ...(formData.farmLocation.trim()
-          ? { farmLocation: { address: formData.farmLocation.trim() } }
-          : {}),
         ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
         ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
       });
@@ -202,10 +198,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <label htmlFor="farmer-farm-size">Farm size (acres)</label>
                 <input id="farmer-farm-size" name="farmSize" className="auth-input" type="number" min="0" step="any" value={formData.farmSize} onChange={updateField} disabled={isSubmitting} />
               </div>
-              <div className="auth-form-group">
-                <label htmlFor="farmer-location">Farm location</label>
-                <input id="farmer-location" name="farmLocation" className="auth-input" value={formData.farmLocation} onChange={updateField} disabled={isSubmitting} />
-              </div>
+              <p>{t("farmerSignup.pickupAfterSignup")}</p>
               <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>
                   {t("farmerSignup.selectCrops")}

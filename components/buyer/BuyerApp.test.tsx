@@ -70,7 +70,7 @@ test("BuyerApp validates the session before it renders live marketplace data", a
         listOrders,
         listPayments,
         listShipments,
-        createOrder: vi.fn(),
+        quoteOrder: vi.fn(), createOrder: vi.fn(),
         initiatePayment: vi.fn(),
         simulatePaymentSuccess: vi.fn(),
       }}
@@ -126,7 +126,7 @@ test("BuyerApp shows only the shipment scoped to each real order", async () => {
           shipment,
           { ...shipment, id: "shipment-2", orderId: "other-order", status: "delivered" },
         ]),
-        createOrder: vi.fn(),
+        quoteOrder: vi.fn(), createOrder: vi.fn(),
         initiatePayment: vi.fn(),
         simulatePaymentSuccess: vi.fn(),
       }}
@@ -162,7 +162,7 @@ test("BuyerApp settles a pending payment and refreshes its timeline", async () =
         }),
         listPayments,
         listShipments: vi.fn().mockResolvedValue([]),
-        createOrder: vi.fn(),
+        quoteOrder: vi.fn(), createOrder: vi.fn(),
         initiatePayment: vi.fn(),
         simulatePaymentSuccess,
       }}
@@ -197,7 +197,7 @@ test("BuyerApp disables a payment settlement action while it is pending", async 
           data: [{ id: "payment-1", orderId: "order-1", status: "pending" }],
         }),
         listShipments: vi.fn().mockResolvedValue([]),
-        createOrder: vi.fn(),
+        quoteOrder: vi.fn(), createOrder: vi.fn(),
         initiatePayment: vi.fn(),
         simulatePaymentSuccess,
       }}
@@ -221,7 +221,7 @@ test("Safepay return reads persisted status and resumes the existing order", asy
   const initiatePayment = vi.fn().mockResolvedValue({ payment: { id: "payment-1", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=resume" });
   render(<BuyerApp paymentReturn="complete" session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [] }), getProduct: vi.fn(), listOrders, listPayments,
-    listShipments: vi.fn().mockResolvedValue([]), createOrder, initiatePayment, simulatePaymentSuccess: vi.fn(),
+    listShipments: vi.fn().mockResolvedValue([]), quoteOrder: vi.fn(), createOrder, initiatePayment, simulatePaymentSuccess: vi.fn(),
   }} />);
   expect(await screen.findByText("Payment: pending")).toBeVisible();
   expect(screen.queryByText("Payment: success")).not.toBeInTheDocument();
@@ -241,7 +241,7 @@ test("cancel return preserves a pending order and offers payment retry", async (
   render(<BuyerApp paymentReturn="cancel" session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [] }), getProduct: vi.fn(),
     listOrders: vi.fn().mockResolvedValue({ data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }] }),
-    listPayments: vi.fn().mockResolvedValue({ data: [] }), listShipments: vi.fn().mockResolvedValue([]), createOrder: vi.fn(), initiatePayment: vi.fn(), simulatePaymentSuccess: vi.fn(),
+    listPayments: vi.fn().mockResolvedValue({ data: [] }), listShipments: vi.fn().mockResolvedValue([]), quoteOrder: vi.fn(), createOrder: vi.fn(), initiatePayment: vi.fn(), simulatePaymentSuccess: vi.fn(),
   }} />);
   expect(await screen.findByText("Payment: not initiated")).toBeVisible();
   expect(screen.getByText(/Checkout was closed/)).toBeVisible();
@@ -253,7 +253,7 @@ test("clearing a confirmed cart keeps the hosted checkout receipt visible", asyn
   render(<BuyerApp session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [product] }), getProduct: vi.fn(),
     listOrders: vi.fn().mockResolvedValue({ data: [] }), listPayments: vi.fn().mockResolvedValue({ data: [] }), listShipments: vi.fn().mockResolvedValue([]),
-    createOrder: vi.fn().mockResolvedValue({ id: "order-1" }),
+    quoteOrder: vi.fn().mockResolvedValue({ totalAmount: 120, platformFeePercent: 5, platformFeeAmount: 6, deliveryFee: 180, deliveryDistanceKm: 2.5, grandTotal: 306 }), createOrder: vi.fn().mockResolvedValue({ id: "order-1" }),
     initiatePayment: vi.fn().mockResolvedValue({ payment: { id: "payment-1", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=one" }), simulatePaymentSuccess: vi.fn(),
   }} />);
   const user = userEvent.setup();
@@ -262,7 +262,10 @@ test("clearing a confirmed cart keeps the hosted checkout receipt visible", asyn
   await user.type(screen.getByLabelText("Street"), "12 Mall Road");
   await user.type(screen.getByLabelText("City"), "Lahore");
   await user.type(screen.getByLabelText("Province"), "Punjab");
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
+  await user.type(screen.getByLabelText("Delivery latitude"), "31.5204");
+  await user.type(screen.getByLabelText("Delivery longitude"), "74.3587");
+  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
+  await user.click(await screen.findByRole("button", { name: "Place orders" }));
   expect(await screen.findByRole("link", { name: "Pay farmer group 1 with Safepay" })).toBeVisible();
   expect(screen.getByRole("button", { name: /cart \(0\)/i })).toBeVisible();
 });
@@ -274,7 +277,7 @@ test("resume failure preserves the order and supports a deliberate retry", async
   render(<BuyerApp paymentReturn="cancel" session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [] }), getProduct: vi.fn(),
     listOrders: vi.fn().mockResolvedValue({ data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }] }),
-    listPayments: vi.fn().mockResolvedValueOnce({ data: [] }).mockResolvedValue({ data: [{ id: "payment-1", orderId: "order-1", status: "pending", gateway: "safepay" }] }), listShipments: vi.fn().mockResolvedValue([]), createOrder, initiatePayment, simulatePaymentSuccess: vi.fn(),
+    listPayments: vi.fn().mockResolvedValueOnce({ data: [] }).mockResolvedValue({ data: [{ id: "payment-1", orderId: "order-1", status: "pending", gateway: "safepay" }] }), listShipments: vi.fn().mockResolvedValue([]), quoteOrder: vi.fn(), createOrder, initiatePayment, simulatePaymentSuccess: vi.fn(),
   }} />);
   const user = userEvent.setup();
   await user.click(await screen.findByRole("button", { name: "Continue payment" }));
@@ -291,7 +294,7 @@ test("disables resume while the gateway request is pending", async () => {
   render(<BuyerApp paymentReturn="cancel" session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [] }), getProduct: vi.fn(),
     listOrders: vi.fn().mockResolvedValue({ data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }] }),
-    listPayments: vi.fn().mockResolvedValue({ data: [] }), listShipments: vi.fn().mockResolvedValue([]), createOrder: vi.fn(), initiatePayment, simulatePaymentSuccess: vi.fn(),
+    listPayments: vi.fn().mockResolvedValue({ data: [] }), listShipments: vi.fn().mockResolvedValue([]), quoteOrder: vi.fn(), createOrder: vi.fn(), initiatePayment, simulatePaymentSuccess: vi.fn(),
   }} />);
   await userEvent.click(await screen.findByRole("button", { name: "Continue payment" }));
   const preparing = screen.getByRole("button", { name: "Preparing checkout…" });
@@ -305,7 +308,7 @@ test("a failed status refresh removes the previous hosted checkout link", async 
   render(<BuyerApp paymentReturn="complete" session={session} onLogout={vi.fn()} repository={{
     getCurrentBuyer: vi.fn().mockResolvedValue(session.user), listProducts: vi.fn().mockResolvedValue({ data: [] }), getProduct: vi.fn(),
     listOrders: vi.fn().mockResolvedValue({ data: [{ id: "order-1", status: "pending", items: [], grandTotal: 240, createdAt: "2026-08-12T00:00:00.000Z" }] }),
-    listPayments, listShipments: vi.fn().mockResolvedValue([]), createOrder: vi.fn(),
+    listPayments, listShipments: vi.fn().mockResolvedValue([]), quoteOrder: vi.fn(), createOrder: vi.fn(),
     initiatePayment: vi.fn().mockResolvedValue({ payment: { id: "payment-1", orderId: "order-1", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=old" }), simulatePaymentSuccess: vi.fn(),
   }} />);
   await userEvent.click(await screen.findByRole("button", { name: "Continue payment" }));

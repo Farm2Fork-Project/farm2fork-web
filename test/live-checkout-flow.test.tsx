@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test } from "vitest";
 import { ApiClient } from "../lib/api/client.ts";
 import { BuyerRepository } from "../lib/buyer/buyer-repository.ts";
+import { FarmerRepository } from "../lib/farmer/farmer-repository.ts";
 import { ApiError } from "../lib/api/contracts.ts";
 import { CheckoutPanel } from "../components/buyer/CheckoutPanel";
 import { BuyerApp } from "../components/buyer/BuyerApp";
@@ -65,8 +66,50 @@ test.skipIf(!baseUrl)(
         street: "12 Mall Road",
         city: "Lahore",
         province: "Punjab",
+        lat: 31.5204,
+        lng: 74.3587,
       },
     };
+    const pickup = {
+      address: "Fixture farm road",
+      city: "Lahore",
+      province: "Punjab",
+      lat: 31.5104,
+      lng: 74.35,
+    };
+    const farmerProfile = new FarmerRepository({
+      client: client(process.env.CHECKOUT_TEST_FARMER_TOKEN!),
+    });
+    const secondFarmerProfile = new FarmerRepository({
+      client: client(process.env.CHECKOUT_TEST_SECOND_FARMER_TOKEN!),
+    });
+    expect((await farmerProfile.getFarmLocation()).complete).toBe(false);
+    await expect(buyer.quoteOrder(request)).rejects.toMatchObject({
+      status: 400,
+    });
+    await expect(
+      new FarmerRepository({
+        client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!),
+      }).updateFarmLocation(pickup),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(
+      farmerProfile.updateFarmLocation({ ...pickup, lat: 0 }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect((await farmerProfile.updateFarmLocation(pickup)).complete).toBe(
+      true,
+    );
+    expect(
+      (
+        await secondFarmerProfile.updateFarmLocation({
+          ...pickup,
+          lat: 31.5304,
+          lng: 74.37,
+        })
+      ).complete,
+    ).toBe(true);
+    const quote = await buyer.quoteOrder(request);
+    expect(quote.deliveryFee).toBeGreaterThan(0);
+    expect((await buyer.listOrders()).data).toHaveLength(0);
     await expect(farmer.createOrder(request)).rejects.toMatchObject({
       status: 403,
     });
@@ -83,7 +126,14 @@ test.skipIf(!baseUrl)(
     await user.type(screen.getByLabelText("Street"), "12 Mall Road");
     await user.type(screen.getByLabelText("City"), "Lahore");
     await user.type(screen.getByLabelText("Province"), "Punjab");
-    await user.click(screen.getByRole("button", { name: "Place orders" }));
+    await user.type(screen.getByLabelText("Delivery latitude"), "31.5204");
+    await user.type(screen.getByLabelText("Delivery longitude"), "74.3587");
+    await user.click(
+      screen.getByRole("button", { name: "Get delivery quote" }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Place orders" }),
+    );
     const firstLink = await screen.findByRole("link", {
       name: "Pay farmer group 1 with Safepay",
     });
@@ -102,7 +152,11 @@ test.skipIf(!baseUrl)(
     expect(orders).toHaveLength(2);
     expect(
       orders.every(
-        (order) => order.grandTotal === 210 && order.status === "pending",
+        (order) =>
+          order.grandTotal ===
+            order.totalAmount + order.platformFeeAmount + order.deliveryFee! &&
+          order.deliveryFee! > 0 &&
+          order.status === "pending",
       ),
     ).toBe(true);
     let payments = (await buyer.listPayments()).data;
@@ -116,6 +170,7 @@ test.skipIf(!baseUrl)(
     expect((await otherBuyer.listPayments()).data).toHaveLength(0);
 
     const port = {
+      quoteOrder: buyer.quoteOrder.bind(buyer),
       createOrder: buyer.createOrder.bind(buyer),
       initiatePayment: buyer.initiatePayment.bind(buyer),
       getCurrentBuyer: async () => session.user,

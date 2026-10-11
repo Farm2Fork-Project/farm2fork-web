@@ -37,7 +37,11 @@ export interface RegisterFarmerRequest {
   farmName: string;
   phone?: string;
   farmLocation?: {
-    address?: string;
+    address: string;
+    city: string;
+    province: string;
+    lat: number;
+    lng: number;
   };
   cropTypes?: string[];
   landSizeAcres?: number;
@@ -120,11 +124,22 @@ export interface ApiPage<T> {
   totalPages: number;
 }
 
+export interface ApiOrderQuote {
+  totalAmount: number;
+  platformFeePercent: number;
+  platformFeeAmount: number;
+  deliveryFee: number;
+  deliveryDistanceKm: number;
+  grandTotal: number;
+}
+
 export interface ApiOrderAddress {
   street: string;
   city: string;
   province: string;
   zip?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface CreateOrderRequest {
@@ -149,6 +164,8 @@ export interface ApiOrder {
   totalAmount: number;
   platformFeePercent: number;
   platformFeeAmount: number;
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
   grandTotal: number;
   shippingAddress: ApiOrderAddress;
   status: string;

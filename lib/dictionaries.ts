@@ -284,6 +284,16 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "profile.logout": "Log Out",
     
     // Profile - Settings Tabs
+    "push.description": "Enable push alerts on this browser. Your notification inbox is always available. One device per account receives push alerts.",
+    "push.enable": "Enable push notifications",
+    "push.disable": "Disable push notifications",
+    "push.denied": "Allow notifications in your browser settings, then try again.",
+    "push.error": "Could not update notifications. Please try again.",
+    "push.inbox": "Notification inbox",
+    "push.refresh": "Refresh",
+    "push.readAll": "Mark all as read",
+    "push.unread": "Unread",
+    "push.empty": "No notifications yet.",
     "settings.notif.title": "Notification Settings",
     "settings.notif.subtitle": "Manage how you receive alerts and updates.",
     "settings.notif.email": "Email Notifications",
@@ -932,6 +942,16 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "profile.logout": "لاگ آؤٹ",
 
     // Profile - Settings Tabs
+    "push.description": "اس براؤزر پر پش الرٹس فعال کریں۔ اطلاعات ہمیشہ ان باکس میں دستیاب ہیں۔ ہر اکاؤنٹ پر ایک آلہ پش الرٹس وصول کرتا ہے۔",
+    "push.enable": "پش اطلاعات فعال کریں",
+    "push.disable": "پش اطلاعات بند کریں",
+    "push.denied": "براؤزر کی ترتیبات میں اطلاعات کی اجازت دیں، پھر دوبارہ کوشش کریں۔",
+    "push.error": "اطلاعات اپ ڈیٹ نہیں ہو سکیں۔ دوبارہ کوشش کریں۔",
+    "push.inbox": "اطلاعات کا ان باکس",
+    "push.refresh": "تازہ کریں",
+    "push.readAll": "سب پڑھی ہوئی نشان زد کریں",
+    "push.unread": "ان پڑھی",
+    "push.empty": "ابھی کوئی اطلاع نہیں۔",
     "settings.notif.title": "نوٹیفکیشن کی ترتیبات",
     "settings.notif.subtitle": "الرٹس اور اپ ڈیٹس وصول کرنے کا طریقہ مینج کریں۔",
     "settings.notif.email": "ای میل نوٹیفیکیشنز",

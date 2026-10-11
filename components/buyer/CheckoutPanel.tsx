@@ -1,11 +1,13 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { LuCircleCheckBig } from "react-icons/lu";
+import { LuCircleCheckBig, LuShoppingCart } from "react-icons/lu";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
 import type { ApiOrderAddress, PaymentGateway } from "@/lib/api/contracts.ts";
+
+import { paymentSimulatorEnabled, safepayCheckoutUrl } from "@/lib/buyer/payment-checkout.ts";
 
 function paymentStatusBadgeClass(status: string): string {
   if (status === "success") return "badge-soft-green";
@@ -21,6 +23,7 @@ type CheckoutRepository = Pick<
 type CheckoutResult = {
   farmerId: string;
   paymentStatus: string;
+  checkoutUrl?: string;
 };
 
 export function CheckoutPanel({
@@ -28,18 +31,20 @@ export function CheckoutPanel({
   repository,
   onConfirmedFarmers,
   onViewOrders,
+  simulatorEnabled = paymentSimulatorEnabled(),
 }: {
   groups: CartFarmerGroup[];
   repository: CheckoutRepository;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
+  simulatorEnabled?: boolean;
 }) {
   const [address, setAddress] = useState<ApiOrderAddress>({
     street: "",
     city: "",
     province: "",
   });
-  const [gateway, setGateway] = useState<PaymentGateway>("jazzcash");
+  const [gateway, setGateway] = useState<PaymentGateway>("safepay");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [results, setResults] = useState<CheckoutResult[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +63,14 @@ export function CheckoutPanel({
         const order = await repository.createOrder(
           toCreateOrderRequest(group, address),
         );
-        const payment = await repository.initiatePayment(order.id, gateway);
+        // An order already exists even if its gateway handoff fails. Recover it
+        // from Orders instead of creating another order from the same cart group.
         confirmedFarmers.push(group.farmerId);
-        nextResults.push({
-          farmerId: group.farmerId,
-          paymentStatus: payment.status,
-        });
+        const result: CheckoutResult = { farmerId: group.farmerId, paymentStatus: "not initiated" };
+        nextResults.push(result);
+        const response = await repository.initiatePayment(order.id, gateway);
+        result.paymentStatus = response.payment.status;
+        result.checkoutUrl = safepayCheckoutUrl(response);
       } catch (checkoutError) {
         const message =
           checkoutError instanceof Error
@@ -90,15 +97,20 @@ export function CheckoutPanel({
             {results.length === 1 ? "Order placed" : `${results.length} orders placed`}
           </h3>
           <p style={{ margin: 0, color: "var(--text-muted)" }}>
-            Each farmer group is now its own order with a pending payment.
+            Your orders are saved. Open each pending checkout to pay. Status is confirmed by the payment provider.
           </p>
           <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "var(--sp-sm)" }}>
             {results.map((result, index) => (
-              <div className="flex-between" key={result.farmerId}>
+              <div key={result.farmerId}>
+                <div className="flex-between">
                 <span>Farmer group {index + 1}</span>
                 <span className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}>
                   {result.paymentStatus}
                 </span>
+                </div>
+                {result.checkoutUrl ? <a className="btn btn-primary" href={result.checkoutUrl}>
+                  Pay farmer group {index + 1} with Safepay
+                </a> : null}
               </div>
             ))}
           </div>
@@ -109,6 +121,11 @@ export function CheckoutPanel({
         </div>
       </div>
     );
+  }
+
+  if (groups.length === 0) {
+    return <div className="cart-empty"><LuShoppingCart size={72} /><h2>Your cart is empty</h2>
+      <p>Add active marketplace products to create separate farmer orders.</p></div>;
   }
 
   return (
@@ -164,8 +181,11 @@ export function CheckoutPanel({
           value={gateway}
           onChange={(event) => setGateway(event.target.value as PaymentGateway)}
         >
-          <option value="jazzcash">JazzCash</option>
-          <option value="stripe">Stripe</option>
+          <option value="safepay">Safepay</option>
+          {simulatorEnabled ? <>
+            <option value="jazzcash">JazzCash (local simulation)</option>
+            <option value="stripe">Stripe (local simulation)</option>
+          </> : null}
         </select>
       </label>
 

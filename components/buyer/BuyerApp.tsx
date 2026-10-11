@@ -27,6 +27,7 @@ import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
 import ProfileScreen from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
+import { paymentSimulatorEnabled, safepayCheckoutUrl, type PaymentReturn } from "@/lib/buyer/payment-checkout.ts";
 import { CheckoutPanel } from "./CheckoutPanel";
 
 type BuyerRepositoryPort = Pick<
@@ -48,14 +49,18 @@ export function BuyerApp({
   repository,
   session,
   onLogout,
+  paymentReturn,
+  simulatorEnabled = paymentSimulatorEnabled(),
 }: {
   repository: BuyerRepositoryPort;
   session: BuyerSession;
   onLogout: () => void;
+  paymentReturn?: PaymentReturn;
+  simulatorEnabled?: boolean;
 }) {
   const [buyer, setBuyer] = useState<BuyerSession["user"] | null>(null);
   const [accountError, setAccountError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<BuyerTab>("marketplace");
+  const [activeTab, setActiveTab] = useState<BuyerTab>(paymentReturn ? "orders" : "marketplace");
   const [query, setQuery] = useState<ProductQuery>({
     limit: 20,
     sortBy: "createdAt",
@@ -70,6 +75,9 @@ export function BuyerApp({
   const [payments, setPayments] = useState<ApiPayment[] | null>(null);
   const [shipments, setShipments] = useState<ApiShipment[] | null>(null);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+  const [checkoutLinks, setCheckoutLinks] = useState<Record<string, string>>({});
+  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>({});
+  const [initiatingOrderId, setInitiatingOrderId] = useState<string | null>(null);
   const [settlingPaymentId, setSettlingPaymentId] = useState<string | null>(null);
 
   const refreshOrders = useCallback(async () => {
@@ -135,6 +143,30 @@ export function BuyerApp({
     if (!buyer || activeTab !== "orders") return;
     void refreshOrders();
   }, [activeTab, buyer, refreshOrders]);
+
+  useEffect(() => {
+    if (!buyer || activeTab !== "orders") return;
+    const onFocus = () => { void refreshOrders(); };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [activeTab, buyer, refreshOrders]);
+
+  async function continuePayment(orderId: string) {
+    if (initiatingOrderId) return;
+    setInitiatingOrderId(orderId);
+    setPaymentErrors((current) => ({ ...current, [orderId]: "" }));
+    setCheckoutLinks((current) => ({ ...current, [orderId]: "" }));
+    try {
+      const response = await repository.initiatePayment(orderId, "safepay");
+      const url = safepayCheckoutUrl(response);
+      if (url) setCheckoutLinks((current) => ({ ...current, [orderId]: url }));
+      await refreshOrders();
+    } catch (error) {
+      setPaymentErrors((current) => ({ ...current, [orderId]: toErrorMessage(error) }));
+    } finally {
+      setInitiatingOrderId(null);
+    }
+  }
 
   const groups = useMemo(() => groupCartItemsByFarmer(cart), [cart]);
 
@@ -258,11 +290,19 @@ export function BuyerApp({
               onConfirmedFarmers={clearConfirmedGroups}
               onViewOrders={() => setActiveTab("orders")}
               repository={repository}
+              simulatorEnabled={simulatorEnabled}
             />
           ) : null}
           {activeTab === "orders" ? (
             <Orders
               error={ordersError}
+              onRefresh={() => { void refreshOrders(); }}
+              onContinuePayment={continuePayment}
+              paymentReturn={paymentReturn}
+              simulatorEnabled={simulatorEnabled}
+              checkoutLinks={checkoutLinks}
+              paymentErrors={paymentErrors}
+              initiatingOrderId={initiatingOrderId}
               onSimulatePayment={settlePayment}
               orders={orders}
               payments={payments}
@@ -410,21 +450,14 @@ function Cart({
   onConfirmedFarmers,
   onViewOrders,
   repository,
+  simulatorEnabled,
 }: {
   groups: ReturnType<typeof groupCartItemsByFarmer>;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
   repository: Pick<BuyerRepository, "createOrder" | "initiatePayment">;
+  simulatorEnabled: boolean;
 }) {
-  if (groups.length === 0) {
-    return (
-      <div className="cart-empty">
-        <LuShoppingCart size={72} />
-        <h2>Your cart is empty</h2>
-        <p>Add active marketplace products to create separate farmer orders.</p>
-      </div>
-    );
-  }
 
   return (
     <section>
@@ -444,37 +477,58 @@ function Cart({
         onConfirmedFarmers={onConfirmedFarmers}
         onViewOrders={onViewOrders}
         repository={repository}
+        simulatorEnabled={simulatorEnabled}
       />
     </section>
   );
 }
 
+type PaymentActions = {
+  onContinuePayment: (orderId: string) => void;
+  simulatorEnabled: boolean;
+  checkoutLinks: Record<string, string>;
+  paymentErrors: Record<string, string>;
+  initiatingOrderId: string | null;
+};
+
 function Orders({
   error,
+  onRefresh,
+  paymentReturn,
   onSimulatePayment,
   orders,
   payments,
   settlingPaymentId,
   shipments,
-}: {
+  ...paymentActions
+}: PaymentActions & {
   error: string | null;
+  onRefresh: () => void;
+  paymentReturn?: PaymentReturn;
   onSimulatePayment: (paymentId: string) => void;
   orders: ApiOrder[] | null;
   payments: ApiPayment[] | null;
   settlingPaymentId: string | null;
   shipments: ApiShipment[] | null;
 }) {
-  if (error) return <p role="alert">{error}</p>;
-  if (!orders || !payments || !shipments) return <p>Loading orders and payments…</p>;
-  if (orders.length === 0) return <p>No orders yet.</p>;
+
+  if (!orders || !payments || !shipments) return <div>{error ? <p role="alert">{error}</p> : <p>Loading orders and payments…</p>}<button type="button" onClick={onRefresh}>Refresh payment status</button></div>;
+
 
   const shipmentsByOrder = new Map(shipments.map((shipment) => [shipment.orderId, shipment]));
 
   return (
     <section className="orders-grid">
+      {paymentReturn ? <p role="status">{paymentReturn === "cancel"
+        ? "Checkout was closed. Your saved orders remain available below."
+        : "You returned from checkout. Payment status below comes from the server; confirmation may take a moment."}</p> : null}
+      <button className="btn btn-secondary" type="button" onClick={onRefresh}>Refresh payment status</button>
+      {error ? <p role="alert">{error}</p> : null}
+      {orders.length === 0 ? <p>No orders yet.</p> : null}
       {orders.map((order) => (
         <OrderCard
           key={order.id}
+          {...paymentActions}
           onSimulatePayment={onSimulatePayment}
           order={order}
           payment={payments.find((candidate) => candidate.orderId === order.id)}
@@ -492,7 +546,12 @@ function OrderCard({
   payment,
   settlingPaymentId,
   shipment,
-}: {
+  onContinuePayment,
+  simulatorEnabled,
+  checkoutLinks,
+  paymentErrors,
+  initiatingOrderId,
+}: PaymentActions & {
   onSimulatePayment: (paymentId: string) => void;
   order: ApiOrder;
   payment: ApiPayment | undefined;
@@ -522,7 +581,7 @@ function OrderCard({
           <p>
             Payment: {payment?.status ?? "not initiated"}
           </p>
-          {payment?.status === "pending" ? (
+          {simulatorEnabled && payment?.status === "pending" && payment.gateway !== "safepay" ? (
             <button
               className="cart-shop-btn"
               disabled={settlingPaymentId === payment.id}
@@ -534,6 +593,14 @@ function OrderCard({
                 : "Simulate payment success"}
             </button>
           ) : null}
+          {order.status === "pending" && payment?.status !== "success" && payment?.status !== "refunded" ? <div>
+            <button className="cart-shop-btn" type="button" disabled={initiatingOrderId !== null}
+              onClick={() => onContinuePayment(order.id)}>
+              {initiatingOrderId === order.id ? "Preparing checkout…" : "Continue payment"}
+            </button>
+            {payment?.status === "pending" && checkoutLinks[order.id] ? <a className="btn btn-primary" href={checkoutLinks[order.id]}>Open Safepay checkout</a> : null}
+            {paymentErrors[order.id] ? <p role="alert">{paymentErrors[order.id]}</p> : null}
+          </div> : null}
           <ShipmentTracking shipment={shipment} />
         </article>
   );

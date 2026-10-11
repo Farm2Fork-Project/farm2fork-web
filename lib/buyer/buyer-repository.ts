@@ -80,18 +80,17 @@ export class BuyerRepository {
     return this.client.request<ApiPage<ApiOrder>>(withQuery("/orders", query));
   }
 
-  async initiatePayment(
+  initiatePayment(
     orderId: string,
     gateway: PaymentGateway,
-  ): Promise<ApiPayment> {
-    const response = await this.client.request<InitiatePaymentResponse>(
+  ): Promise<InitiatePaymentResponse> {
+    return this.client.request<InitiatePaymentResponse>(
       "/payments",
       {
         method: "POST",
         body: { orderId, gateway },
       },
     );
-    return response.payment;
   }
 
   simulatePaymentSuccess(paymentId: string): Promise<ApiPayment> {

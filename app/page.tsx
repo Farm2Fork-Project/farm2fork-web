@@ -272,7 +272,9 @@ function HomeContent() {
   if (isCheckingSession) return <p>Loading…</p>;
 
   if (session) {
-    return <BuyerApp onLogout={logout} repository={repository} session={session} />;
+    const paymentReturn = searchParams.get("payment_return");
+    return <BuyerApp onLogout={logout} repository={repository} session={session}
+      paymentReturn={paymentReturn === "complete" || paymentReturn === "cancel" ? paymentReturn : undefined} />;
   }
 
   return (

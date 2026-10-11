@@ -158,7 +158,7 @@ export interface ApiOrder {
   updatedAt: string;
 }
 
-export type PaymentGateway = 'jazzcash' | 'stripe';
+export type PaymentGateway = 'jazzcash' | 'stripe' | 'safepay';
 
 export interface CreatePaymentRequest {
   orderId: string;
@@ -233,6 +233,7 @@ export interface UpdateShipmentStatusRequest {
 
 export interface InitiatePaymentResponse {
   payment: ApiPayment;
+  checkoutUrl?: string;
 }
 
 export class ApiError extends Error {

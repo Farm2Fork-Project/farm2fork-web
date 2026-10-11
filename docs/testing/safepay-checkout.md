@@ -23,7 +23,7 @@ SAFEPAY_REDIRECT_URL=https://your-web-origin/order/complete
 SAFEPAY_CANCEL_URL=https://your-web-origin/order/cancel
 ```
 
-These paths match the existing backend environment examples. Both return pages
+These paths match the existing backend environment examples. Without a valid `mobileOrderId`, both return pages
 redirect to the authenticated buyer application with a `payment_return` hint.
 The hint selects Orders and displays return/cancel copy; it never changes order
 or payment state. Only the backend's persisted status is displayed. Buyers can
@@ -78,5 +78,20 @@ harness. The backend Safepay implementation is pre-existing uncommitted work;
 this increment preserves those files.
 
 Before live use, verify sandbox checkout and its actual success/failure/cancel
-callbacks with the configured merchant and deployed return origins. Mobile
-Safepay handoff/return handling is the next client flow still pending.
+callbacks with the configured merchant and deployed return origins. Signed-in native browser-to-app return still needs device verification.
+
+## Mobile return bridge (2026-10-11)
+
+Mobile requests supply `client: mobile`. The backend adds the existing order ID
+as `mobileOrderId` to the configured success/cancel URLs. Both pages validate
+this marker and render an Open app link to
+`farm2fork://app/payments?orderId=<id>&result=complete` (or `cancel`). The app
+reads persisted backend status; the marker never settles a payment. Ordinary
+web requests retain their Orders redirect. The built routes passed HTTP checks
+for valid, invalid and absent mobile IDs.
+
+Five bridge regression tests bring the full web suite to 77 passing tests and
+two environment-gated skips. Web TypeScript and production build pass; the
+existing web checkout harness also passes after this addition. Mobile behavior,
+harness commands and device checks are documented in
+`farm2fork-mobile/docs/testing/safepay-checkout.md`.

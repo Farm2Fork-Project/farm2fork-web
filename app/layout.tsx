@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Atkinson_Hyperlegible_Next, Young_Serif } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import PushRuntime from "@/components/PushRuntime";
 
 // Body and interface: designed for legibility on mid-range screens in bright light.
 const sans = Atkinson_Hyperlegible_Next({
@@ -39,8 +40,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sans.variable} ${display.variable} ${urdu.variable}`}>
-      <body>{children}</body>
+    <html
+      lang="en"
+      className={`${sans.variable} ${display.variable} ${urdu.variable}`}
+    >
+      <body>
+        <PushRuntime />
+        {children}
+      </body>
     </html>
   );
 }

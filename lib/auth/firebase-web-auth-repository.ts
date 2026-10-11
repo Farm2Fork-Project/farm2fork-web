@@ -1,8 +1,7 @@
 import type { ApiRequestOptions } from "../api/client.ts";
 import {
   ApiError,
-  type
-  ApiAuthUser,
+  type ApiAuthUser,
   BuyerOnboardingRequest,
   FarmerOnboardingRequest,
   TransporterOnboardingRequest,
@@ -67,7 +66,10 @@ export class FirebaseWebAuthRepository {
   async signUpWithEmail(
     input: Credentials,
   ): Promise<{ kind: "verification_required"; email: string }> {
-    const user = await this.firebase.createUserWithEmail(input.email, input.password);
+    const user = await this.firebase.createUserWithEmail(
+      input.email,
+      input.password,
+    );
     await this.firebase.sendEmailVerification(user);
     return { kind: "verification_required", email: user.email ?? input.email };
   }
@@ -94,11 +96,16 @@ export class FirebaseWebAuthRepository {
     return this.onboard("/auth/web/onboard/farmer", input);
   }
 
-  onboardTransporter(input: TransporterOnboardingRequest): Promise<ApiAuthUser> {
+  onboardTransporter(
+    input: TransporterOnboardingRequest,
+  ): Promise<ApiAuthUser> {
     return this.onboard("/auth/web/onboard/transporter", input);
   }
 
   async logout(): Promise<void> {
+    const { clearBrowserPushOnLogout } =
+      await import("../notifications/firebase-push");
+    await clearBrowserPushOnLogout();
     await this.client.request("/auth/web/logout", { method: "POST" });
     await this.firebase.signOut();
     webSession.clear();
@@ -134,7 +141,10 @@ export class FirebaseWebAuthRepository {
 
   private async onboard(
     path: string,
-    input: BuyerOnboardingRequest | FarmerOnboardingRequest | TransporterOnboardingRequest,
+    input:
+      | BuyerOnboardingRequest
+      | FarmerOnboardingRequest
+      | TransporterOnboardingRequest,
   ): Promise<ApiAuthUser> {
     const firebaseUser = this.requireCurrentUser();
     const user = await this.client.request<ApiAuthUser>(path, {

@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 
 import { ProfileScreenProps } from "./types";
-import { useLanguage, Language } from "./LanguageContext";
+import { useLanguage } from "./LanguageContext";
 import { IcAlert, IcBell, IcCart, IcChevronRight, IcClose, IcFile, IcGlobe, IcHelp, IcInfo, IcLeaf, IcLogOut, IcMessage, IcShield } from "@/components/icons";
 
-const NOTIF_PREFS_KEY = "app_notif_prefs";
+import NotificationSettings from "./NotificationSettings";
 const SUPPORT_EMAIL = "support@farm2fork.pk";
 
 export default function ProfileScreen({
@@ -17,48 +17,16 @@ export default function ProfileScreen({
 }: ProfileScreenProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState("notifications");
-  const [emailNotif, setEmailNotif] = useState(true);
-  const [pushNotif, setPushNotif] = useState(true);
-  const [smsNotif, setSmsNotif] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [contactSubject, setContactSubject] = useState("");
   const [contactMessage, setContactMessage] = useState("");
   const { t, language, setLanguage, fontSize, setFontSize } = useLanguage();
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(NOTIF_PREFS_KEY);
-      if (!stored) return;
-      const parsed = JSON.parse(stored) as {
-        emailNotif?: boolean;
-        pushNotif?: boolean;
-        smsNotif?: boolean;
-      };
-      if (typeof parsed.emailNotif === "boolean") setEmailNotif(parsed.emailNotif);
-      if (typeof parsed.pushNotif === "boolean") setPushNotif(parsed.pushNotif);
-      if (typeof parsed.smsNotif === "boolean") setSmsNotif(parsed.smsNotif);
-    } catch {
-      // Ignore malformed/unavailable storage -- defaults already apply.
-    }
-  }, []);
-
-  useEffect(() => {
     if (!toastMessage) return;
     const timer = setTimeout(() => setToastMessage(null), 4000);
     return () => clearTimeout(timer);
   }, [toastMessage]);
-
-  function saveNotificationPrefs() {
-    try {
-      localStorage.setItem(
-        NOTIF_PREFS_KEY,
-        JSON.stringify({ emailNotif, pushNotif, smsNotif }),
-      );
-    } catch {
-      // Best-effort only -- toggles still apply to this session either way.
-    }
-    setToastMessage(t("settings.notif.saved"));
-  }
 
   function sendContactMessage() {
     if (!contactMessage.trim()) return;
@@ -75,60 +43,7 @@ export default function ProfileScreen({
             <h2>{t("settings.notif.title")}</h2>
             <p className="profile-tab-subtitle">{t("settings.notif.subtitle")}</p>
 
-            <div className="settings-list">
-              <div className="setting-item" onClick={() => setEmailNotif(!emailNotif)} style={{ cursor: "pointer" }}>
-                <div className="setting-info">
-                  <h3>{t("settings.notif.email")}</h3>
-                  <p>{t("settings.notif.emailDesc")}</p>
-                </div>
-                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
-                  <label className="toggle">
-                    <input
-                      type="checkbox"
-                      checked={emailNotif}
-                      onChange={() => setEmailNotif(!emailNotif)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-              <div className="setting-item" onClick={() => setPushNotif(!pushNotif)} style={{ cursor: "pointer" }}>
-                <div className="setting-info">
-                  <h3>{t("settings.notif.push")}</h3>
-                  <p>{t("settings.notif.pushDesc")}</p>
-                </div>
-                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
-                  <label className="toggle">
-                    <input
-                      type="checkbox"
-                      checked={pushNotif}
-                      onChange={() => setPushNotif(!pushNotif)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-              <div className="setting-item" onClick={() => setSmsNotif(!smsNotif)} style={{ cursor: "pointer" }}>
-                <div className="setting-info">
-                  <h3>{t("settings.notif.sms")}</h3>
-                  <p>{t("settings.notif.smsDesc")}</p>
-                </div>
-                <div className="setting-toggle" onClick={(e) => e.stopPropagation()}>
-                  <label className="toggle">
-                    <input
-                      type="checkbox"
-                      checked={smsNotif}
-                      onChange={() => setSmsNotif(!smsNotif)}
-                    />
-                    <span className="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <button className="settings-save-btn" onClick={saveNotificationPrefs} type="button">
-              {t("settings.save")}
-            </button>
+            <NotificationSettings />
           </div>
         );
       case "language":

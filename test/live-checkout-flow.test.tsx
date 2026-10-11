@@ -381,9 +381,9 @@ test.skipIf(!baseUrl)(
             ).not.toBeInTheDocument(),
           );
         }
-        expect(
-          (await transport.getTransporterStatus()).activeShipmentId,
-        ).toBeUndefined();
+        await waitFor(async () => {
+          expect((await transport.getTransporterStatus()).activeShipmentId).toBeUndefined();
+        });
       }
       await user.click(screen.getByRole("button", { name: "Go offline" }));
       await screen.findByText("Offline");

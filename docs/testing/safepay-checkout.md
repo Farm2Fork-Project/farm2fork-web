@@ -117,3 +117,17 @@ incomplete farmer profiles updated over HTTP and gateway amounts matched against
 persisted totals including delivery. Changed-file ESLint has no errors and three
 existing unused-import/parameter warnings. Merchant-hosted checkout, Firebase
 acquisition, browser appearance and deployed Fabric remain separate runtime checks.
+
+## Transporter delivery extension — 2026-10-11
+
+The checkout harness now supports `--delivery`, running the actual transport
+service through online/location refresh, offer decline/acceptance, pickup, transit
+and delivery. The web harness exercises transporter controls and buyer Orders
+tracking. Two orders finish delivered with two shipments and ten ledger outbox
+records. Normal runs retain checkout-only assertions. Notifications remain stubbed.
+
+The web suite passes 86 tests with two environment-gated skips; TypeScript,
+production build and scoped transport-file ESLint pass. The live delivery harness
+passes separately. Coordinates are manually entered/refreshed; GPS acquisition
+and background tracking are not implemented. Commands and full scope:
+`../../../farm2fork-backend/docs/testing/transporter-delivery.md`.

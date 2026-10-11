@@ -36,7 +36,7 @@ export interface RegisterFarmerRequest {
   cnic: string;
   farmName: string;
   phone?: string;
-  farmLocation?: {
+  farmLocation: {
     address: string;
     city: string;
     province: string;
@@ -220,6 +220,8 @@ export interface ApiShipmentStatusHistory {
 }
 
 export interface ApiShipment {
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
   id: string;
   orderId: string;
   transporterId: string;
@@ -234,6 +236,9 @@ export interface ApiShipment {
 }
 
 export interface ApiAvailableDelivery {
+  deliveryFee?: number;
+  deliveryDistanceKm?: number;
+  distanceToPickupKm?: number;
   orderId: string;
   pickupCity: string;
   pickupProvince: string;
@@ -278,3 +283,12 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     status: product.status,
   };
 }
+
+export interface ApiTransporterStatus {
+  online: boolean;
+  locationFresh: boolean;
+  lastLocationAt?: string;
+  activeShipmentId?: string;
+  radiusKm: number;
+}
+export interface ApiCoordinates { lat: number; lng: number }

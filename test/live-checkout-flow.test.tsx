@@ -7,6 +7,9 @@ import { afterEach, expect, test } from "vitest";
 import { ApiClient } from "../lib/api/client.ts";
 import { BuyerRepository } from "../lib/buyer/buyer-repository.ts";
 import { FarmerRepository } from "../lib/farmer/farmer-repository.ts";
+import { ShipmentRepository } from "../lib/shipment/shipment-repository.ts";
+import ShipmentScreen from "../components/transporter/ShipmentScreen";
+import { LanguageProvider } from "../components/LanguageContext";
 import { ApiError } from "../lib/api/contracts.ts";
 import { CheckoutPanel } from "../components/buyer/CheckoutPanel";
 import { BuyerApp } from "../components/buyer/BuyerApp";
@@ -178,7 +181,7 @@ test.skipIf(!baseUrl)(
       listProducts: buyer.listProducts.bind(buyer),
       listOrders: buyer.listOrders.bind(buyer),
       listPayments: buyer.listPayments.bind(buyer),
-      listShipments: async () => [],
+      listShipments: () => new ShipmentRepository({client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!)}).listShipments(),
       simulatePaymentSuccess: buyer.simulatePaymentSuccess.bind(buyer),
     };
     cleanup();
@@ -275,6 +278,137 @@ test.skipIf(!baseUrl)(
     await expect(
       buyer.simulatePaymentSuccess(payments[0].id),
     ).rejects.toBeInstanceOf(ApiError);
+    if (process.env.CHECKOUT_TEST_DELIVERY === "true") {
+      const transport = new ShipmentRepository({
+        client: client(process.env.CHECKOUT_TEST_TRANSPORTER_TOKEN!),
+      });
+      const competitor = new ShipmentRepository({
+        client: client(process.env.CHECKOUT_TEST_SECOND_TRANSPORTER_TOKEN!),
+      });
+      expect((await transport.getTransporterStatus()).online).toBe(false);
+      expect(await transport.listAvailable()).toHaveLength(0);
+      await expect(
+        new ShipmentRepository({
+          client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!),
+        }).setAvailability(true, { lat: 31.52, lng: 74.35 }),
+      ).rejects.toMatchObject({ status: 403 });
+      await expect(
+        transport.setAvailability(true, { lat: 0, lng: 74.35 }),
+      ).rejects.toMatchObject({ status: 400 });
+      await competitor.setAvailability(true, { lat: 31.52, lng: 74.35 });
+      const declined = (await competitor.listAvailable())[0];
+      await competitor.decline(declined.orderId);
+      expect(
+        (await competitor.listAvailable()).some(
+          (o) => o.orderId === declined.orderId,
+        ),
+      ).toBe(false);
+      cleanup();
+      render(
+        <LanguageProvider>
+          <ShipmentScreen repository={transport} />
+        </LanguageProvider>,
+      );
+      await screen.findByText("Offline");
+      await user.type(screen.getByLabelText("Current latitude"), "31.52");
+      await user.type(screen.getByLabelText("Current longitude"), "74.35");
+      await user.click(screen.getByRole("button", { name: "Go online" }));
+      await screen.findByText("Online");
+      await waitFor(() =>
+        expect(
+          screen.getAllByRole("button", { name: "Claim delivery" }),
+        ).toHaveLength(2),
+      );
+      expect(screen.queryByText(/12 Mall Road/)).not.toBeInTheDocument();
+      expect(screen.getAllByText(/Delivery earning/)).toHaveLength(2);
+      await user.click(
+        screen.getByRole("button", { name: "Share current location" }),
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Share current location" }),
+        ).toBeEnabled(),
+      );
+      for (let i = 0; i < 2; i++) {
+        if (i > 0)
+          await user.click(
+            screen.getByRole("button", { name: "Available deliveries" }),
+          );
+        await user.click(
+          (await screen.findAllByRole("button", { name: "Claim delivery" }))[0],
+        );
+        await screen.findByRole("button", { name: "Confirm Pick Up" });
+        const active = (await transport.getTransporterStatus())
+          .activeShipmentId!;
+        const shipment = (await transport.listShipments()).find(
+          (s) => s.id === active,
+        )!;
+        await expect(competitor.claim(shipment.orderId)).rejects.toMatchObject({
+          status: 409,
+        });
+        await expect(
+          competitor.updateStatus(active, {
+            status: "picked_up",
+            note: "wrong owner",
+          }),
+        ).rejects.toMatchObject({ status: 403 });
+        expect(await transport.listAvailable()).toHaveLength(0);
+        await expect(
+          transport.updateStatus(active, {
+            status: "delivered",
+            note: "skip pickup",
+          }),
+        ).rejects.toMatchObject({ status: 400 });
+        for (const action of [
+          "Confirm Pick Up",
+          "Start Transit",
+          "Mark Delivered",
+        ]) {
+          await waitFor(() =>
+            expect(screen.getByLabelText("Delivery note")).not.toHaveAttribute(
+              "disabled",
+            ),
+          );
+          await user.clear(screen.getByLabelText("Delivery note"));
+          await user.type(
+            screen.getByLabelText("Delivery note"),
+            `Fixture ${action}`,
+          );
+          await user.click(screen.getByRole("button", { name: action }));
+          await waitFor(() =>
+            expect(
+              screen.queryByRole("button", { name: action }),
+            ).not.toBeInTheDocument(),
+          );
+        }
+        expect(
+          (await transport.getTransporterStatus()).activeShipmentId,
+        ).toBeUndefined();
+      }
+      await user.click(screen.getByRole("button", { name: "Go offline" }));
+      await screen.findByText("Offline");
+      const buyerShipments = await new ShipmentRepository({
+        client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!),
+      }).listShipments();
+      expect(buyerShipments).toHaveLength(2);
+      expect(
+        buyerShipments.every(
+          (s) => s.status === "delivered" && s.statusHistory.length === 4,
+        ),
+      ).toBe(true);
+      expect(
+        await new ShipmentRepository({
+          client: client(process.env.CHECKOUT_TEST_FARMER_TOKEN!),
+        }).listShipments(),
+      ).toHaveLength(1);
+      expect(
+        (await buyer.listOrders()).data.every((o) => o.status === "delivered"),
+      ).toBe(true);
+      cleanup();
+      render(<BuyerApp paymentReturn="complete" session={session} repository={port} onLogout={() => undefined} />);
+      await waitFor(() => expect(screen.getAllByText("Shipment: delivered")).toHaveLength(2));
+
+    }
   },
   30_000,
 );

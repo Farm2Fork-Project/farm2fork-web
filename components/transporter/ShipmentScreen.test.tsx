@@ -13,7 +13,11 @@ const claimedShipment: ApiShipment = {
   transporterId: "transporter-1",
   status: "assigned",
   pickupAddress: { street: "Farm Road 1", city: "Multan", province: "Punjab" },
-  deliveryAddress: { street: "Mall Road 2", city: "Lahore", province: "Punjab" },
+  deliveryAddress: {
+    street: "Mall Road 2",
+    city: "Lahore",
+    province: "Punjab",
+  },
   statusHistory: [],
   createdAt: "2026-08-12T00:00:00.000Z",
   updatedAt: "2026-08-12T00:00:00.000Z",
@@ -26,6 +30,16 @@ test("ShipmentScreen reveals only redacted delivery details until a transporter 
     <LanguageProvider>
       <ShipmentScreen
         repository={{
+          getTransporterStatus: vi
+            .fn()
+            .mockResolvedValue({
+              online: true,
+              locationFresh: true,
+              radiusKm: 20,
+            }),
+          setAvailability: vi.fn(),
+          updateLocation: vi.fn(),
+          decline: vi.fn(),
           listAvailable: vi.fn().mockResolvedValue([
             {
               orderId: "order-1",
@@ -45,7 +59,9 @@ test("ShipmentScreen reveals only redacted delivery details until a transporter 
     </LanguageProvider>,
   );
 
-  expect(await screen.findByText("Multan, Punjab → Lahore, Punjab")).toBeVisible();
+  expect(
+    await screen.findByText("Multan, Punjab → Lahore, Punjab"),
+  ).toBeVisible();
   expect(screen.queryByText(/Farm Road 1/)).not.toBeInTheDocument();
 
   await userEvent.click(screen.getByRole("button", { name: "Claim delivery" }));
@@ -71,6 +87,16 @@ test("ShipmentScreen requires a note and renders the persisted next shipment sta
     <LanguageProvider>
       <ShipmentScreen
         repository={{
+          getTransporterStatus: vi
+            .fn()
+            .mockResolvedValue({
+              online: true,
+              locationFresh: true,
+              radiusKm: 20,
+            }),
+          setAvailability: vi.fn(),
+          updateLocation: vi.fn(),
+          decline: vi.fn(),
           listAvailable: vi.fn().mockResolvedValue([]),
           listShipments: vi.fn().mockResolvedValue([claimedShipment]),
           claim: vi.fn(),
@@ -80,11 +106,16 @@ test("ShipmentScreen requires a note and renders the persisted next shipment sta
     </LanguageProvider>,
   );
 
-  await userEvent.click(await screen.findByRole("button", { name: "My shipments" }));
+  await userEvent.click(
+    await screen.findByRole("button", { name: "My shipments" }),
+  );
   const pickup = await screen.findByRole("button", { name: "Confirm Pick Up" });
   expect(pickup).toBeDisabled();
 
-  await userEvent.type(screen.getByLabelText("Delivery note"), "Collected at farm gate");
+  await userEvent.type(
+    screen.getByLabelText("Delivery note"),
+    "Collected at farm gate",
+  );
   await userEvent.click(pickup);
 
   expect(updateStatus).toHaveBeenCalledWith("shipment-1", {
@@ -115,20 +146,40 @@ test("ShipmentScreen refreshes availability after a claim conflict without addin
     <LanguageProvider>
       <ShipmentScreen
         repository={{
+          getTransporterStatus: vi
+            .fn()
+            .mockResolvedValue({
+              online: true,
+              locationFresh: true,
+              radiusKm: 20,
+            }),
+          setAvailability: vi.fn(),
+          updateLocation: vi.fn(),
+          decline: vi.fn(),
           listAvailable,
           listShipments: vi.fn().mockResolvedValue([]),
-          claim: vi.fn().mockRejectedValue(new ApiError(409, "Delivery is no longer available")),
+          claim: vi
+            .fn()
+            .mockRejectedValue(
+              new ApiError(409, "Delivery is no longer available"),
+            ),
           updateStatus: vi.fn(),
         }}
       />
     </LanguageProvider>,
   );
 
-  await userEvent.click(await screen.findByRole("button", { name: "Claim delivery" }));
+  await userEvent.click(
+    await screen.findByRole("button", { name: "Claim delivery" }),
+  );
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Delivery is no longer available");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Delivery is no longer available",
+  );
   await waitFor(() => expect(listAvailable).toHaveBeenCalledTimes(2));
-  expect(screen.queryByText("Farm Road 1, Multan, Punjab")).not.toBeInTheDocument();
+  expect(
+    screen.queryByText("Farm Road 1, Multan, Punjab"),
+  ).not.toBeInTheDocument();
 });
 
 test("ShipmentScreen preserves note and status after a rejected delivery update", async () => {
@@ -136,20 +187,92 @@ test("ShipmentScreen preserves note and status after a rejected delivery update"
     <LanguageProvider>
       <ShipmentScreen
         repository={{
+          getTransporterStatus: vi
+            .fn()
+            .mockResolvedValue({
+              online: true,
+              locationFresh: true,
+              radiusKm: 20,
+            }),
+          setAvailability: vi.fn(),
+          updateLocation: vi.fn(),
+          decline: vi.fn(),
           listAvailable: vi.fn().mockResolvedValue([]),
-          listShipments: vi.fn().mockResolvedValue([{ ...claimedShipment, status: "in_transit" }]),
+          listShipments: vi
+            .fn()
+            .mockResolvedValue([{ ...claimedShipment, status: "in_transit" }]),
           claim: vi.fn(),
-          updateStatus: vi.fn().mockRejectedValue(new Error("Invalid status transition")),
+          updateStatus: vi
+            .fn()
+            .mockRejectedValue(new Error("Invalid status transition")),
         }}
       />
     </LanguageProvider>,
   );
 
-  await userEvent.click(await screen.findByRole("button", { name: "My shipments" }));
-  await userEvent.type(await screen.findByLabelText("Delivery note"), "Reached customer address");
+  await userEvent.click(
+    await screen.findByRole("button", { name: "My shipments" }),
+  );
+  await userEvent.type(
+    await screen.findByLabelText("Delivery note"),
+    "Reached customer address",
+  );
   await userEvent.click(screen.getByRole("button", { name: "Mark Delivered" }));
 
-  expect(await screen.findByRole("alert")).toHaveTextContent("Invalid status transition");
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Invalid status transition",
+  );
   expect(screen.getByDisplayValue("Reached customer address")).toBeVisible();
   expect(screen.getByText("In transit")).toBeVisible();
+});
+
+test("declining an offer refreshes its list and shows server earnings", async () => {
+  const listAvailable = vi
+    .fn()
+    .mockResolvedValueOnce([
+      {
+        orderId: "order-1",
+        pickupCity: "Multan",
+        pickupProvince: "Punjab",
+        deliveryCity: "Lahore",
+        deliveryProvince: "Punjab",
+        itemCount: 2,
+        createdAt: "2026-10-11T00:00:00Z",
+        deliveryFee: 180,
+        distanceToPickupKm: 3,
+        deliveryDistanceKm: 10,
+      },
+    ])
+    .mockResolvedValue([]);
+  const decline = vi.fn().mockResolvedValue(undefined);
+  render(
+    <LanguageProvider>
+      <ShipmentScreen
+        repository={{
+          listAvailable,
+          listShipments: vi.fn().mockResolvedValue([]),
+          claim: vi.fn(),
+          updateStatus: vi.fn(),
+          decline,
+          getTransporterStatus: vi
+            .fn()
+            .mockResolvedValue({
+              online: true,
+              locationFresh: true,
+              radiusKm: 20,
+            }),
+          setAvailability: vi.fn(),
+          updateLocation: vi.fn(),
+        }}
+      />
+    </LanguageProvider>,
+  );
+  expect(await screen.findByText("Delivery earning: Rs 180")).toBeVisible();
+  await userEvent.click(screen.getByRole("button", { name: "Decline offer" }));
+  expect(decline).toHaveBeenCalledWith("order-1");
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("button", { name: "Decline offer" }),
+    ).not.toBeInTheDocument(),
+  );
 });

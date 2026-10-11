@@ -1,6 +1,8 @@
 import type { ApiRequestOptions } from "../api/client.ts";
 import type {
   ApiAvailableDelivery,
+  ApiTransporterStatus,
+  ApiCoordinates,
   ApiShipment,
   UpdateShipmentStatusRequest,
 } from "../api/contracts.ts";
@@ -14,6 +16,32 @@ export class ShipmentRepository {
 
   constructor({ client }: { client: ApiRequester }) {
     this.client = client;
+  }
+
+  getTransporterStatus(): Promise<ApiTransporterStatus> {
+    return this.client.request<ApiTransporterStatus>(
+      "/shipments/transporter/status",
+    );
+  }
+  setAvailability(
+    online: boolean,
+    location?: ApiCoordinates,
+  ): Promise<ApiTransporterStatus> {
+    return this.client.request<ApiTransporterStatus>(
+      "/shipments/transporter/availability",
+      { method: "PUT", body: { online, ...(online ? { location } : {}) } },
+    );
+  }
+  updateLocation(location: ApiCoordinates): Promise<void> {
+    return this.client.request<void>("/shipments/transporter/location", {
+      method: "PUT",
+      body: location,
+    });
+  }
+  decline(orderId: string): Promise<void> {
+    return this.client.request<void>(`/shipments/offers/${orderId}/decline`, {
+      method: "POST",
+    });
   }
 
   listAvailable(): Promise<ApiAvailableDelivery[]> {

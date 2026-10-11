@@ -1,17 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  LuBell,
-  LuClipboardList,
-  LuUser,
-  LuLeaf,
-  LuQrCode,
-  LuPackage,
-  LuMessageSquare
-} from "react-icons/lu";
 import { AppTab, TopBarProps } from "./types";
 import { useLanguage } from "./LanguageContext";
+import { IcBell, IcClipboard, IcLeaf, IcMessage, IcPackage, IcQr, IcUser } from "@/components/icons";
 
 export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) {
   const { t } = useLanguage();
@@ -29,15 +21,15 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
   }, []);
 
   const links: { tab: AppTab; icon: React.ReactNode; label: string }[] = [
-    { tab: "shipments", icon: <LuClipboardList size={18} />, label: t("tship.pageTitle") },
-    { tab: "scan", icon: <LuQrCode size={18} />, label: t("topbar.trace") },
+    { tab: "shipments", icon: <IcClipboard size={18} />, label: t("tship.pageTitle") },
+    { tab: "scan", icon: <IcQr size={18} />, label: t("topbar.trace") },
   ];
 
   return (
     <header className="topbar">
       <div className="topbar-left">
         <div className="topbar-logo">
-          <LuLeaf size={24} className="logo-icon" />
+          <IcLeaf size={24} className="logo-icon" />
           <h2>{t("app.title")}</h2>
         </div>
       </div>
@@ -66,7 +58,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
             aria-label="Notifications"
             onClick={() => setShowNotif(!showNotif)}
           >
-            <LuBell size={19} />
+            <IcBell size={19} />
             <span className="badge-dot" />
           </button>
           
@@ -93,7 +85,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
                 
                 <div style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", background: "rgba(34, 197, 94, 0.05)", cursor: "pointer" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary-green)", flexShrink: 0 }}>
-                    <LuPackage size={20} />
+                    <IcPackage size={20} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -107,7 +99,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
 
                 <div style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", cursor: "pointer" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#3b82f6", flexShrink: 0 }}>
-                    <LuMessageSquare size={20} />
+                    <IcMessage size={20} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -120,7 +112,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
 
                 <div style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", cursor: "pointer" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "rgba(239, 68, 68, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#ef4444", flexShrink: 0 }}>
-                    <LuClipboardList size={20} />
+                    <IcClipboard size={20} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>

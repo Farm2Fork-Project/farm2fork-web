@@ -1,17 +1,8 @@
 'use client'
 
+import { IcCheck as Check, IcCheckCircle as CheckCircle, IcClose as X, IcCoin as DollarSign, IcSearch as Search } from "@/components/icons";
+import { ChevronRight, Clock, Download, TrendingUp } from "lucide-react";
 import React, { useState, useEffect } from 'react'
-import { 
-  DollarSign, 
-  CheckCircle, 
-  TrendingUp, 
-  Clock, 
-  ChevronRight, 
-  Download,
-  X,
-  Check,
-  Search
-} from 'lucide-react'
 import { LoanApplication, DashboardScreenProps } from '../types'
 import Topbar from './Topbar'
 

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Send } from 'lucide-react'
+import { IcClose as X } from "@/components/icons";
+import { Send } from "lucide-react";
 
 export default function SupportTicketModal({ onClose }: { onClose: () => void }) {
   const [mounted, setMounted] = useState(false)

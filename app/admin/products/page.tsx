@@ -1,4 +1,5 @@
-import { Filter, Flag, PackageSearch, Search } from 'lucide-react'
+import { IcSearch as Search } from "@/components/icons";
+import { Filter, Flag, PackageSearch } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const products = [

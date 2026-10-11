@@ -1,7 +1,8 @@
 'use client'
 
+import { IcBell as Bell, IcFile as FileText, IcMenu as Menu, IcSearch as Search } from "@/components/icons";
+import { Activity, AlertTriangle, HelpCircle, LifeBuoy, Mail, UserPlus } from "lucide-react";
 import React, { useEffect, useState, useRef } from 'react'
-import { Menu, Search, Bell, HelpCircle, UserPlus, AlertTriangle, Activity, FileText, LifeBuoy, Mail } from 'lucide-react'
 import Image from 'next/image'
 import SupportTicketModal from './SupportTicketModal'
 import AdminDocsModal from './AdminDocsModal'

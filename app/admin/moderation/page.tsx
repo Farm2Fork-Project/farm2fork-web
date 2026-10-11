@@ -1,5 +1,6 @@
+import { IcCheckCircle as CheckCircle, IcSearch as Search } from "@/components/icons";
+import { Filter, ShieldAlert, XCircle } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
-import { ShieldAlert, CheckCircle, XCircle, Search, Filter } from 'lucide-react'
 
 const mockReviews = [
   {

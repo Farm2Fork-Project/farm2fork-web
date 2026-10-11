@@ -1,16 +1,8 @@
 'use client'
 
+import { IcCheck as Check, IcClose as X, IcFile as FileText, IcSparkles as Sparkles } from "@/components/icons";
+import { Building, Clock, Shield, TrendingUp } from "lucide-react";
 import React, { useState, useEffect } from 'react'
-import { 
-  Building, 
-  TrendingUp, 
-  Check, 
-  FileText, 
-  Shield, 
-  X,
-  Clock,
-  Sparkles
-} from 'lucide-react'
 import { LoanApplication, LoanDetailScreenProps } from '../types'
 import Topbar from './Topbar'
 import { ApiClient } from '@/lib/api/client.ts'

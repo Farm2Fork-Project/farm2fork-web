@@ -15,6 +15,7 @@ import {
   toBuyerProduct,
 } from "../api/contracts.ts";
 import type { BuyerSession } from "../auth/web-session.ts";
+import { wrongRoleMessage } from "../auth/wrong-role.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
@@ -52,7 +53,7 @@ export class BuyerRepository {
   async getCurrentBuyer(): Promise<BuyerSession["user"]> {
     const user = await this.client.request<ApiAuthUser>("/auth/me");
     if (user.role !== "buyer") {
-      throw new ApiError(403, "This account cannot access the buyer application.");
+      throw new ApiError(403, wrongRoleMessage("buyer", user.role));
     }
     return user as BuyerSession["user"];
   }

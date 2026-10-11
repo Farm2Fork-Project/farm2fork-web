@@ -1,17 +1,10 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
-import {
-  LuShoppingCart,
-  LuStore,
-  LuTruck,
-  LuChevronRight,
-  LuArrowLeft,
-  LuX,
-} from "react-icons/lu";
 
 import { SignUpRoleScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcCart, IcChevronRight, IcClose, IcStore, IcTruck } from "@/components/icons";
 
 export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: SignUpRoleScreenProps) {
   const { t } = useLanguage();
@@ -30,11 +23,11 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
     <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="role-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><LuX size={22} /></button>}
-          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> {t("login.backToHome")}</button>
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><IcClose size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><IcArrowLeft size={16} /> {t("login.backToHome")}</button>
           <div className="auth-card-narrow-header">
             <button className="back-btn" onClick={onBack} aria-label={t("signupRole.goBackAriaLabel")}>
-              <LuArrowLeft size={22} />
+              <IcArrowLeft size={22} />
             </button>
             <h1 id="role-heading">{t("signupRole.header")}</h1>
           </div>
@@ -50,35 +43,35 @@ export default function SignUpRoleScreen({ onBack, onBackHome, onSelectRole }: S
             id="role-buyer"
           >
             <div className="role-card-icon">
-              <LuShoppingCart size={24} />
+              <IcCart size={24} />
             </div>
             <div className="role-card-content">
               <h3>{t("signupRole.buyerRole")}</h3>
               <p>{t("signupRole.buyerDescText")}</p>
             </div>
-            <LuChevronRight size={20} className="role-card-arrow" />
+            <IcChevronRight size={20} className="role-card-arrow" />
           </div>
 
           <div className="role-card" onClick={() => onSelectRole("farmer")} onKeyDown={(e) => handleRoleKeyDown(e, "farmer")} role="button" tabIndex={0} id="role-farmer">
             <div className="role-card-icon">
-              <LuStore size={24} />
+              <IcStore size={24} />
             </div>
             <div className="role-card-content">
               <h3>{t("signupRole.farmerRole")}</h3>
               <p>{t("signupRole.farmerDescText")}</p>
             </div>
-            <LuChevronRight size={20} className="role-card-arrow" />
+            <IcChevronRight size={20} className="role-card-arrow" />
           </div>
 
           <div className="role-card" onClick={() => onSelectRole("transporter")} onKeyDown={(e) => handleRoleKeyDown(e, "transporter")} role="button" tabIndex={0} id="role-transporter">
             <div className="role-card-icon">
-              <LuTruck size={24} />
+              <IcTruck size={24} />
             </div>
             <div className="role-card-content">
               <h3>{t("signupRole.transporterRole")}</h3>
               <p>{t("signupRole.transporterDescText")}</p>
             </div>
-            <LuChevronRight size={20} className="role-card-arrow" />
+            <IcChevronRight size={20} className="role-card-arrow" />
           </div>
 
           <div className="auth-footer">

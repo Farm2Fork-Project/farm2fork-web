@@ -1,20 +1,6 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import {
-  Tractor,
-  ShoppingBag,
-  PlusCircle,
-  Rss,
-  User,
-  Search,
-  Bell,
-  CheckCircle,
-  X,
-  Menu,
-  FileText,
-  QrCode,
-} from "lucide-react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import { FarmPickupLocation } from "./FarmPickupLocation";
 import CreateListingForm from "./CreateListingForm";
@@ -23,7 +9,6 @@ import FarmFeed from "./FarmFeed";
 import FarmerProfile from "../ProfileScreen";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
-import { LuLeaf, LuUser } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
   ApiOrder,
@@ -31,6 +16,7 @@ import type {
   CreateFarmerProductRequest,
 } from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
+import { IcBag as ShoppingBag, IcBell as Bell, IcCheckCircle as CheckCircle, IcClose as X, IcFeed as Rss, IcLeaf, IcMenu as Menu, IcPlusCircle as PlusCircle, IcQr as QrCode, IcTractor as Tractor, IcUser, IcUser as User } from "@/components/icons";
 
 type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
 
@@ -170,7 +156,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
               <Menu size={22} />
             </button>
             <div className="topbar-logo">
-              <LuLeaf size={24} className="logo-icon" />
+              <IcLeaf size={24} className="logo-icon" />
               <h2>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</h2>
             </div>
           </div>
@@ -451,7 +437,7 @@ export default function FarmerDashboard({ email, onLogout }: { email?: string; o
           {activeTab === "profile" && (
             <FarmerProfile
               email={email}
-              avatarIcon={<LuUser size={28} />}
+              avatarIcon={<IcUser size={28} />}
               signedInAs={t("settings.sidebar.signedInFarmer")}
               onLogout={() => {
                 if (onLogout) onLogout();

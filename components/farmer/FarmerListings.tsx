@@ -2,26 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { 
-  Tractor, 
-  MapPin, 
-  Star, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
-  Package, 
-  Check,
-  Search,
-  LayoutGrid,
-  Carrot,
-  Apple,
-  Wheat,
-  Milk,
-  Plus,
-  Leaf,
-  X
-} from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import { IcCarrot as Carrot, IcCheck as Check, IcClose as X, IcEye as Eye, IcEyeOff as EyeOff, IcGrid as LayoutGrid, IcLeaf as Leaf, IcMango as Apple, IcMapPin as MapPin, IcMilk as Milk, IcPackage as Package, IcPlus as Plus, IcSearch as Search, IcStar as Star, IcTractor as Tractor, IcTrash as Trash2, IcWheat as Wheat } from "@/components/icons";
 
 export interface Listing {
   id: string;
@@ -175,7 +157,7 @@ export default function FarmerListings({
 
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-dark)", letterSpacing: "-0.5px", margin: 0 }}>
+        <h1 className="page-title">
           {t("farmer.listings.title")}
         </h1>
         <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 4, margin: 0 }}>
@@ -244,7 +226,7 @@ export default function FarmerListings({
 
       {/* ── Categories Section Slider ── */}
       <section style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 16, fontWeight: 800, color: "var(--text-dark)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 16 }}>
+        <h2 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-dark)", marginBottom: 16 }}>
           {t("farmer.listings.filterCategory")}
         </h2>
         <div className="category-row">
@@ -278,25 +260,29 @@ export default function FarmerListings({
 
       {/* ── Shelf Action Header ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontSize: 14, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.5px", margin: 0 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-muted)", margin: 0 }}>
           {t("farmer.listings.showingCount")
             .replace("{count}", String(filteredListings.length))}
         </h2>
-        <span 
+        <button
+          type="button"
           onClick={onAddClick}
-          style={{ 
-            fontSize: 14, 
-            fontWeight: 700, 
-            color: "var(--primary-green)", 
+          style={{
+            color: "var(--primary-green)",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: 4,
-            marginInlineEnd: 16
+            gap: 6,
+            background: "none",
+            border: 0,
+            padding: "6px 0",
+            font: "inherit",
+            fontSize: 15,
+            fontWeight: 700,
           }}
         >
-          <Plus size={14} strokeWidth={3} /> {t("farmer.listings.addProduct")}
-        </span>
+          <Plus size={16} strokeWidth={2.25} /> {t("farmer.listings.addProduct")}
+        </button>
       </div>
 
       {/* ── Empty State / Grid Render Layout ── */}
@@ -312,12 +298,17 @@ export default function FarmerListings({
           >
             <Package size={24} color="var(--primary-green)" />
           </div>
-          <p style={{ fontWeight: 700, fontSize: 15, color: "var(--text-dark)", margin: 0 }}>
-            {t("farmer.listings.noProducts")}
+          <p style={{ fontWeight: 700, fontSize: 17, color: "var(--text-dark)", margin: 0 }}>
+            {listings.length === 0 ? t("farmer.listings.emptyTitle") : t("farmer.listings.noProducts")}
           </p>
-          <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4, margin: 0 }}>
-            {t("farmer.listings.noProductsDesc")}
+          <p style={{ fontSize: 15, color: "var(--text-muted)", margin: "6px auto 0", maxWidth: 360 }}>
+            {listings.length === 0 ? t("farmer.listings.emptyDesc") : t("farmer.listings.noProductsDesc")}
           </p>
+          {listings.length === 0 ? (
+            <button type="button" className="btn btn-primary" style={{ marginTop: 20 }} onClick={onAddClick}>
+              {t("farmer.listings.addProduct")}
+            </button>
+          ) : null}
         </div>
       ) : (
         <div className="mp-product-grid">

@@ -1,24 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  LuShoppingCart,
-  LuBell,
-  LuGlobe,
-  LuMessageSquare,
-  LuCircleHelp,
-  LuInfo,
-  LuShield,
-  LuFileText,
-  LuLogOut,
-  LuChevronRight,
-  LuTriangleAlert,
-  LuLeaf,
-  LuX
-} from "react-icons/lu";
 
 import { ProfileScreenProps } from "./types";
 import { useLanguage, Language } from "./LanguageContext";
+import { IcAlert, IcBell, IcCart, IcChevronRight, IcClose, IcFile, IcGlobe, IcHelp, IcInfo, IcLeaf, IcLogOut, IcMessage, IcShield } from "@/components/icons";
 
 const NOTIF_PREFS_KEY = "app_notif_prefs";
 const SUPPORT_EMAIL = "support@farm2fork.pk";
@@ -158,7 +144,7 @@ export default function ProfileScreen({
                   <p>{t("settings.lang.languageDesc")}</p>
                 </div>
                 <div className="setting-action">
-                  {language === "en" ? "English (US)" : "اردو"} <LuChevronRight size={16} />
+                  {language === "en" ? "English (US)" : "اردو"} <IcChevronRight size={16} />
                 </div>
               </div>
               <div className="setting-item" onClick={() => {
@@ -170,7 +156,7 @@ export default function ProfileScreen({
                   <p>{t("settings.lang.fontsizeDesc")}</p>
                 </div>
                 <div className="setting-action">
-                  {fontSize === "small" ? t("settings.lang.fontSmall") : fontSize === "medium" ? t("settings.lang.fontMedium") : t("settings.lang.fontLarge")} <LuChevronRight size={16} />
+                  {fontSize === "small" ? t("settings.lang.fontSmall") : fontSize === "medium" ? t("settings.lang.fontMedium") : t("settings.lang.fontLarge")} <IcChevronRight size={16} />
                 </div>
               </div>
             </div>
@@ -242,7 +228,7 @@ export default function ProfileScreen({
 
             <div style={{ textAlign: "center", padding: "40px 0", background: "linear-gradient(145deg, var(--surface-light), var(--surface-strong))", borderRadius: "24px", border: "1px solid var(--border-light)", boxShadow: "0 8px 30px rgba(0,0,0,0.04)" }}>
               <div style={{ width: "90px", height: "90px", background: "var(--primary-green-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto var(--sp-lg)", boxShadow: "0 4px 15px rgba(39, 174, 96, 0.2)" }}>
-                <LuLeaf size={44} color="var(--primary-green)" />
+                <IcLeaf size={44} color="var(--primary-green)" />
               </div>
               <h3 style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "var(--sp-xs)" }}>{t("settings.about.app")}</h3>
               <div style={{ display: "inline-block", background: "var(--primary-green)", color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, marginBottom: "var(--sp-xl)" }}>
@@ -283,7 +269,7 @@ export default function ProfileScreen({
             <h2>{t("settings.privacy.title")}</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "var(--sp-md)" }}>
               <div style={{ padding: "8px", background: "var(--primary-green-soft)", borderRadius: "50%" }}>
-                <LuShield size={24} color="var(--primary-green)" />
+                <IcShield size={24} color="var(--primary-green)" />
               </div>
               <p className="profile-tab-subtitle" style={{ margin: 0, fontWeight: 600, color: "var(--primary-green)" }}>{t("settings.privacy.dataProtection")}</p>
             </div>
@@ -297,7 +283,7 @@ export default function ProfileScreen({
         return (
           <div className="profile-tab-content animation-fade-in">
             <div style={{ textAlign: "center", padding: "60px 0" }}>
-              <LuInfo size={48} color="var(--surface-strong)" style={{ marginBottom: "16px" }} />
+              <IcInfo size={48} color="var(--surface-strong)" style={{ marginBottom: "16px" }} />
               <h2>{t("settings.uc.title")}</h2>
               <p className="profile-tab-subtitle" style={{ maxWidth: "300px", margin: "0 auto" }}>
                 {t("settings.uc.subtitle")}
@@ -313,11 +299,11 @@ export default function ProfileScreen({
       {toastMessage && (
         <div className="toast-alert">
           <div className="toast-alert-icon">
-            <LuInfo size={18} />
+            <IcInfo size={18} />
           </div>
           <span className="toast-alert-message">{toastMessage}</span>
           <button className="toast-alert-close" onClick={() => setToastMessage(null)} type="button">
-            <LuX size={14} />
+            <IcClose size={14} />
           </button>
         </div>
       )}
@@ -326,7 +312,7 @@ export default function ProfileScreen({
         <aside className="profile-sidebar">
           <div className="profile-user-card">
             <div className="profile-avatar">
-              {avatarIcon ?? <LuShoppingCart size={28} />}
+              {avatarIcon ?? <IcCart size={28} />}
             </div>
             <div>
               <div className="profile-user-name">{signedInAs ?? t("settings.sidebar.signedIn")}</div>
@@ -340,13 +326,13 @@ export default function ProfileScreen({
               className={`profile-nav-item ${activeTab === "notifications" ? "active" : ""}`}
               onClick={() => setActiveTab("notifications")}
             >
-              <LuBell size={18} /> {t("settings.sidebar.notif")}
+              <IcBell size={18} /> {t("settings.sidebar.notif")}
             </button>
             <button
               className={`profile-nav-item ${activeTab === "language" ? "active" : ""}`}
               onClick={() => setActiveTab("language")}
             >
-              <LuGlobe size={18} /> {t("settings.sidebar.lang")}
+              <IcGlobe size={18} /> {t("settings.sidebar.lang")}
             </button>
           </div>
 
@@ -356,31 +342,31 @@ export default function ProfileScreen({
               className={`profile-nav-item ${activeTab === "contact" ? "active" : ""}`}
               onClick={() => setActiveTab("contact")}
             >
-              <LuMessageSquare size={18} /> {t("settings.sidebar.contact")}
+              <IcMessage size={18} /> {t("settings.sidebar.contact")}
             </button>
             <button
               className={`profile-nav-item ${activeTab === "faqs" ? "active" : ""}`}
               onClick={() => setActiveTab("faqs")}
             >
-              <LuCircleHelp size={18} /> {t("settings.sidebar.faqs")}
+              <IcHelp size={18} /> {t("settings.sidebar.faqs")}
             </button>
             <button
               className={`profile-nav-item ${activeTab === "about" ? "active" : ""}`}
               onClick={() => setActiveTab("about")}
             >
-              <LuInfo size={18} /> {t("settings.sidebar.about")}
+              <IcInfo size={18} /> {t("settings.sidebar.about")}
             </button>
             <button
               className={`profile-nav-item ${activeTab === "privacy" ? "active" : ""}`}
               onClick={() => setActiveTab("privacy")}
             >
-              <LuShield size={18} /> {t("settings.sidebar.privacy")}
+              <IcShield size={18} /> {t("settings.sidebar.privacy")}
             </button>
             <button
               className={`profile-nav-item ${activeTab === "terms" ? "active" : ""}`}
               onClick={() => setActiveTab("terms")}
             >
-              <LuFileText size={18} /> {t("settings.sidebar.terms")}
+              <IcFile size={18} /> {t("settings.sidebar.terms")}
             </button>
           </div>
 
@@ -390,7 +376,7 @@ export default function ProfileScreen({
               onClick={() => setShowLogoutModal(true)}
               id="logout-btn"
             >
-              <LuLogOut size={18} /> {t("settings.sidebar.logout")}
+              <IcLogOut size={18} /> {t("settings.sidebar.logout")}
             </button>
           </div>
         </aside>
@@ -406,7 +392,7 @@ export default function ProfileScreen({
           <div className="modal" style={{ maxWidth: "540px", padding: "32px", textAlign: "left" }}>
             <div style={{ display: "flex", gap: "20px", alignItems: "flex-start" }}>
               <div style={{ width: "56px", height: "56px", flexShrink: 0, borderRadius: "50%", background: "#FEE2E2", color: "var(--error-red)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <LuTriangleAlert size={28} style={{ marginLeft: "2px" }} />
+                <IcAlert size={28} style={{ marginLeft: "2px" }} />
               </div>
               <div>
                 <h2 style={{ fontSize: "22px", fontWeight: 700, color: "var(--text-dark)", marginBottom: "8px", marginTop: "4px" }}>{t("settings.modal.title")}</h2>

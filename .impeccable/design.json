@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-11T00:00:00Z",
+  "title": "Design System: Farm2Fork",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Field Green", "canonical": "#236B44", "tonalRamp": ["#0E2B1B", "#174B31", "#1D5A3A", "#236B44", "#4F8A68", "#7FA98D", "#B3CDBC", "#E4F1DD"] },
+      "canvas": { "role": "neutral", "displayName": "Canvas", "canonical": "#F6F8F1", "tonalRamp": ["#1F2E24", "#6B776C", "#A9B3A4", "#D4E0CB", "#E7EDE0", "#F0F4E8", "#F6F8F1", "#FAFBF8"] },
+      "secondary-blue": { "role": "secondary", "displayName": "River Blue", "canonical": "#2E6F8E", "tonalRamp": ["#143645", "#1F4D63", "#2E6F8E", "#5A8FA9", "#86AEC2", "#B5CFDB", "#E3F0F5", "#F1F8FA"] },
+      "accent-yellow": { "role": "tertiary", "displayName": "Harvest Yellow", "canonical": "#F0B429", "tonalRamp": ["#5C4208", "#8A6210", "#B8821A", "#F0B429", "#F4C656", "#F8D985", "#FFF1C2", "#FFF9E3"] },
+      "landing-paper": { "role": "neutral", "displayName": "Landing Paper", "canonical": "#fbfbfa", "tonalRamp": ["#1c1c1c", "#4a4a49", "#7a7a78", "#acaca9", "#d2d2cf", "#e8e8e5", "#f3f3f1", "#fbfbfa"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Page Title", "purpose": "Young Serif 400 for page and section titles. Never bold or italic." },
+      "display-hero": { "displayName": "Landing Hero", "purpose": "Landing hero and section headings only." },
+      "body": { "displayName": "Body", "purpose": "Atkinson Hyperlegible Next, 15 to 16px; 12px is the floor." },
+      "urdu": { "displayName": "Urdu", "purpose": "Noto Nastaliq Urdu applied to the whole document under dir=rtl." }
+    },
+    "shadows": [
+      { "name": "card-rest", "value": "0 2px 8px rgba(0,0,0,0.04)", "purpose": "Ambient lift under cards." },
+      { "name": "card-hover", "value": "0 8px 16px rgba(0,0,0,0.06)", "purpose": "Card hover response." },
+      { "name": "topbar", "value": "0 4px 30px rgba(0,0,0,0.02)", "purpose": "Barely-there lift under the sticky top bar." },
+      { "name": "focus-ring", "value": "0 0 0 3px rgba(35,107,68,0.16)", "purpose": "Field focus, with green border." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "0.2s ease", "purpose": "Border, background and shadow transitions on buttons, fields and cards." },
+      { "name": "ease-tab", "value": "0.2s cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Top bar tab hover and active." }
+    ],
+    "breakpoints": [
+      { "name": "gutter-sm", "value": "640px" },
+      { "name": "topbar-tabs-row", "value": "760px" },
+      { "name": "gutter-lg", "value": "1024px" },
+      { "name": "topbar-collapse", "value": "1100px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Pill action button; green fill, darker on hover.",
+      "html": "<button class=\"ds-btn-primary\">Place order</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 8px 16px; border: none; border-radius: 999px; background: #236B44; color: #fff; font-family: var(--font-primary); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; } .ds-btn-primary:hover { background: #174B31; } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(35,107,68,0.16); }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "White pill with a hairline border for secondary actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { min-height: 40px; padding: 8px 16px; border: 1px solid #E7EDE0; border-radius: 999px; background: #fff; color: #1F2E24; font-family: var(--font-primary); font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; } .ds-btn-secondary:hover { background: #FAFBF8; } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(35,107,68,0.16); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "The one field style: 48px, 1.5px border, 12px radius, green focus ring.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search produce\" />",
+      "css": ".ds-input { height: 48px; width: 100%; padding: 0 16px; border: 1.5px solid #D4E0CB; border-radius: 12px; background: #fff; color: #1F2E24; font-family: var(--font-primary); font-size: 15px; transition: border-color 0.2s ease, box-shadow 0.2s ease; } .ds-input::placeholder { color: #6B776C; } .ds-input:hover { border-color: #E4F1DD; } .ds-input:focus-visible { outline: none; border-color: #236B44; box-shadow: 0 0 0 3px rgba(35,107,68,0.16); }"
+    },
+    {
+      "name": "Top Bar Tabs",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Shared portal tabs; active tab gets a green wash.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab active\">Marketplace</a><a class=\"ds-tab\">Orders</a></nav>",
+      "css": ".ds-tabs { display: flex; gap: 6px; } .ds-tab { padding: 8px 16px; border: 1px solid transparent; border-radius: 8px; color: #6B776C; font-family: var(--font-primary); font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.2s cubic-bezier(0.16,1,0.3,1); } .ds-tab:hover { background: rgba(35,107,68,0.04); color: #236B44; } .ds-tab.active { background: rgba(35,107,68,0.08); color: #236B44; border-color: rgba(35,107,68,0.12); font-weight: 700; } .ds-tab:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(35,107,68,0.16); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White container with hairline border and ambient shadow.",
+      "html": "<div class=\"ds-card\">Card content</div>",
+      "css": ".ds-card { padding: 20px; border: 1px solid #E7EDE0; border-radius: 16px; background: #fff; color: #1F2E24; font-family: var(--font-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.04); transition: box-shadow 0.2s ease; } .ds-card:hover { box-shadow: 0 8px 16px rgba(0,0,0,0.06); }"
+    },
+    {
+      "name": "Pickup Summary",
+      "kind": "custom",
+      "refersTo": "pickup-summary",
+      "description": "Compact saved-location row with icon tile and pill edit button.",
+      "html": "<div class=\"ds-pickup\"><div class=\"ds-pickup-icon\">&#9679;</div><div class=\"ds-pickup-text\"><strong>Pickup location</strong><span>Plot 12, Sheikhupura Road</span></div><button class=\"ds-pickup-edit\">Edit</button></div>",
+      "css": ".ds-pickup { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 8px 16px; padding: 16px 20px; border: 1px solid #E7EDE0; border-radius: 16px; background: #fff; font-family: var(--font-primary); } .ds-pickup-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 14px; background: #E4F1DD; color: #236B44; } .ds-pickup-text { display: grid; gap: 2px; min-width: 0; } .ds-pickup-text strong { font-size: 16px; color: #1F2E24; } .ds-pickup-text span { font-size: 15px; color: #6B776C; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-pickup-edit { min-height: 44px; padding: 0 20px; border: 1.5px solid #D4E0CB; border-radius: 999px; background: #fff; color: #236B44; font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease; } .ds-pickup-edit:hover { border-color: #236B44; background: #E4F1DD; } .ds-pickup-edit:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(35,107,68,0.16); }"
+    },
+    {
+      "name": "Category Chip",
+      "kind": "chip",
+      "refersTo": "category-chip-icon",
+      "description": "68px round tile with a drawn crop icon and name beneath.",
+      "html": "<div class=\"ds-cat\"><span class=\"ds-cat-icon\"><svg viewBox=\"0 0 24 24\" width=\"30\" height=\"30\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5.5 18.5C5 10.5 10 5 18.5 5.2c.3 8.3-5 13.8-13 13.3Z\"/></svg></span><span class=\"ds-cat-name\">Fruit</span></div>",
+      "css": ".ds-cat { display: grid; justify-items: center; gap: 8px; min-width: 88px; font-family: var(--font-primary); } .ds-cat-icon { width: 68px; height: 68px; display: grid; place-items: center; border: 1px solid #E7EDE0; border-radius: 50%; background: color-mix(in srgb, #236B44 6%, #fff); color: #174B31; transition: border-color 0.2s ease; } .ds-cat:hover .ds-cat-icon { border-color: #236B44; } .ds-cat-name { font-size: 14px; color: #1F2E24; }"
+    },
+    {
+      "name": "Auth Error",
+      "kind": "custom",
+      "refersTo": "auth-error",
+      "description": "Inline error message under a form.",
+      "html": "<p class=\"ds-error\">Incorrect email or password.</p>",
+      "css": ".ds-error { margin-top: 16px; padding: 12px 14px; border: 1px solid #f1c9c4; border-radius: 8px; background: #fdf0ee; color: #9d2f25; font-family: var(--font-primary); font-size: 14px; font-weight: 600; line-height: 1.45; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Market Ledger",
+    "overview": "Farm2Fork is one product in two shells: the Flutter app and this web app share role colours, badge meanings and token values. The system is calm, green and legible, with pale green-tinted paper surfaces, deep green-black text, and one saturated voice, Field Green (#236B44).\n\nType does the personality work: Young Serif at a single weight for titles, Atkinson Hyperlegible Next for everything operational, Noto Nastaliq Urdu for RTL. The public landing page is the editorial extension of the same world: near-white paper, near-black ink, a softer green and sand accent, with drawn icons in place of numerals.\n\nThis pass extends the incumbent green theme; it did not replace it.",
+    "keyCharacteristics": [
+      "Forest green (#236B44) is the only saturated accent in the app shell; yellow and blue are semantic.",
+      "Display serif for page and section titles, hyperlegible sans for all else, Nastaliq for Urdu.",
+      "Pill buttons, large rounded cards (16px), 12px fields.",
+      "Soft ambient shadows only; borders in pale green-grey do most of the separating.",
+      "One custom icon family: round-capped 1.75px outline with an off-register tint fill.",
+      "One shared page gutter and container for every portal."
+    ],
+    "rules": [
+      { "name": "The One Green Rule", "body": "In the app shell, green is the only brand accent. Blue and yellow carry meaning (info, pending), never decoration.", "section": "colors" },
+      { "name": "The Defined Token Rule", "body": "Colour comes from a named token. --border-light, --border-color and --text-main exist as aliases; do not reference a custom property that is not defined.", "section": "colors" },
+      { "name": "The One Weight Rule", "body": "Young Serif is loaded at 400 only. Never bold, italicise or ask for another weight; the browser would synthesise it.", "section": "typography" },
+      { "name": "The Legible Floor Rule", "body": "Nothing is set below 12px; secondary text is 13px or more; body is 15 to 16px.", "section": "typography" },
+      { "name": "The Border-First Rule", "body": "Separation comes from a 1px or 1.5px green-grey border; shadows stay under 8% black.", "section": "elevation" },
+      { "name": "The One Icon Hand Rule", "body": "New icons are added to art.ts in the outline-plus-tint construction. Do not mix in a second style.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do take colour, spacing and radii from the :root tokens, and extend app/globals.css before reaching for Tailwind utilities.",
+      "Do use --font-display for page and panel titles at weight 400, and --font-primary for everything else.",
+      "Do keep text at 12px minimum, secondary text at 13px or more, body at 15 to 16px.",
+      "Do use --page-gutter and --page-max for any new page-level container.",
+      "Do build new fields to the one field style: 48px, 1.5px Surface Strong border, 12px radius, 3px green focus ring.",
+      "Do draw new icons in the shared outline-plus-tint construction and pass --icon-tint for context colour.",
+      "Do provide the Urdu face and RTL behaviour for buyer, farmer and transporter text."
+    ],
+    "donts": [
+      "Don't bold, italicise or substitute another weight for Young Serif.",
+      "Don't reference a custom property that is not defined in :root.",
+      "Don't add a second saturated accent to the app shell or use blue and yellow decoratively.",
+      "Don't make the landing page a generic SaaS template; keep the paper-and-ink editorial identity.",
+      "Don't invent testimonials, logos or metrics; placeholder numbers are debt, not content."
+    ]
+  }
+}

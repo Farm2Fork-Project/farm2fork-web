@@ -1,7 +1,8 @@
 'use client'
 
+import { IcBell as Bell, IcLeaf as Leaf, IcSearch as Search } from "@/components/icons";
+import { ArrowLeft, HelpCircle, LogOut } from "lucide-react";
 import React, { useState } from 'react'
-import { Search, Bell, HelpCircle, ArrowLeft, Leaf, LogOut } from 'lucide-react'
 import { TopbarProps } from '../types'
 
 export default function Topbar({

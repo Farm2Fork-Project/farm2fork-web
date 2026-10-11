@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Bug, Upload } from 'lucide-react'
+import { IcClose as X } from "@/components/icons";
+import { Bug, Upload } from "lucide-react";
 
 export default function EngineeringContactModal({ onClose }: { onClose: () => void }) {
   const [mounted, setMounted] = useState(false)

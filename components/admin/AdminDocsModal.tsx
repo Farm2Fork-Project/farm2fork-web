@@ -1,8 +1,9 @@
 'use client'
 
+import { IcClose as X } from "@/components/icons";
+import { Book, Server, Shield, Users } from "lucide-react";
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X, Book, Server, Shield, Users } from 'lucide-react'
 
 export default function AdminDocsModal({ onClose }: { onClose: () => void }) {
   const [mounted, setMounted] = useState(false)

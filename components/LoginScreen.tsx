@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { LuArrowLeft, LuEyeOff, LuEye, LuX } from "react-icons/lu";
 import { LoginScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcClose, IcEye, IcEyeOff } from "@/components/icons";
 
 export default function LoginScreen({
   onLogin,
@@ -23,9 +23,9 @@ export default function LoginScreen({
     <div className="auth-wrapper" role="dialog" aria-modal="true" aria-labelledby="login-heading" onMouseDown={(e) => e.target === e.currentTarget && onBackHome?.()}>
       <div className="auth-card auth-card-narrow">
         <div className="auth-form-side">
-          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><LuX size={22} /></button>}
-          <button className="auth-home-link" onClick={onBackHome}><LuArrowLeft size={16} /> {t("login.backToHome")}</button>
-          <div className="auth-heading"><span>{t("login.welcomeBack")}</span><h1 id="login-heading">{t("login.heading")}</h1><p>{t("login.description")}</p></div>
+          {onBackHome && <button className="auth-close" onClick={onBackHome} aria-label={t("login.closeAriaLabel")}><IcClose size={22} /></button>}
+          <button className="auth-home-link" onClick={onBackHome}><IcArrowLeft size={16} /> {t("login.backToHome")}</button>
+          <div className="auth-heading"><h1 id="login-heading">{t("login.heading")}</h1><p>{t("login.description")}</p></div>
 
           <div className="auth-form-group">
             <label htmlFor="login-email">{t("login.email")}</label>
@@ -59,7 +59,7 @@ export default function LoginScreen({
                 type="button"
                 aria-label={t("login.togglePasswordVisibility")}
               >
-                {showPw ? <LuEye size={18} /> : <LuEyeOff size={18} />}
+                {showPw ? <IcEye size={18} /> : <IcEyeOff size={18} />}
               </button>
             </div>
             <div className="auth-forgot">
@@ -75,19 +75,7 @@ export default function LoginScreen({
             </div>
           </div>
 
-          {loginError && (
-            <div style={{
-              background: "#FEE2E2",
-              color: "#C8463A",
-              borderRadius: "var(--radius-md)",
-              padding: "10px 14px",
-              fontSize: "13px",
-              fontWeight: 600,
-              border: "1px solid #FECACA",
-            }}>
-              {loginError}
-            </div>
-          )}
+          {loginError && <div className="auth-error" role="alert">{loginError}</div>}
 
           <button className="auth-btn" disabled={isSubmitting} onClick={() => onLogin(email, password)} id="login-btn">
             {isSubmitting ? t("login.signingIn") : t("login.submit")}

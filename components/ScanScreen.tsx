@@ -1,17 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  LuArrowLeft,
-  LuMapPin,
-  LuLock,
-  LuTruck,
-  LuCircleCheckBig,
-  LuCreditCard,
-  LuStore,
-  LuInfo,
-} from "react-icons/lu";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcCard, IcCheckCircle, IcInfo, IcLock, IcMapPin, IcStore, IcTruck } from "@/components/icons";
 
 export default function ScanScreen() {
   const [scanned, setScanned] = useState(false);
@@ -21,6 +12,10 @@ export default function ScanScreen() {
     return (
       <>
         <div className="qr-scanner-area">
+          <div className="page-header">
+            <h1>{t("scan.title")}</h1>
+            <p>{t("scan.subtitle")}</p>
+          </div>
           <div style={{ display: "flex", gap: "12px", width: "100%", maxWidth: "480px" }}>
             <input
               type="text"
@@ -37,7 +32,7 @@ export default function ScanScreen() {
             </button>
           </div>
           <p className="qr-description" style={{ display: "flex", alignItems: "center", gap: "8px", textAlign: "left" }}>
-            <LuInfo size={24} style={{ flexShrink: 0, color: "var(--primary-green)" }} />
+            <IcInfo size={24} style={{ flexShrink: 0, color: "var(--primary-green)" }} />
             <span>{t("scan.desc")}</span>
           </p>
         </div>
@@ -48,7 +43,7 @@ export default function ScanScreen() {
   return (
     <>
       <button className="pd-back-btn" onClick={() => setScanned(false)}>
-        <LuArrowLeft size={18} /> {t("scan.back")}
+        <IcArrowLeft size={18} /> {t("scan.back")}
       </button>
 
       <div className="scan-header">
@@ -61,7 +56,7 @@ export default function ScanScreen() {
           <div className="scan-product-card">
             <div className="scan-product-card-header">
               <div className="verified-icon-large">
-                <LuCircleCheckBig size={32} />
+                <IcCheckCircle size={32} />
               </div>
               <span className="scan-verified-badge">{t("scanResult.verified")}</span>
             </div>
@@ -100,7 +95,7 @@ export default function ScanScreen() {
             {/* Product Listing */}
             <div className="scan-tl-item" style={{ animationDelay: "0.1s" }}>
               <div className="scan-tl-dot active">
-                <LuStore size={16} />
+                <IcStore size={16} />
               </div>
               <div className="scan-tl-card">
                 <div className="scan-tl-card-header">
@@ -108,13 +103,13 @@ export default function ScanScreen() {
                   <span className="tl-role-badge farmer">{t("scanResult.role1")}</span>
                 </div>
                 <div className="tl-location">
-                  <LuMapPin size={14} /> Multan, Punjab (Hassan Organic Farm)
+                  <IcMapPin size={14} /> Multan, Punjab (Hassan Organic Farm)
                 </div>
                 <p className="tl-desc">
                   Crops listed on marketplace. Quality grade: A. Initial batch size: 200 kg.
                 </p>
                 <div className="tl-hash">
-                  <LuLock size={12} className="lock-icon" />
+                  <IcLock size={12} className="lock-icon" />
                   tx_fabric_f2f_819ab0d2b99210cfa0981…
                 </div>
               </div>
@@ -123,7 +118,7 @@ export default function ScanScreen() {
             {/* Payment Confirmed */}
             <div className="scan-tl-item" style={{ animationDelay: "0.2s" }}>
               <div className="scan-tl-dot active">
-                <LuCreditCard size={16} />
+                <IcCard size={16} />
               </div>
               <div className="scan-tl-card">
                 <div className="scan-tl-card-header">
@@ -131,13 +126,13 @@ export default function ScanScreen() {
                   <span className="tl-role-badge buyer">{t("scanResult.role2")}</span>
                 </div>
                 <div className="tl-location">
-                  <LuMapPin size={14} /> Lahore, Punjab (JazzCash Gateway)
+                  <IcMapPin size={14} /> Lahore, Punjab (JazzCash Gateway)
                 </div>
                 <p className="tl-desc">
                   Payment of Rs 1,680 confirmed. Platform fee of 5% collected successfully.
                 </p>
                 <div className="tl-hash">
-                  <LuLock size={12} className="lock-icon" />
+                  <IcLock size={12} className="lock-icon" />
                   tx_fabric_f2f_a119c4d92ee88a912bb09…
                 </div>
               </div>
@@ -146,7 +141,7 @@ export default function ScanScreen() {
             {/* Shipment Dispatch */}
             <div className="scan-tl-item" style={{ animationDelay: "0.3s" }}>
               <div className="scan-tl-dot active">
-                <LuTruck size={16} />
+                <IcTruck size={16} />
               </div>
               <div className="scan-tl-card">
                 <div className="scan-tl-card-header">
@@ -154,13 +149,13 @@ export default function ScanScreen() {
                   <span className="tl-role-badge transporter">{t("scanResult.role3")}</span>
                 </div>
                 <div className="tl-location">
-                  <LuMapPin size={14} /> Multan, Punjab (Hassan Organic Farm)
+                  <IcMapPin size={14} /> Multan, Punjab (Hassan Organic Farm)
                 </div>
                 <p className="tl-desc">
                   Shipment loaded successfully. License number: LHR-2026-DESI.
                 </p>
                 <div className="tl-hash">
-                  <LuLock size={12} className="lock-icon" />
+                  <IcLock size={12} className="lock-icon" />
                   tx_fabric_f2f_c0199ddb2ee90e11ba099…
                 </div>
               </div>
@@ -169,7 +164,7 @@ export default function ScanScreen() {
             {/* Delivery Completed */}
             <div className="scan-tl-item" style={{ animationDelay: "0.4s" }}>
               <div className="scan-tl-dot active">
-                <LuCircleCheckBig size={16} />
+                <IcCheckCircle size={16} />
               </div>
               <div className="scan-tl-card">
                 <div className="scan-tl-card-header">
@@ -177,13 +172,13 @@ export default function ScanScreen() {
                   <span className="tl-role-badge transporter">{t("scanResult.role3")}</span>
                 </div>
                 <div className="tl-location">
-                  <LuMapPin size={14} /> Lahore, Punjab (Gulberg III Warehouse)
+                  <IcMapPin size={14} /> Lahore, Punjab (Gulberg III Warehouse)
                 </div>
                 <p className="tl-desc">
                   Produce hand-delivered to buyer. Quality check at delivery verified: Fresh.
                 </p>
                 <div className="tl-hash">
-                  <LuLock size={12} className="lock-icon" />
+                  <IcLock size={12} className="lock-icon" />
                   tx_fabric_f2f_d991bce98c21a00a12bb7…
                 </div>
               </div>

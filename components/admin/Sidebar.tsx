@@ -1,22 +1,10 @@
 'use client'
 
+import { IcClose as X, IcLeaf as Leaf, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
+import { BookOpen, HelpCircle, LayoutDashboard, LogOut, Settings, SlidersHorizontal, Store, TrendingUp } from "lucide-react";
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import {
-  LayoutDashboard,
-  Store,
-  Wheat,
-  BookOpen,
-  TrendingUp,
-  Settings,
-  SlidersHorizontal,
-  HelpCircle,
-  Leaf,
-  LogOut,
-  MessageSquare,
-  X
-} from 'lucide-react'
 import GenerateReportModal from './GenerateReportModal'
 
 const navItems = [

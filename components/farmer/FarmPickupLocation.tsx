@@ -4,6 +4,7 @@ import type {
   FarmerRepository,
   FarmLocation,
 } from "@/lib/farmer/farmer-repository.ts";
+import { IcMapPin } from "@/components/icons";
 import { useLanguage } from "./LanguageContext";
 
 const provinces = [
@@ -29,6 +30,7 @@ export function FarmPickupLocation({
   const [error, setError] = useState<"load" | "save" | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [saved, setSaved] = useState(false);
+  const [editing, setEditing] = useState(false);
   useEffect(() => {
     let active = true;
     repository
@@ -66,11 +68,45 @@ export function FarmPickupLocation({
       if (!value.complete) throw new Error("Incomplete pickup location");
       setLocation(value);
       setSaved(true);
+      setEditing(false);
     } catch {
       setError("save");
     } finally {
       setSaving(false);
     }
+  }
+  if (loaded && location.complete && !editing) {
+    const title = ur ? "فارم سے وصولی کی جگہ" : "Farm pickup location";
+    return (
+      <section className="pickup-summary" aria-label={title}>
+        <span className="pickup-summary-icon">
+          <IcMapPin size={22} />
+        </span>
+        <div className="pickup-summary-text">
+          <strong>{title}</strong>
+          <span>
+            {[location.address, location.city, location.province]
+              .filter(Boolean)
+              .join(", ")}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="pickup-summary-edit"
+          onClick={() => {
+            setSaved(false);
+            setEditing(true);
+          }}
+        >
+          {ur ? "ترمیم کریں" : "Edit"}
+        </button>
+        {saved ? (
+          <p role="status" className="pickup-summary-status">
+            {ur ? "وصولی کی جگہ محفوظ ہو گئی۔" : "Pickup location saved."}
+          </p>
+        ) : null}
+      </section>
+    );
   }
   return (
     <form className="checkout-panel" onSubmit={submit}>
@@ -180,6 +216,18 @@ export function FarmPickupLocation({
               ? "وصولی کی جگہ محفوظ کریں"
               : "Save pickup location"}
         </button>
+        {editing ? (
+          <button
+            type="button"
+            className="pickup-summary-edit"
+            onClick={() => {
+              setEditing(false);
+              setLoadAttempt((v) => v + 1);
+            }}
+          >
+            {ur ? "منسوخ کریں" : "Cancel"}
+          </button>
+        ) : null}
       </fieldset>
       {loading ? (
         <p role="status">{ur ? "لوڈ ہو رہا ہے…" : "Loading…"}</p>

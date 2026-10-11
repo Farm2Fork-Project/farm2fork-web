@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { LuCircleCheckBig, LuShoppingCart } from "react-icons/lu";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
@@ -15,6 +14,7 @@ import {
   paymentSimulatorEnabled,
   safepayCheckoutUrl,
 } from "@/lib/buyer/payment-checkout.ts";
+import { IcCart, IcCheckCircle } from "@/components/icons";
 
 function paymentStatusBadgeClass(status: string): string {
   if (status === "success") return "badge-soft-green";
@@ -139,7 +139,7 @@ export function CheckoutPanel({
             gap: "var(--sp-md)",
           }}
         >
-          <LuCircleCheckBig size={40} color="var(--success)" />
+          <IcCheckCircle size={40} color="var(--success)" />
           <h3 style={{ margin: 0 }}>
             {results.length === 1
               ? "Order placed"
@@ -191,7 +191,7 @@ export function CheckoutPanel({
   if (groups.length === 0) {
     return (
       <div className="cart-empty">
-        <LuShoppingCart size={72} />
+        <IcCart size={72} />
         <h2>Your cart is empty</h2>
         <p>Add active marketplace products to create separate farmer orders.</p>
       </div>
@@ -207,6 +207,7 @@ export function CheckoutPanel({
         disabled={isSubmitting}
         style={{ border: 0, padding: 0, margin: 0 }}
       >
+        <h4 className="checkout-section">Delivery address</h4>
         <div className="checkout-address-grid">
           <label>
             Street
@@ -308,7 +309,7 @@ export function CheckoutPanel({
       {quotes ? (
         <div aria-live="polite">
           {quotes.map((quote, index) => (
-            <div className="card" key={groups[index].farmerId}>
+            <div className="card checkout-quote" key={groups[index].farmerId}>
               <h4>Farmer group {index + 1}</h4>
               <p>Items: Rs {quote.totalAmount.toLocaleString("en-PK")}</p>
               <p>
@@ -332,6 +333,7 @@ export function CheckoutPanel({
         </p>
       )}
 
+      <h4 className="checkout-section">Payment</h4>
       <label>
         Payment gateway
         <select

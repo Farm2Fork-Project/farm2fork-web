@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { LuLeaf, LuArrowLeft, LuEye, LuEyeOff, LuCheck } from "react-icons/lu";
 import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcCheck, IcEye, IcEyeOff, IcLeaf } from "@/components/icons";
 
 interface FarmerSignupProps {
   onSubmit: (input: RegisterFarmerRequest) => Promise<void>;
@@ -13,6 +13,18 @@ interface FarmerSignupProps {
 
 const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
 const cropOptions = ["wheat", "rice", "cotton", "sugarcane", "maize", "vegetables"];
+const provinces = [
+  "Punjab",
+  "Sindh",
+  "Khyber Pakhtunkhwa",
+  "Balochistan",
+  "Gilgit-Baltistan",
+  "Azad Jammu and Kashmir",
+  "Islamabad Capital Territory",
+];
+// Mirrors PAKISTAN_BOUNDS in farm2fork-backend/src/common/geo/geo.ts.
+const LAT_RANGE = { min: 23.5, max: 37.2 };
+const LNG_RANGE = { min: 60.5, max: 77.9 };
 
 export default function FarmerSignup({ onSubmit, onBack, identityEmail }: FarmerSignupProps) {
   const { t } = useLanguage();
@@ -28,10 +40,15 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
     confirmation: "",
     farmName: "",
     farmSize: "",
+    address: "",
+    city: "",
+    province: "",
+    lat: "",
+    lng: "",
   });
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
 
-  function updateField(event: React.ChangeEvent<HTMLInputElement>) {
+  function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
@@ -78,6 +95,22 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       return;
     }
 
+    const address = formData.address.trim();
+    const city = formData.city.trim();
+    if (!address || !city || !formData.province) {
+      setError("Farm address, city and province are required.");
+      return;
+    }
+    const lat = formData.lat.trim() === "" ? Number.NaN : Number(formData.lat);
+    const lng = formData.lng.trim() === "" ? Number.NaN : Number(formData.lng);
+    if (
+      !Number.isFinite(lat) || lat < LAT_RANGE.min || lat > LAT_RANGE.max ||
+      !Number.isFinite(lng) || lng < LNG_RANGE.min || lng > LNG_RANGE.max
+    ) {
+      setError("Enter farm coordinates inside Pakistan (latitude 23.5–37.2, longitude 60.5–77.9).");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit({
@@ -85,6 +118,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         password: formData.password,
         cnic: formData.cnic.trim(),
         farmName: formData.farmName.trim(),
+        farmLocation: { address, city, province: formData.province, lat, lng },
         ...(formData.phone.trim() ? { phone: formData.phone.trim() } : {}),
         ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
         ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
@@ -114,8 +148,8 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       <div className="auth-card">
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
-            <LuLeaf size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
-            <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px", lineHeight: 1.2 }}>
+            <IcLeaf size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
+            <h1>
               {t("app.title")} <br /> {t("landing.title2")}
             </h1>
             <p style={{ fontSize: "18px", opacity: 0.9, lineHeight: 1.6, maxWidth: "320px" }}>
@@ -127,9 +161,9 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         <div className="auth-form-side" style={{ padding: "48px" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "32px" }}>
             <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button" disabled={isSubmitting}>
-              <LuArrowLeft size={24} color="var(--text-dark)" />
+              <IcArrowLeft size={24} color="var(--text-dark)" />
             </button>
-            <h2 style={{ fontSize: "24px", fontWeight: 800, marginLeft: "16px", color: "var(--text-dark)" }}>
+            <h2 style={{ marginLeft: "16px" }}>
               {t("farmerSignup.title")}
             </h2>
           </div>
@@ -172,7 +206,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <div className="auth-input-wrapper">
                   <input id="farmer-password" name="password" className="auth-input" type={showPassword ? "text" : "password"} value={formData.password} onChange={updateField} disabled={isSubmitting} />
                   <button type="button" className="toggle-pw" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
-                    {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
+                    {showPassword ? <IcEye size={20} /> : <IcEyeOff size={20} />}
                   </button>
                 </div>
                 </div>
@@ -199,6 +233,32 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <input id="farmer-farm-size" name="farmSize" className="auth-input" type="number" min="0" step="any" value={formData.farmSize} onChange={updateField} disabled={isSubmitting} />
               </div>
               <p>{t("farmerSignup.pickupAfterSignup")}</p>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-address">Street or village</label>
+                <input id="farmer-address" name="address" className="auth-input" maxLength={200} value={formData.address} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-city">Farm city</label>
+                <input id="farmer-city" name="city" className="auth-input" maxLength={80} value={formData.city} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-province">Farm province</label>
+                <select id="farmer-province" name="province" className="auth-input" value={formData.province} onChange={updateField} disabled={isSubmitting}>
+                  <option value="">Select province</option>
+                  {provinces.map((province) => (
+                    <option key={province} value={province}>{province}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-lat">Farm latitude</label>
+                <input id="farmer-lat" name="lat" className="auth-input" type="number" step="any" min={LAT_RANGE.min} max={LAT_RANGE.max} placeholder="30.1575" value={formData.lat} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <div className="auth-form-group">
+                <label htmlFor="farmer-lng">Farm longitude</label>
+                <input id="farmer-lng" name="lng" className="auth-input" type="number" step="any" min={LNG_RANGE.min} max={LNG_RANGE.max} placeholder="71.5249" value={formData.lng} onChange={updateField} disabled={isSubmitting} />
+              </div>
+              <p style={{ fontSize: "13px", opacity: 0.8 }}>Copy your farm coordinates from your map app.</p>
               <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>
                   {t("farmerSignup.selectCrops")}
@@ -208,7 +268,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                     const isSelected = selectedCrops.includes(crop);
                     return (
                       <button key={crop} type="button" aria-pressed={isSelected} onClick={() => toggleCrop(crop)} disabled={isSubmitting}>
-                        {isSelected ? <LuCheck size={16} /> : null}
+                        {isSelected ? <IcCheck size={16} /> : null}
                         {crop}
                       </button>
                     );

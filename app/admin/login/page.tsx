@@ -1,7 +1,6 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Mail, Lock, Eye, Tractor, Leaf } from 'lucide-react'
 import AuthPageShell from '@/components/admin/screens/AuthPageShell'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -10,6 +9,8 @@ import {
   FirebaseWebAuthRepository,
   type FirebaseWebAuthResult,
 } from '@/lib/auth/firebase-web-auth-repository.ts'
+import { IcEye as Eye, IcLeaf as Leaf, IcTractor as Tractor } from "@/components/icons";
+import { ArrowRight, Lock, Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter()

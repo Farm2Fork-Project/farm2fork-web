@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { LuArrowLeft, LuEyeOff, LuEye, LuTruck } from "react-icons/lu";
 import type { RegisterTransporterRequest } from "@/lib/api/contracts.ts";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcEye, IcEyeOff, IcTruck } from "@/components/icons";
 
 export type TransporterPersonalInput = Pick<
   RegisterTransporterRequest,
@@ -55,13 +55,13 @@ export default function TransporterSignup1Screen({ onBack, onNext, identityEmail
       <div className="auth-card">
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
-            <LuTruck size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
+            <IcTruck size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
             <h1>{t("tsignup.title1")}<br />{t("tsignup.title2")}</h1>
             <p>{t("tsignup.subtitle")}</p>
           </div>
         </div>
         <div className="auth-form-side" style={{ padding: "48px" }}>
-          <button className="back-btn" onClick={onBack} aria-label="Go back" type="button"><LuArrowLeft size={24} /></button>
+          <button className="back-btn" onClick={onBack} aria-label="Go back" type="button"><IcArrowLeft size={24} /></button>
           <h2>{t("tsignup.header")}</h2>
           {error ? <div className="auth-error" role="alert">{error}</div> : null}
           <p>{t("tsignup.step1")}</p>
@@ -88,7 +88,7 @@ export default function TransporterSignup1Screen({ onBack, onNext, identityEmail
             <div className="auth-input-wrapper">
               <input id="transporter-password" className="auth-input" type={showPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} />
               <button type="button" className="toggle-pw" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
-                {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
+                {showPassword ? <IcEye size={20} /> : <IcEyeOff size={20} />}
               </button>
             </div>
             </div>

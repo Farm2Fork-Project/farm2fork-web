@@ -1,13 +1,8 @@
 'use client'
 
+import { IcCheckCircle as CheckCircle, IcUser as User } from "@/components/icons";
+import { Save, Settings, Shield } from "lucide-react";
 import React, { useState, useEffect } from 'react'
-import {
-  Save,
-  CheckCircle,
-  User,
-  Shield,
-  Settings
-} from 'lucide-react'
 import { SettingsScreenProps, UserProfile } from '../types'
 import Topbar from './Topbar'
 

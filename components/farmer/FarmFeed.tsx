@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Heart, MessageSquare, Tag, Plus, SendHorizontal, X, Rss, Edit3 } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
+import { IcEdit as Edit3, IcFeed as Rss, IcHeart as Heart, IcMessage as MessageSquare, IcSend as SendHorizontal, IcTag as Tag } from "@/components/icons";
 
 export interface Comment {
   id: string;

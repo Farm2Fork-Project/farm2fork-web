@@ -1,7 +1,8 @@
 'use client'
 
+import { IcLeaf as Leaf } from "@/components/icons";
+import { ClipboardList, TrendingUp } from "lucide-react";
 import React, { useState } from 'react'
-import { ClipboardList, Leaf, TrendingUp } from 'lucide-react'
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const metrics = [

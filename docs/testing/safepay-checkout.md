@@ -131,3 +131,16 @@ production build and scoped transport-file ESLint pass. The live delivery harnes
 passes separately. Coordinates are manually entered/refreshed; GPS acquisition
 and background tracking are not implemented. Commands and full scope:
 `../../../farm2fork-backend/docs/testing/transporter-delivery.md`.
+
+## Notifications and real Fabric — 2026-10-11
+
+Notification settings now use the real inbox and device-token APIs. Web push uses
+an explicit permission request, account-scoped opt-in, a Firebase service worker
+and foreground display. Set `NEXT_PUBLIC_FIREBASE_VAPID_KEY` to the public Web
+Push certificate key before rebuilding. Disable/sign-out clean up registration.
+
+The delivery harness now persists real buyer/farmer/transporter notifications.
+Add `--fabric` to commit the ten payment/shipment outbox records to the running
+local network and read them back. Both web and mobile extended runs pass.
+Real device receipt still needs runtime configuration; see
+`../../../farm2fork-backend/docs/testing/notifications-and-fabric.md`.

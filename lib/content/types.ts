@@ -33,6 +33,8 @@ export type ContentPageData = {
   sections: Section[];
   faqs?: Faq[];
   sources?: Source[];
+  /** Marks a `steps` block as a HowTo so the same steps are exposed as structured data. */
+  howTo?: { sectionId: string; name: string; description: string };
   cta: { title: string; text: string; primary: CtaLink; secondary?: CtaLink };
   related?: string[];
 };

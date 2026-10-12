@@ -1,8 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Atkinson_Hyperlegible_Next, Young_Serif } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./site.css";
 import PushRuntime from "@/components/PushRuntime";
+import { HOME_PAGE } from "@/lib/seo/pages";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
+
+const HOME_TITLE = HOME_PAGE.title;
 
 // Body and interface: designed for legibility on mid-range screens in bright light.
 const sans = Atkinson_Hyperlegible_Next({
@@ -29,9 +34,44 @@ const urdu = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Farm2Fork",
-  description:
-    "Buy fresh produce directly from farmers. Scan QR codes, trace supply chains, and track your orders with blockchain verification.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: HOME_TITLE, template: `%s | ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  authors: [{ name: `${SITE_NAME} team`, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  category: "agriculture",
+  keywords: [
+    "buy vegetables directly from farmers Pakistan",
+    "farm to fork Pakistan",
+    "fresh produce delivery Pakistan",
+    "food traceability",
+    "blockchain food traceability",
+    "sell produce online Pakistan",
+    "farmer marketplace Pakistan",
+  ],
+  formatDetection: { telephone: false, email: false, address: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1, "max-video-preview": -1 },
+  },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_PK" },
+  twitter: { card: "summary_large_image" },
+  // Set these to the codes Search Console and Bing Webmaster Tools give you.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#155c3c",
 };
 
 export default function RootLayout({

@@ -7,6 +7,10 @@ export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "
 export interface LandingScreenProps {
   onGetStarted: () => void;
   onLogin: () => void;
+  /** Server-rendered, English-only content shown between the people and final CTA sections. */
+  seoContent?: ReactNode;
+  /** Server-rendered footer with links to every public page. Replaces the built-in footer. */
+  footerContent?: ReactNode;
 }
 
 export interface LoginScreenProps {

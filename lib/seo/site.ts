@@ -26,6 +26,13 @@ export const ORGANIZATION = {
   institution: "University of Central Punjab",
 } as const;
 
+/** Urdu counterparts of the site-wide descriptions, used on /ur pages. */
+export const SITE_DESCRIPTION_UR =
+  "Farm2Fork پاکستان کی کسان سے خریدار تک براہِ راست منڈی ہے جہاں کسان اپنی پیداوار لسٹ کرتے ہیں، خریدار براہِ راست آرڈر دیتے ہیں، ٹرانسپورٹ پارٹنر ڈیلیوری کرتے ہیں، اور ہر مرحلہ QR کوڈ کے ذریعے دیکھا جا سکتا ہے۔";
+
+export const ORGANIZATION_DESCRIPTION_UR =
+  "Farm2Fork بلاک چین پر مبنی اور مصنوعی ذہانت سے مدد لینے والا پلیٹ فارم ہے جو پاکستانی کسانوں کو براہِ راست خریداروں سے جوڑتا ہے، اور ٹرانسپورٹ مینجمنٹ اور QR پر مبنی ٹریس ایبلٹی فراہم کرتا ہے۔ یہ یونیورسٹی آف سینٹرل پنجاب کی فیکلٹی آف انفارمیشن ٹیکنالوجی اینڈ کمپیوٹر سائنس کا فائنل ایئر پروجیکٹ ہے۔";
+
 export function absoluteUrl(path = "/"): string {
   if (/^https?:\/\//.test(path)) return path;
   const normalised = path.startsWith("/") ? path : `/${path}`;

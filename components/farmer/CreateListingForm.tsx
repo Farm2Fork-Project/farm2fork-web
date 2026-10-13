@@ -1,22 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useLanguage } from "./LanguageContext";
 import AiListingAssistant, { type AiAssistantClient } from "./AiListingAssistant";
 import type {
   CreateFarmerProductRequest,
   FarmerProductUnit,
 } from "@/lib/api/contracts.ts";
-import { IcCoin as DollarSign, IcPlusCircle as PlusCircle, IcSparkles as Sparkles } from "@/components/icons";
+import { IcClose as X, IcCoin as DollarSign, IcPlus as Plus, IcPlusCircle as PlusCircle, IcSparkles as Sparkles } from "@/components/icons";
 
 interface CreateListingFormProps {
   onSubmit: (listingData: CreateFarmerProductRequest) => Promise<void>;
   onCancel: () => void;
   /** Enables the AI price/quality assistant when provided. */
   aiClient?: AiAssistantClient;
+  /** Uploads listing photos and resolves with their public URLs. */
+  onUploadPhotos?: (photos: File[]) => Promise<string[]>;
 }
 
-export default function CreateListingForm({ onSubmit, onCancel, aiClient }: CreateListingFormProps) {
+const MAX_PHOTOS = 4;
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+interface PhotoDraft {
+  file: File;
+  preview: string;
+}
+
+export default function CreateListingForm({ onSubmit, onCancel, aiClient, onUploadPhotos }: CreateListingFormProps) {
   const { t } = useLanguage();
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Vegetables");
@@ -25,8 +36,40 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
   const [unit, setUnit] = useState<FarmerProductUnit>("kg");
   const [quantity, setQuantity] = useState("");
   const [description, setDescription] = useState("");
+  const [photos, setPhotos] = useState<PhotoDraft[]>([]);
+  const [photoError, setPhotoError] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const photosRef = useRef<PhotoDraft[]>([]);
+  photosRef.current = photos;
+
+  // Previews are object URLs; release them when the form goes away.
+  useEffect(
+    () => () => photosRef.current.forEach((photo) => URL.revokeObjectURL(photo.preview)),
+    [],
+  );
+
+  const addPhoto = (file: File | undefined) => {
+    if (!file) return;
+    if (!PHOTO_TYPES.includes(file.type)) {
+      setPhotoError(t("farmer.create.photoInvalid"));
+      return;
+    }
+    if (file.size > MAX_PHOTO_BYTES) {
+      setPhotoError(t("farmer.create.photoTooBig"));
+      return;
+    }
+    setPhotoError("");
+    setPhotos((list) =>
+      list.length >= MAX_PHOTOS ? list : [...list, { file, preview: URL.createObjectURL(file) }],
+    );
+  };
+
+  const removePhoto = (draft: PhotoDraft) => {
+    URL.revokeObjectURL(draft.preview);
+    setPhotoError("");
+    setPhotos((list) => list.filter((photo) => photo !== draft));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +78,18 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
     setError("");
     setIsSubmitting(true);
     try {
+      let images: string[] = [];
+      if (photos.length && onUploadPhotos) {
+        try {
+          images = await onUploadPhotos(photos.map((photo) => photo.file));
+        } catch (uploadError) {
+          throw new Error(
+            uploadError instanceof Error && uploadError.message
+              ? uploadError.message
+              : t("farmer.create.photoUploadFailed"),
+          );
+        }
+      }
       await onSubmit({
         name: name.trim(),
         category: category.toLowerCase(),
@@ -43,6 +98,7 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
         quantity: parseFloat(quantity),
         unit,
         qualityGrade: grade as "A" | "B" | "C",
+        ...(images.length ? { images } : {}),
       });
     } catch (submissionError) {
       setError(
@@ -137,6 +193,51 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
                 className="input resize-none font-sans leading-relaxed py-3 px-4 text-base rounded-xl border-gray-300 focus:border-[var(--primary-green)] bg-white"
               />
             </div>
+
+            {/* Photos */}
+            {onUploadPhotos ? (
+              <div className="flex flex-col w-full gap-2">
+                <span id="farmer-product-photos-label" className="text-sm font-semibold text-gray-800">
+                  {t("farmer.create.photos")}
+                </span>
+                <div className="lc-photos" role="group" aria-labelledby="farmer-product-photos-label">
+                  {photos.map((photo) => (
+                    <div key={photo.preview} className="lc-photo">
+                      {/* Local object-URL preview; not optimisable by next/image. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.preview} alt={photo.file.name} />
+                      <button
+                        type="button"
+                        className="lc-photo-remove"
+                        aria-label={`${t("farmer.create.removePhoto")}: ${photo.file.name}`}
+                        onClick={() => removePhoto(photo)}
+                        disabled={isSubmitting}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  {photos.length < MAX_PHOTOS ? (
+                    <label className="lc-photo-add">
+                      <Plus size={20} aria-hidden="true" />
+                      <span>{t("farmer.create.addPhoto")}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        hidden
+                        disabled={isSubmitting}
+                        onChange={(event) => {
+                          addPhoto(event.target.files?.[0]);
+                          event.target.value = "";
+                        }}
+                      />
+                    </label>
+                  ) : null}
+                </div>
+                <p className="text-xs text-gray-500 m-0">{t("farmer.create.photosHint")}</p>
+                {photoError ? <p role="alert" className="text-error m-0">{photoError}</p> : null}
+              </div>
+            ) : null}
           </div>
 
           {/* Right Column: Pricing & Actions */}

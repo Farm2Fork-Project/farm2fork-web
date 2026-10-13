@@ -111,3 +111,22 @@ test("FarmerRepository uploads a quality photo as multipart form data", async ()
   expect(body.get("crop")).toBe("mango");
   expect((body.get("image") as File).name).toBe("mango.jpg");
 });
+
+test("FarmerRepository uploads listing photos as multipart and returns their URLs", async () => {
+  const calls: Array<{ path: string; options?: { method?: string; body?: unknown } }> = [];
+  const repository = new FarmerRepository({
+    client: {
+      request: async <T,>(path: string, options?: { method?: string; body?: unknown }) => {
+        calls.push({ path, options });
+        return { urls: ["https://cdn.test/a.jpg"] } as T;
+      },
+    },
+  });
+  const photo = new File(["x"], "a.jpg", { type: "image/jpeg" });
+
+  await expect(repository.uploadProductImages([photo])).resolves.toEqual(["https://cdn.test/a.jpg"]);
+
+  expect(calls[0].path).toBe("/products/images");
+  expect(calls[0].options?.method).toBe("POST");
+  expect((calls[0].options?.body as FormData).getAll("images")).toEqual([photo]);
+});

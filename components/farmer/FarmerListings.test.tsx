@@ -69,3 +69,19 @@ test("a listing with no description says so", async () => {
   await userEvent.setup().click(screen.getByRole("button", { name: "Wheat" }));
   expect(within(screen.getByRole("region", { name: "Wheat" })).getByText("No description provided.")).toBeInTheDocument();
 });
+
+test("a listing card shows its first photo, and falls back to the leaf without one", () => {
+  render(
+    <LanguageProvider>
+      <FarmerListings
+        listings={[{ ...listings[0], images: ["https://cdn.test/tomatoes.jpg"] }, listings[1]]}
+        onDelete={vi.fn()}
+        onToggleStatus={vi.fn()}
+        onAddClick={vi.fn()}
+      />
+    </LanguageProvider>,
+  );
+  const photos = document.querySelectorAll(".mp-card-photo");
+  expect(photos).toHaveLength(1);
+  expect(photos[0]).toHaveAttribute("src", "https://cdn.test/tomatoes.jpg");
+});

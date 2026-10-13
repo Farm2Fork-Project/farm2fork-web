@@ -100,6 +100,33 @@ test("BuyerApp validates the session before it renders live marketplace data", a
   await waitFor(() => expect(listProducts).toHaveBeenCalledOnce());
 });
 
+test("BuyerApp shows a listing's first photo on its marketplace card", async () => {
+  const product = {
+    id: "product-1", farmerId: "farmer-1", name: "Roma Tomatoes", price: 120, quantity: 20, unit: "kg",
+    images: ["https://cdn.test/tomatoes.jpg"], qualityGrade: "A", status: "active",
+  };
+  render(
+    <BuyerApp
+      session={session}
+      repository={{
+        getCurrentBuyer: vi.fn().mockResolvedValue(session.user),
+        listProducts: vi.fn().mockResolvedValue({ data: [product, { ...product, id: "product-2", name: "Wheat", images: [] }], total: 2, page: 1, limit: 10, totalPages: 1 }),
+        getProduct: vi.fn(),
+        listOrders: vi.fn().mockResolvedValue({ data: [] }),
+        listPayments: vi.fn().mockResolvedValue({ data: [] }),
+        listShipments: vi.fn().mockResolvedValue([]),
+        quoteOrder: vi.fn(), createOrder: vi.fn(), initiatePayment: vi.fn(), simulatePaymentSuccess: vi.fn(),
+      }}
+      onLogout={vi.fn()}
+    />,
+  );
+
+  await screen.findByText("Roma Tomatoes");
+  const photos = document.querySelectorAll(".mp-card-photo");
+  expect(photos).toHaveLength(1);
+  expect(photos[0]).toHaveAttribute("src", "https://cdn.test/tomatoes.jpg");
+});
+
 test("BuyerApp shows only the shipment scoped to each real order", async () => {
   const shipment: ApiShipment = {
     id: "shipment-1",

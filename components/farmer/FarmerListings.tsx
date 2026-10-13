@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import { useLanguage } from "./LanguageContext";
+import { resolveApiUrl } from "@/lib/loans/loan-repository.ts";
 import { IcCarrot as Carrot, IcCheck as Check, IcClose as X, IcEye as Eye, IcEyeOff as EyeOff, IcGrid as LayoutGrid, IcLeaf as Leaf, IcMango as Apple, IcMapPin as MapPin, IcMilk as Milk, IcPackage as Package, IcPlus as Plus, IcSearch as Search, IcTractor as Tractor, IcTrash as Trash2, IcWheat as Wheat } from "@/components/icons";
 
 export interface Listing {
@@ -15,6 +16,8 @@ export interface Listing {
   quantity: number;
   status: "Available" | "Out of Stock";
   description: string;
+  /** Public photo URLs, first one is the cover. */
+  images?: string[];
   /** Ledger state of the listing's `listed` provenance record. */
   ledger: "pending" | "confirmed" | "failed" | "missing";
 }
@@ -230,7 +233,13 @@ export default function FarmerListings({
           }}
         >
           <div className="fl-detail-head">
-            <div className="fl-detail-icon"><Leaf size={24} /></div>
+            {selectedListing.images?.[0] ? (
+              // Photos come from Cloudinary or the API; not optimisable by next/image.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="fl-detail-photo" src={resolveApiUrl(selectedListing.images[0])} alt="" />
+            ) : (
+              <div className="fl-detail-icon"><Leaf size={24} /></div>
+            )}
             <div className="fl-detail-title">
               <h3 id="fl-detail-title">{selectedListing.name}</h3>
               <p>{categoryLabel(selectedListing.category)}</p>
@@ -312,7 +321,12 @@ export default function FarmerListings({
                 }}
               >
                 <div className="mp-card-img">
-                  <Leaf className="leaf" size={56} />
+                  {listing.images?.[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="mp-card-photo" src={resolveApiUrl(listing.images[0])} alt="" loading="lazy" />
+                  ) : (
+                    <Leaf className="leaf" size={56} />
+                  )}
                   <div className="mp-card-grade">
                     <Check size={12} strokeWidth={3} /> {t("farmer.listings.grade").replace("{grade}", listing.grade)}
                   </div>

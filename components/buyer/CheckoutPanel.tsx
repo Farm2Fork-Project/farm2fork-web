@@ -5,7 +5,7 @@ import { IcCart, IcCheckCircle } from "@/components/icons";
 import { paymentSimulatorEnabled, safepayCheckoutUrl } from "@/lib/buyer/payment-checkout.ts";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
-import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
+import { cartGroupLabel, toCreateOrderRequest } from "@/lib/cart/cart.ts";
 import type { ApiOrderAddress, OrderQuote, PaymentGateway } from "@/lib/api/contracts.ts";
 import MapPinPicker from "@/components/maps/MapPinPicker";
 import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
@@ -23,6 +23,21 @@ function paymentStatusBadgeClass(status: string): string {
   return "badge-soft-blue";
 }
 
+function paymentStatusLabel(status: string): string {
+  switch (status) {
+    case "success":
+      return "Paid";
+    case "pending":
+      return "Awaiting payment";
+    case "failed":
+      return "Payment failed";
+    case "refunded":
+      return "Refunded";
+    default:
+      return "Payment not started";
+  }
+}
+
 type CheckoutRepository = Pick<
   BuyerRepository,
   "createOrder" | "initiatePayment" | "quoteOrder"
@@ -30,6 +45,9 @@ type CheckoutRepository = Pick<
 
 type CheckoutResult = {
   farmerId: string;
+  farmName: string;
+  /** What the buyer owes for this order, when known. */
+  amount?: number;
   paymentStatus: string;
   checkoutUrl?: string;
 };
@@ -112,7 +130,7 @@ export function CheckoutPanel({
     const confirmedFarmers: string[] = [];
     const nextResults: CheckoutResult[] = [];
 
-    for (const group of groups) {
+    for (const [index, group] of groups.entries()) {
       try {
         const order = await repository.createOrder(
           toCreateOrderRequest(group, { ...address, lat: dropoff.lat, lng: dropoff.lng }),
@@ -120,8 +138,16 @@ export function CheckoutPanel({
         // An order already exists even if its gateway handoff fails. Recover it
         // from Orders instead of creating another order from the same cart group.
         confirmedFarmers.push(group.farmerId);
+        const quoted = quotes[`${pinKey}|${group.farmerId}`];
         const result: CheckoutResult = {
           farmerId: group.farmerId,
+          farmName: cartGroupLabel(group, index),
+          amount:
+            typeof order.grandTotal === "number"
+              ? order.grandTotal
+              : quoted?.kind === "ready"
+                ? quoted.quote.grandTotal
+                : undefined,
           paymentStatus: "not initiated",
         };
         nextResults.push(result);
@@ -132,9 +158,9 @@ export function CheckoutPanel({
         const message =
           checkoutError instanceof Error
             ? checkoutError.message
-            : "Could not place this farmer group order.";
+            : "Could not place this order.";
         setError(
-          `${message} Review Orders and Payments before manually retrying this group.`,
+          `${message} Check Orders to see what was saved before trying again.`,
         );
         break;
       }
@@ -146,57 +172,56 @@ export function CheckoutPanel({
   }
 
   if (results.length > 0) {
+    const unpaid = results.some((result) => result.paymentStatus !== "success");
     return (
       <div className="checkout-panel">
-        <div
-          className="card"
-          style={{
-            textAlign: "center",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "var(--sp-md)",
-          }}
-        >
+        <div className="card checkout-receipt">
           <IcCheckCircle size={40} color="var(--success)" />
-          <h3 style={{ margin: 0 }}>
+          <h3>
             {results.length === 1
               ? "Order placed"
               : `${results.length} orders placed`}
           </h3>
-          <p style={{ margin: 0, color: "var(--text-muted)" }}>
-            Your orders are saved. Open each pending checkout to pay. Status is
-            confirmed by the payment provider.
+          <p>
+            {unpaid
+              ? results.length === 1
+                ? "Your order is saved but not confirmed yet. Pay now to confirm it. Payment opens on Safepay's secure page."
+                : "Your orders are saved but not confirmed yet. Pay for each one to confirm it. Payment opens on Safepay's secure page."
+              : "Your payment is confirmed."}
           </p>
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              flexDirection: "column",
-              gap: "var(--sp-sm)",
-            }}
-          >
-            {results.map((result, index) => (
-              <div key={result.farmerId}>
+          <div className="checkout-receipt-list">
+            {results.map((result) => (
+              <div className="checkout-receipt-row" key={result.farmerId}>
                 <div className="flex-between">
-                  <span>Farmer group {index + 1}</span>
+                  <span>
+                    <strong>{result.farmName}</strong>
+                    {result.amount !== undefined ? (
+                      <span className="checkout-receipt-amount"> · Rs {rupees.format(result.amount)}</span>
+                    ) : null}
+                  </span>
                   <span
                     className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}
                   >
-                    {result.paymentStatus}
+                    {paymentStatusLabel(result.paymentStatus)}
                   </span>
                 </div>
                 {result.checkoutUrl ? (
                   <a className="btn btn-primary" href={result.checkoutUrl}>
-                    Pay farmer group {index + 1} with Safepay
+                    {results.length === 1
+                      ? `Pay${result.amount !== undefined ? ` Rs ${rupees.format(result.amount)}` : ""} on Safepay`
+                      : `Pay${result.amount !== undefined ? ` Rs ${rupees.format(result.amount)}` : ""} to ${result.farmName}`}
                   </a>
+                ) : result.paymentStatus !== "success" ? (
+                  <p className="checkout-receipt-note">
+                    We couldn&apos;t open payment for this order. Open Orders and choose Pay to try again.
+                  </p>
                 ) : null}
               </div>
             ))}
           </div>
           {error ? <p role="alert">{error}</p> : null}
           <button
-            className="btn btn-primary"
+            className="btn btn-secondary"
             onClick={onViewOrders}
             type="button"
           >
@@ -212,17 +237,36 @@ export function CheckoutPanel({
       <div className="cart-empty">
         <IcCart size={72} />
         <h2>Your cart is empty</h2>
-        <p>Add active marketplace products to create separate farmer orders.</p>
+        <p>Add products from the marketplace to start an order.</p>
       </div>
     );
   }
 
+  const allQuoted = groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready");
+  const total = dropoff && allQuoted
+    ? groups.reduce((sum, group) => {
+        const state = quotes[`${pinKey}|${group.farmerId}`];
+        return sum + (state?.kind === "ready" ? state.quote.grandTotal : 0);
+      }, 0)
+    : null;
+  const several = groups.length > 1;
+  const submitLabel = isSubmitting
+    ? "Placing order…"
+    : several
+      ? `Place ${groups.length} orders${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`
+      : `Place order${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`;
+
   return (
     <form className="checkout-panel" onSubmit={submit}>
       <h3>Checkout</h3>
-      <p>Each farmer group becomes its own order and pending payment.</p>
+      <p>
+        {several
+          ? `Your items come from ${groups.length} farms, so you'll place ${groups.length} orders and pay for each one.`
+          : "Add your delivery details, place the order, then pay securely on Safepay."}
+      </p>
 
       <fieldset disabled={isSubmitting} style={{ border: 0, margin: 0, padding: 0 }}>
+      <h4 className="checkout-step">1. Delivery address</h4>
       <div className="checkout-address-grid">
         <label>
           Street
@@ -273,17 +317,18 @@ export function CheckoutPanel({
       </div>
 
       <div className="checkout-dropoff">
-        <strong>Drop-off location</strong>
+        <h4 className="checkout-step">2. Drop-off location</h4>
+        <p className="checkout-hint">Pin where the delivery should arrive. The delivery fee is calculated from this pin.</p>
         <MapPinPicker value={dropoff} onChange={setDropoff} purpose="dropoff" disabled={isSubmitting} />
       </div>
 
       </fieldset>
 
+      <h4 className="checkout-step">3. Your {several ? "orders" : "order"}</h4>
       <div className="checkout-quotes" aria-live="polite">
         {groups.map((group, index) => {
           const state = quotes[`${pinKey}|${group.farmerId}`];
-          const label =
-            group.items[0]?.product.farmer?.farmName ?? `Order ${index + 1}`;
+          const label = cartGroupLabel(group, index);
           return (
             <div className="checkout-quote" key={group.farmerId}>
               <span className="checkout-quote-farm">{label}</span>
@@ -296,38 +341,52 @@ export function CheckoutPanel({
                   This farm hasn&apos;t pinned its pickup location yet, so it can&apos;t be ordered right now.
                 </span>
               ) : (
-                <span>
-                  Items Rs {rupees.format(state.quote.totalAmount)} + fee Rs{" "}
-                  {rupees.format(state.quote.platformFeeAmount)} + delivery Rs{" "}
-                  {rupees.format(state.quote.deliveryFee)} ({state.quote.deliveryDistanceKm} km) ={" "}
-                  <strong>Rs {rupees.format(state.quote.grandTotal)}</strong>
-                </span>
+                <>
+                  <span className="checkout-quote-line"><span>Items</span><span>Rs {rupees.format(state.quote.totalAmount)}</span></span>
+                  <span className="checkout-quote-line"><span>Service fee</span><span>Rs {rupees.format(state.quote.platformFeeAmount)}</span></span>
+                  <span className="checkout-quote-line"><span>Delivery ({state.quote.deliveryDistanceKm} km)</span><span>Rs {rupees.format(state.quote.deliveryFee)}</span></span>
+                  <span className="checkout-quote-line checkout-quote-total"><span>Order total</span><strong>Rs {rupees.format(state.quote.grandTotal)}</strong></span>
+                </>
               )}
             </div>
           );
         })}
+        {several && total !== null ? (
+          <div className="checkout-quote-line checkout-grand-total">
+            <span>Total for all {groups.length} orders</span>
+            <strong>Rs {rupees.format(total)}</strong>
+          </div>
+        ) : null}
       </div>
 
-      <label>
-        Payment gateway
-        <select
-          disabled={isSubmitting}
-          value={gateway}
-          onChange={(event) => setGateway(event.target.value as PaymentGateway)}
-        >
-          <option value="safepay">Safepay</option>
-          {simulatorEnabled ? (
-            <>
-              <option value="jazzcash">JazzCash (local simulation)</option>
-              <option value="stripe">Stripe (local simulation)</option>
-            </>
-          ) : null}
-        </select>
-      </label>
+      <h4 className="checkout-step">4. Payment</h4>
+      {simulatorEnabled ? (
+        <label>
+          Payment method
+          <select
+            disabled={isSubmitting}
+            value={gateway}
+            onChange={(event) => setGateway(event.target.value as PaymentGateway)}
+          >
+            <option value="safepay">Safepay</option>
+            <option value="jazzcash">JazzCash (local simulation)</option>
+            <option value="stripe">Stripe (local simulation)</option>
+          </select>
+        </label>
+      ) : (
+        <p className="checkout-hint">
+          You&apos;ll pay on Safepay&apos;s secure page with a card or mobile wallet. Farm2Fork never sees your card details.
+        </p>
+      )}
 
-      <button className="cart-shop-btn" disabled={isSubmitting || !dropoff || !groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")} type="submit">
-        {isSubmitting ? "Placing orders…" : "Place orders"}
+      <button className="cart-shop-btn" disabled={isSubmitting || !dropoff || !allQuoted} type="submit">
+        {submitLabel}
       </button>
+      <p className="checkout-hint">
+        {several
+          ? "Next, you'll pay for each order on Safepay. An order isn't confirmed until it's paid."
+          : "Next, you'll pay on Safepay. Your order isn't confirmed until it's paid."}
+      </p>
 
       {error ? <p role="alert">{error}</p> : null}
     </form>

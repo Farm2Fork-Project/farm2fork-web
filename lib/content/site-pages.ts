@@ -127,7 +127,7 @@ export const HOW_IT_WORKS: ContentPageData = {
   cta: {
     title: "See it for yourself",
     text: "Create a free account for the role that fits you and walk through the flow.",
-    primary: { label: "Choose your role", href: "/?auth=signup" },
+    primary: { label: "Choose your role", href: "/signup" },
     secondary: { label: "Read the FAQ", href: "/faq" },
   },
   related: ["/traceability", "/for-farmers", "/for-buyers", "/faq"],
@@ -239,7 +239,7 @@ export const TRACEABILITY: ContentPageData = {
   cta: {
     title: "Trace your first order",
     text: "Create a buyer account, place an order from a named farm, and scan its QR code.",
-    primary: { label: "Create a buyer account", href: "/?auth=signup" },
+    primary: { label: "Create a buyer account", href: "/signup" },
     secondary: { label: "How it works", href: "/how-it-works" },
   },
   related: ["/how-it-works", "/glossary", "/faq", "/for-buyers"],
@@ -343,7 +343,7 @@ export const FOR_FARMERS: ContentPageData = {
   cta: {
     title: "Ready to list your first harvest?",
     text: "Create a farmer account with your CNIC and farm location.",
-    primary: { label: "Sign up as a farmer", href: "/farmer?signup=true" },
+    primary: { label: "Sign up as a farmer", href: "/signup/farmer" },
     secondary: { label: "How it works", href: "/how-it-works" },
   },
   related: ["/how-it-works", "/faq", "/guides", "/for-transporters"],
@@ -426,7 +426,7 @@ export const FOR_BUYERS: ContentPageData = {
   cta: {
     title: "Order from a farm near you",
     text: "Create a free buyer account and browse current listings.",
-    primary: { label: "Create a buyer account", href: "/?auth=signup" },
+    primary: { label: "Create a buyer account", href: "/signup" },
     secondary: { label: "Read the buying guide", href: "/guides/buy-fresh-vegetables-directly-from-farmers-pakistan" },
   },
   related: ["/how-it-works", "/traceability", "/faq", "/guides"],
@@ -576,7 +576,7 @@ export const ABOUT: ContentPageData = {
   cta: {
     title: "Try the platform",
     text: "Create a free account for the role that fits you.",
-    primary: { label: "Get started", href: "/?auth=signup" },
+    primary: { label: "Get started", href: "/signup" },
     secondary: { label: "How it works", href: "/how-it-works" },
   },
   related: ["/how-it-works", "/traceability", "/guides", "/privacy"],

@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { LandingScreenProps } from "./types";
 import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
 import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
 
-export default function LandingScreen({ onGetStarted, onLogin, seoContent, footerContent }: LandingScreenProps) {
+export default function LandingScreen({ portalHref, seoContent, footerContent }: LandingScreenProps) {
+  const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
 
   const isRtl = language === "ur";
@@ -43,12 +45,20 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
           >
             <IcGlobe size={17} /> {language === "en" ? "اردو" : "English"}
           </button>
-          <button className="market-signin" onClick={onLogin}>
-            {t("landing.nav.signIn")}
-          </button>
-          <button className="market-primary market-header-cta" onClick={onGetStarted}>
-            {t("landing.getStarted")}
-          </button>
+          {portalHref ? (
+            <Link className="market-primary market-header-cta" href={portalHref}>
+              {t("landing.nav.openPortal")}
+            </Link>
+          ) : (
+            <>
+              <Link className="market-signin" href="/login">
+                {t("landing.nav.signIn")}
+              </Link>
+              <Link className="market-primary market-header-cta" href="/signup">
+                {t("landing.getStarted")}
+              </Link>
+            </>
+          )}
         </div>
       </header>
 
@@ -62,13 +72,13 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
             </h1>
             <p>{t("landing.hero.desc")}</p>
             <div className="market-hero-actions">
-              <button className="market-primary" onClick={onGetStarted}>
-                {t("landing.getStarted")}{" "}
+              <Link className="market-primary" href={portalHref ?? "/signup"}>
+                {portalHref ? t("landing.nav.openPortal") : t("landing.getStarted")}{" "}
                 <IcArrowRight
                   size={18}
                   style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
                 />
-              </button>
+              </Link>
               <a className="market-text-link" href="#how-it-works">
                 {t("landing.hero.seeHowItWorks")}
               </a>
@@ -94,7 +104,7 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
           </div>
         </section>
 
-        <LandingProducts onSignIn={onLogin} />
+        <LandingProducts onSignIn={() => router.push("/login")} />
 
         <section id="how-it-works" className="market-process market-section">
           <div className="market-section-heading">
@@ -202,13 +212,13 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
             <h2>{t("landing.cta.titleNew")}</h2>
             <p>{t("landing.cta.desc")}</p>
           </div>
-          <button className="market-primary market-primary-light" onClick={onGetStarted}>
+          <Link className="market-primary market-primary-light" href={portalHref ?? "/signup"}>
             {t("landing.cta.btn")}{" "}
             <IcArrowRight
               size={18}
               style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
             />
-          </button>
+          </Link>
         </section>
       </main>
 

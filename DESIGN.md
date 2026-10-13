@@ -261,6 +261,12 @@ A custom set in `components/icons` (`art.ts` holds path data on a 24px grid; `in
 ### Landing steps (signature)
 The "how it works" steps use a 52px circle with a drawn icon (green on a 8% green wash) instead of numerals; the old numeral is hidden. Section headings use the hero serif; the route diagrams are drawn, not photographic.
 
+### Sign-in, sign-up and account (added with the auth redesign)
+- **Auth pages (`.af-*`, `app/auth.css`)** are the landing page's paper-and-ink look on real routes: Young Serif headings, 48px fields with the app's field shape, full-pill buttons, one calm form column and, from 960px, a photo panel (`/landing/farmer-market-hero.png`) with one honest line. One decision or one short step per screen; the progress bar is segments plus "Step 2 of 3". Errors sit under their field (text, not colour alone), the form-level message is a pale wash box, and focus moves to the step heading when the step changes.
+- **Account (`.ac-*`, `app/account.css`)** uses the app shell tokens (canvas background, white 16px cards, forest green) so it reads as part of the signed-in product. The edit page has a sticky save bar; the profile photo is cropped inline, not in a dialog.
+- **Inline confirm (`.ic-*`)** replaces confirmation dialogs for short decisions: the button becomes "Are you sure?  Cancel | Confirm" in place, focus lands on Cancel, Escape cancels. `.btn-danger-solid` is the one solid red button.
+- **Avatar** is the photo from the API or a green-soft circle with initials.
+
 ## Do's and Don'ts
 
 ### Do:

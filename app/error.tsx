@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 
 export default function Error({
@@ -21,9 +22,9 @@ export default function Error({
         <button className="btn btn-outline" onClick={reset} type="button">
           Try again
         </button>
-        <a className="btn btn-primary" href="/">
+        <Link className="btn btn-primary" href="/">
           Back to home
-        </a>
+        </Link>
       </div>
     </div>
   );

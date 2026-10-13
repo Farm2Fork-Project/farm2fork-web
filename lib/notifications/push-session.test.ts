@@ -75,3 +75,22 @@ test("failed server cleanup preserves the SDK token so disable can be retried", 
   await expect(session.disable()).rejects.toThrow("offline");
   expect(removed).toBe(false);
 });
+
+test("an account switch while fetching the SDK token prevents binding it to the next account", async () => {
+  let currentAccount = "buyer-a";
+  let resolveToken!: (token: string) => void;
+  let registrations = 0;
+  const session = new PushSession({
+    permission: async () => true,
+    token: () => new Promise((resolve) => { resolveToken = resolve; }),
+    deleteToken: async () => undefined,
+  }, {
+    request: async <T>() => { registrations++; return undefined as T; },
+  }, () => currentAccount === "buyer-a");
+  const pending = session.enable();
+  await Promise.resolve();
+  currentAccount = "buyer-b";
+  resolveToken("token-from-buyer-a");
+  expect(await pending).toBe(false);
+  expect(registrations).toBe(0);
+});

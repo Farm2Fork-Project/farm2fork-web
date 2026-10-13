@@ -1,8 +1,10 @@
 'use client'
 
+import { useHydrated } from '@/lib/react/use-hydrated';
+
 import { IcCheck as Check, IcClose as X } from "@/components/icons";
 import { Download } from "lucide-react";
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 
 type DataSource = 'Marketplace' | 'Harvests' | 'Ledger' | 'Price Trends'
@@ -18,12 +20,8 @@ export default function GenerateReportModal({ onClose }: { onClose: () => void }
   const [format, setFormat] = useState<ReportFormat>('PDF (Standard)')
   const [startDate, setStartDate] = useState('2023-10-01')
   const [endDate, setEndDate] = useState('2023-11-20')
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated();
 
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
 
   const toggleSource = (source: DataSource) => {
     setSelectedSources((prev) => {

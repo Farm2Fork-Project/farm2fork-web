@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { IcLeaf as LuLeaf, IcArrowLeft as LuArrowLeft, IcEye as LuEye, IcEyeOff as LuEyeOff, IcCheck as LuCheck } from "@/components/icons";
 import type { RegisterFarmerRequest } from "@/lib/api/contracts.ts";
+import { PAKISTAN_PROVINCES, provinceKey } from "@/lib/farmer/farm-location.ts";
 import { useLanguage } from "./LanguageContext";
-import { IcArrowLeft, IcCheck, IcEye, IcEyeOff, IcLeaf } from "@/components/icons";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 
 interface FarmerSignupProps {
   onSubmit: (input: RegisterFarmerRequest) => Promise<void>;
@@ -13,18 +16,6 @@ interface FarmerSignupProps {
 
 const CNIC_PATTERN = /^\d{5}-?\d{7}-?\d$/;
 const cropOptions = ["wheat", "rice", "cotton", "sugarcane", "maize", "vegetables"];
-const provinces = [
-  "Punjab",
-  "Sindh",
-  "Khyber Pakhtunkhwa",
-  "Balochistan",
-  "Gilgit-Baltistan",
-  "Azad Jammu and Kashmir",
-  "Islamabad Capital Territory",
-];
-// Mirrors PAKISTAN_BOUNDS in farm2fork-backend/src/common/geo/geo.ts.
-const LAT_RANGE = { min: 23.5, max: 37.2 };
-const LNG_RANGE = { min: 60.5, max: 77.9 };
 
 export default function FarmerSignup({ onSubmit, onBack, identityEmail }: FarmerSignupProps) {
   const { t } = useLanguage();
@@ -40,13 +31,12 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
     confirmation: "",
     farmName: "",
     farmSize: "",
-    address: "",
-    city: "",
-    province: "",
-    lat: "",
-    lng: "",
+    farmAddress: "",
+    farmCity: "",
+    farmProvince: "",
   });
   const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
+  const [farmPin, setFarmPin] = useState<GeoPoint | null>(null);
 
   function updateField(event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     setFormData((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -86,28 +76,20 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       setError("Farm name is required.");
       return;
     }
+    if (!formData.farmAddress.trim() || !formData.farmCity.trim() || !formData.farmProvince) {
+      setError(t("farmLocation.required"));
+      return;
+    }
+    if (!farmPin) {
+      setError(t("farmLocation.pinRequired"));
+      return;
+    }
 
     const landSizeAcres = formData.farmSize.trim()
       ? Number(formData.farmSize)
       : undefined;
     if (landSizeAcres !== undefined && (!Number.isFinite(landSizeAcres) || landSizeAcres < 0)) {
       setError("Farm size must be a non-negative number.");
-      return;
-    }
-
-    const address = formData.address.trim();
-    const city = formData.city.trim();
-    if (!address || !city || !formData.province) {
-      setError("Farm address, city and province are required.");
-      return;
-    }
-    const lat = formData.lat.trim() === "" ? Number.NaN : Number(formData.lat);
-    const lng = formData.lng.trim() === "" ? Number.NaN : Number(formData.lng);
-    if (
-      !Number.isFinite(lat) || lat < LAT_RANGE.min || lat > LAT_RANGE.max ||
-      !Number.isFinite(lng) || lng < LNG_RANGE.min || lng > LNG_RANGE.max
-    ) {
-      setError("Enter farm coordinates inside Pakistan (latitude 23.5–37.2, longitude 60.5–77.9).");
       return;
     }
 
@@ -118,8 +100,14 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         password: formData.password,
         cnic: formData.cnic.trim(),
         farmName: formData.farmName.trim(),
-        farmLocation: { address, city, province: formData.province, lat, lng },
         ...(formData.phone.trim() ? { phone: formData.phone.trim() } : {}),
+        farmLocation: {
+          address: formData.farmAddress.trim(),
+          city: formData.farmCity.trim(),
+          province: formData.farmProvince,
+          lat: farmPin.lat,
+          lng: farmPin.lng,
+        },
         ...(selectedCrops.length ? { cropTypes: selectedCrops } : {}),
         ...(landSizeAcres === undefined ? {} : { landSizeAcres }),
       });
@@ -148,8 +136,8 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
       <div className="auth-card">
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
-            <IcLeaf size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
-            <h1>
+            <LuLeaf size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
+            <h1 style={{ fontSize: "32px", fontWeight: 800, marginBottom: "16px", lineHeight: 1.2 }}>
               {t("app.title")} <br /> {t("landing.title2")}
             </h1>
             <p style={{ fontSize: "18px", opacity: 0.9, lineHeight: 1.6, maxWidth: "320px" }}>
@@ -161,9 +149,9 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
         <div className="auth-form-side" style={{ padding: "48px" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "32px" }}>
             <button className="back-btn" onClick={handleBack} aria-label="Go back" type="button" disabled={isSubmitting}>
-              <IcArrowLeft size={24} color="var(--text-dark)" />
+              <LuArrowLeft size={24} color="var(--text-dark)" />
             </button>
-            <h2 style={{ marginLeft: "16px" }}>
+            <h2 style={{ fontSize: "24px", fontWeight: 800, marginLeft: "16px", color: "var(--text-dark)" }}>
               {t("farmerSignup.title")}
             </h2>
           </div>
@@ -206,7 +194,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <div className="auth-input-wrapper">
                   <input id="farmer-password" name="password" className="auth-input" type={showPassword ? "text" : "password"} value={formData.password} onChange={updateField} disabled={isSubmitting} />
                   <button type="button" className="toggle-pw" onClick={() => setShowPassword((current) => !current)} aria-label="Toggle password visibility">
-                    {showPassword ? <IcEye size={20} /> : <IcEyeOff size={20} />}
+                    {showPassword ? <LuEye size={20} /> : <LuEyeOff size={20} />}
                   </button>
                 </div>
                 </div>
@@ -232,33 +220,28 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                 <label htmlFor="farmer-farm-size">Farm size (acres)</label>
                 <input id="farmer-farm-size" name="farmSize" className="auth-input" type="number" min="0" step="any" value={formData.farmSize} onChange={updateField} disabled={isSubmitting} />
               </div>
-              <p>{t("farmerSignup.pickupAfterSignup")}</p>
+              {/* Pickup location: all three parts are required so transporters
+                  can collect this farm's orders. */}
               <div className="auth-form-group">
-                <label htmlFor="farmer-address">Street or village</label>
-                <input id="farmer-address" name="address" className="auth-input" maxLength={200} value={formData.address} onChange={updateField} disabled={isSubmitting} />
+                <label htmlFor="farmer-address">{t("farmLocation.address")}</label>
+                <input id="farmer-address" name="farmAddress" className="auth-input" required value={formData.farmAddress} onChange={updateField} disabled={isSubmitting} placeholder={t("farmLocation.addressPlaceholder")} />
               </div>
               <div className="auth-form-group">
-                <label htmlFor="farmer-city">Farm city</label>
-                <input id="farmer-city" name="city" className="auth-input" maxLength={80} value={formData.city} onChange={updateField} disabled={isSubmitting} />
+                <label htmlFor="farmer-city">{t("farmLocation.city")}</label>
+                <input id="farmer-city" name="farmCity" className="auth-input" required value={formData.farmCity} onChange={updateField} disabled={isSubmitting} />
               </div>
               <div className="auth-form-group">
-                <label htmlFor="farmer-province">Farm province</label>
-                <select id="farmer-province" name="province" className="auth-input" value={formData.province} onChange={updateField} disabled={isSubmitting}>
-                  <option value="">Select province</option>
-                  {provinces.map((province) => (
-                    <option key={province} value={province}>{province}</option>
+                <label htmlFor="farmer-province">{t("farmLocation.province")}</label>
+                <select id="farmer-province" name="farmProvince" className="auth-input" required value={formData.farmProvince} onChange={updateField} disabled={isSubmitting}>
+                  <option value="">{t("farmLocation.provincePlaceholder")}</option>
+                  {PAKISTAN_PROVINCES.map((province) => (
+                    <option key={province} value={province}>{t(provinceKey(province))}</option>
                   ))}
                 </select>
               </div>
               <div className="auth-form-group">
-                <label htmlFor="farmer-lat">Farm latitude</label>
-                <input id="farmer-lat" name="lat" className="auth-input" type="number" step="any" min={LAT_RANGE.min} max={LAT_RANGE.max} placeholder="30.1575" value={formData.lat} onChange={updateField} disabled={isSubmitting} />
+                <MapPinPicker value={farmPin} onChange={setFarmPin} purpose="farm" disabled={isSubmitting} />
               </div>
-              <div className="auth-form-group">
-                <label htmlFor="farmer-lng">Farm longitude</label>
-                <input id="farmer-lng" name="lng" className="auth-input" type="number" step="any" min={LNG_RANGE.min} max={LNG_RANGE.max} placeholder="71.5249" value={formData.lng} onChange={updateField} disabled={isSubmitting} />
-              </div>
-              <p style={{ fontSize: "13px", opacity: 0.8 }}>Copy your farm coordinates from your map app.</p>
               <div>
                 <p style={{ fontSize: "14px", fontWeight: 600, color: "var(--text-dark)", marginBottom: "12px" }}>
                   {t("farmerSignup.selectCrops")}
@@ -268,7 +251,7 @@ export default function FarmerSignup({ onSubmit, onBack, identityEmail }: Farmer
                     const isSelected = selectedCrops.includes(crop);
                     return (
                       <button key={crop} type="button" aria-pressed={isSelected} onClick={() => toggleCrop(crop)} disabled={isSubmitting}>
-                        {isSelected ? <IcCheck size={16} /> : null}
+                        {isSelected ? <LuCheck size={16} /> : null}
                         {crop}
                       </button>
                     );

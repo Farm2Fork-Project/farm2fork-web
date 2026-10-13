@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LandingScreenProps } from "./types";
+import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
 import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
 
@@ -63,9 +64,9 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
             <div className="market-hero-actions">
               <button className="market-primary" onClick={onGetStarted}>
                 {t("landing.getStarted")}{" "}
-                <IcArrowRight 
-                  size={18} 
-                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+                <IcArrowRight
+                  size={18}
+                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
                 />
               </button>
               <a className="market-text-link" href="#how-it-works">
@@ -92,6 +93,8 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
             </div>
           </div>
         </section>
+
+        <LandingProducts onSignIn={onLogin} />
 
         <section id="how-it-works" className="market-process market-section">
           <div className="market-section-heading">
@@ -128,9 +131,9 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
             <p>{t("landing.trace.desc")}</p>
             <Link className="market-text-link" href="/traceability">
               {t("landing.trace.btn")}{" "}
-              <IcArrowRight 
-                size={17} 
-                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+              <IcArrowRight
+                size={17}
+                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
               />
             </Link>
           </div>
@@ -201,9 +204,9 @@ export default function LandingScreen({ onGetStarted, onLogin, seoContent, foote
           </div>
           <button className="market-primary market-primary-light" onClick={onGetStarted}>
             {t("landing.cta.btn")}{" "}
-            <IcArrowRight 
-              size={18} 
-              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }} 
+            <IcArrowRight
+              size={18}
+              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
             />
           </button>
         </section>

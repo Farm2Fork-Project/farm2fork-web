@@ -15,7 +15,7 @@ export default function PushRuntime() {
     webSession.read,
     () => null,
   );
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ owner: typeof session; text: string } | null>(null);
   useEffect(() => {
     if (!session) return;
     let stopped = false;
@@ -26,15 +26,12 @@ export default function PushRuntime() {
         ? getApp()
         : initializeApp(getFirebaseClientConfig());
       unsubscribe = onMessage(getMessaging(app), (message) => {
-        if (webSession.read()?.user.id === session?.user.id)
-          setNotice(
-            [message.notification?.title, message.notification?.body]
-              .filter(Boolean)
-              .join(" — "),
-          );
+        if (!stopped && webSession.read() === session)
+          setNotice({ owner: session, text: [message.notification?.title, message.notification?.body].filter(Boolean).join(" — ") });
       });
     }
     async function refreshToken() {
+      if (stopped || webSession.read() !== session) return;
       const key = pushOptInKey();
       if (
         key &&
@@ -62,9 +59,9 @@ export default function PushRuntime() {
     const timer = setTimeout(() => setNotice(null), 8000);
     return () => clearTimeout(timer);
   }, [notice]);
-  return session && notice ? (
+  return session && notice?.owner === session ? (
     <div className="toast-alert" role="status">
-      {notice}
+      {notice.text}
     </div>
   ) : null;
 }

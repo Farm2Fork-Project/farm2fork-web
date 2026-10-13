@@ -36,6 +36,7 @@ export interface RegisterFarmerRequest {
   cnic: string;
   farmName: string;
   phone?: string;
+  /** Required: delivery is priced from and dispatched to this pin. */
   farmLocation: {
     address: string;
     city: string;
@@ -89,6 +90,68 @@ export interface ApiProduct {
   status: string;
   createdAt: string;
   updatedAt: string;
+  /** Public farm identity; null when the farmer has no profile. */
+  farmer?: ApiFarmerSummary | null;
+  /** Ledger state of the listing's first provenance record. */
+  originLedgerStatus?: OriginLedgerStatus;
+}
+
+export interface ApiFarmerSummary {
+  farmName: string;
+  city?: string;
+  province?: string;
+}
+
+export type OriginLedgerStatus = "pending" | "confirmed" | "failed" | "missing";
+
+export const GRADABLE_CROPS = [
+  "wheat",
+  "rice",
+  "mango",
+  "maize",
+  "cotton",
+  "sugarcane",
+] as const;
+export type GradableCrop = (typeof GRADABLE_CROPS)[number];
+
+export interface AiStatus {
+  available: boolean;
+  qualityModel?: "trained" | "untrained" | "unavailable";
+  trainedCrops?: string[];
+  priceMethod?: string;
+}
+
+export interface QualityCheckResult {
+  predictionId: string;
+  modelGrade: "A" | "B" | "C" | "D";
+  /** null when the model says D (below any listable grade). */
+  suggestedListingGrade: "A" | "B" | "C" | null;
+  confidenceScore: number;
+  probabilities: Record<string, number>;
+  crop: GradableCrop;
+  cropSupported: boolean;
+  lowConfidence: boolean;
+  modelStatus: "trained" | "untrained";
+  modelVersion: string;
+}
+
+export interface PriceSuggestionRequest {
+  productName: string;
+  category: string;
+  unit: FarmerProductUnit;
+  quantity?: number;
+  qualityGrade?: "A" | "B" | "C";
+}
+
+export interface PriceSuggestion {
+  predictionId: string;
+  predictedMinPrice: number;
+  predictedMaxPrice: number;
+  unit: FarmerProductUnit;
+  confidenceScore: number;
+  method: "rule_based";
+  basis: "crop" | "category";
+  modelVersion: string;
 }
 
 export type FarmerProductUnit = 'kg' | 'ton' | 'dozen' | 'piece' | 'litre';
@@ -114,6 +177,8 @@ export interface BuyerProduct {
   images: string[];
   qualityGrade?: string;
   status: string;
+  /** Absent on carts saved before farm identity existed. */
+  farmer?: ApiFarmerSummary | null;
 }
 
 export interface ApiPage<T> {
@@ -138,8 +203,18 @@ export interface ApiOrderAddress {
   city: string;
   province: string;
   zip?: string;
+  /** Drop-off pin: required for new orders, absent on legacy ones. */
   lat?: number;
   lng?: number;
+}
+
+export interface OrderQuote {
+  totalAmount: number;
+  platformFeePercent: number;
+  platformFeeAmount: number;
+  deliveryFee: number;
+  deliveryDistanceKm: number;
+  grandTotal: number;
 }
 
 export interface CreateOrderRequest {
@@ -164,6 +239,7 @@ export interface ApiOrder {
   totalAmount: number;
   platformFeePercent: number;
   platformFeeAmount: number;
+  /** Fixed delivery price frozen at checkout (0 on legacy orders). */
   deliveryFee?: number;
   deliveryDistanceKm?: number;
   grandTotal: number;
@@ -281,6 +357,7 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     images: product.images,
     qualityGrade: product.qualityGrade,
     status: product.status,
+    farmer: product.farmer ?? null,
   };
 }
 

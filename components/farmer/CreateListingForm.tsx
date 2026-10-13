@@ -68,7 +68,7 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
       <form onSubmit={handleSubmit}>
         {error ? <div className="auth-error" role="alert">{error}</div> : null}
         <div className="flex flex-col md:flex-row gap-6 w-full items-start">
-          
+
           {/* Left Column: Produce Specifications */}
           <div className="card shadow-sm flex flex-col gap-6 w-full flex-1 p-6 md:p-8 rounded-xl bg-white border border-gray-100">
             <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
@@ -98,10 +98,10 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
               <div className="flex flex-col w-full gap-2">
                 <label htmlFor="farmer-product-category" className="text-sm font-semibold text-gray-800">{t("farmer.create.category")}</label>
-                <select 
+                <select
                   id="farmer-product-category"
-                  value={category} 
-                  onChange={(e) => setCategory(e.target.value)} 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
                   className="select w-full py-3 px-4 text-base rounded-xl border-gray-300 focus:border-[var(--primary-green)] bg-white"
                 >
                   <option value="Vegetables">{t("farmer.create.cat.veg")}</option>
@@ -112,10 +112,10 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
               </div>
               <div className="flex flex-col w-full gap-2">
                 <label htmlFor="farmer-product-grade" className="text-sm font-semibold text-gray-800">{t("farmer.create.grade")}</label>
-                <select 
+                <select
                   id="farmer-product-grade"
-                  value={grade} 
-                  onChange={(e) => setGrade(e.target.value)} 
+                  value={grade}
+                  onChange={(e) => setGrade(e.target.value)}
                   className="select w-full py-3 px-4 text-base rounded-xl border-gray-300 focus:border-[var(--primary-green)] bg-white"
                 >
                   <option value="A">{t("farmer.create.grade.A")}</option>
@@ -141,7 +141,7 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
 
           {/* Right Column: Pricing & Actions */}
           <div className="w-full md:w-[280px] lg:w-[340px] flex-shrink-0 flex flex-col gap-5">
-            
+
             {aiClient ? (
               <AiListingAssistant
                 client={aiClient}
@@ -179,9 +179,9 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
               {/* Selling Unit */}
               <div className="flex flex-col w-full gap-2">
                 <label htmlFor="farmer-product-unit" className="text-sm font-semibold text-gray-800">{t("farmer.create.sellingUnit")}</label>
-                <select 
+                <select
                   id="farmer-product-unit"
-                  value={unit} 
+                  value={unit}
                   onChange={(e) => setUnit(e.target.value as FarmerProductUnit)}
                   className="select w-full py-3 px-4 text-base rounded-xl border-gray-300 focus:border-[var(--primary-green)] bg-white"
                 >
@@ -226,7 +226,7 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient }: Crea
                 <PlusCircle size={20} /> {isSubmitting ? "Publishing…" : t("farmer.create.publish")}
               </button>
             </div>
-            
+
           </div>
         </div>
       </form>

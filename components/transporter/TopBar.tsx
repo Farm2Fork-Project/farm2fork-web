@@ -53,15 +53,15 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
       </nav>
       <div className="topbar-right">
         <div style={{ position: "relative" }} ref={notifRef}>
-          <button 
-            className="topbar-icon-btn" 
+          <button
+            className="topbar-icon-btn"
             aria-label="Notifications"
             onClick={() => setShowNotif(!showNotif)}
           >
             <IcBell size={19} />
             <span className="badge-dot" />
           </button>
-          
+
           {showNotif && (
             <div style={{
               position: "absolute",
@@ -82,7 +82,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
                 <span style={{ fontSize: "13px", color: "var(--primary-green)", cursor: "pointer", fontWeight: 500 }}>Mark all as read</span>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "350px", overflowY: "auto", margin: "0 -8px" }}>
-                
+
                 <div style={{ display: "flex", gap: "12px", padding: "12px 8px", borderRadius: "8px", background: "rgba(34, 197, 94, 0.05)", cursor: "pointer" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "rgba(34, 197, 94, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary-green)", flexShrink: 0 }}>
                     <IcPackage size={20} />
@@ -128,7 +128,7 @@ export default function TopBar({ activeTab, setActiveTab, email }: TopBarProps) 
           )}
         </div>
 
-        <div 
+        <div
           className="topbar-user"
           onClick={() => setActiveTab("profile")}
           style={{ cursor: "pointer" }}

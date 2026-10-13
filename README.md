@@ -69,17 +69,25 @@ the SDK open `https://localhost:3001` and causes `ERR_SSL_PROTOCOL_ERROR`.
 Local development instead uses the project-hosted `firebaseapp.com` auth domain
 and a popup.
 
-## Real role onboarding
+## Sign in, sign up and account
 
-- Buyer: open `/`, choose Buyer, and create an account.
-- Farmer: open `/farmer?signup=true`; a farmer can then create and view their
-  own API-backed listings.
-- Transporter: open `/transporter?signup=true`.
+One sign-in for every role, as real pages (no overlays):
 
-All roles use the same short-lived browser session, but each portal validates
-its expected role with `GET /api/auth/me`. The farmer requires a CNIC and farm
-name. The transporter requires a CNIC, vehicle type/number, driving licence
-number, and at least one service area.
+| Route | What it is |
+| --- | --- |
+| `/login` | Email and password, Google, `?next=` support. After sign-in the role from `GET /auth/me` decides where you land: buyer `/`, farmer `/farmer`, financial partner `/financial`, admin `/admin/dashboard`, transporter `/transporter` (the mobile-app page). Admins and financial partners use the same Firebase flow, so there is no separate staff entrance. |
+| `/signup` | One decision: Buyer, Farmer or Transporter (transporters are sent to the mobile-app page). `/signup?continue=1` is where a Google or just-verified account that has no role yet lands. |
+| `/signup/buyer`, `/signup/farmer` | Three short steps (Account, About you / Your farm, Identity or Location and ID). The step is in `?step=`, so browser Back and Forward work. Typed values are kept in `sessionStorage` (never the password). Phone numbers are sent as E.164, CNIC is validated live. A buyer who chooses Individual is not asked for a business name (their own name is sent, because the API still requires one). |
+| `/verify-email`, `/forgot-password` | Resend with a cooldown, an "I've verified" check, clear states. |
+| `/account`, `/account/edit` | Profile for every role: photo, name, phone, role details, language and text size, notifications, help links, sign out. Edit uses `PATCH /auth/me/profile` (and `PATCH /farmers/me/farm-location`); the photo is cropped inline to a 512px JPEG and uploaded with `PUT /auth/me/avatar`. See `../farm2fork-backend/docs/profile-and-avatar.md`. |
+
+Old links still work: `/?auth=login`, `/?auth=signup` and `/farmer?signup=true` redirect (see `redirects()` in `next.config.ts`; the old query string is passed along and ignored), `/admin/login` redirects to `/login?next=/admin/dashboard`, and visiting `/farmer`, `/financial` or `/admin/*` signed out sends you to `/login?next=…`. These pages are `noindex` and are not in the sitemap.
+
+Where things live: `components/auth/*` (screens), `lib/auth/*` (role routing, validation, error messages, drafts, the shared `useAuthFlow`, `usePortalSession` and `useSignOut` hooks), `components/account/*` and `lib/account/*` (profile, avatar, edit form), `components/ui/InlineConfirm.tsx` (the two-step "Are you sure?" button used instead of confirmation dialogs), strings in `lib/dictionaries-auth.ts` and `lib/dictionaries-account.ts` (English and Urdu), styles in `app/auth.css` (`.af-*`) and `app/account.css` (`.ac-*`, `.ic-*`, `.fl-*`).
+
+Avatars come from `user.avatarUrl` (a Cloudinary URL built by the API, or a root-relative path in local development). The web app needs no Cloudinary keys.
+
+Transporters work from the mobile app: `/transporter` is an information page and the sign-up card points at it.
 
 ## Local marketplace simulator walkthrough
 
@@ -111,7 +119,8 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api docker compose build
 ## SEO, GEO and AEO
 
 Public pages are server-rendered and indexable; the signed-in portals
-(`/admin`, `/farmer`, `/transporter`, `/financial`, `/order`) are `noindex`.
+(`/admin`, `/farmer`, `/transporter`, `/financial`, `/order`, `/account`) and the
+sign-in pages (`/login`, `/signup/*`, `/verify-email`, `/forgot-password`) are `noindex`.
 
 Environment (all `NEXT_PUBLIC_*`, baked in at build time):
 
@@ -134,7 +143,7 @@ To add a guide: create an `Article` in `lib/content/guides/`, add it to `GUIDES`
 
 Every public page also exists in Urdu at `/ur` + its English path (`/about` -> `/ur/about`, `/` -> `/ur`). The client-side language toggle inside the app is unchanged; the Urdu URLs exist so search engines and AI assistants can index Urdu content.
 
-- Urdu copy lives in `lib/content/ur/` and mirrors the English modules one to one (same section ids, block types, FAQ order, guide slugs and dates). Titles, descriptions and nav labels are in `lib/seo/pages-ur.ts`; interface strings (nav, headings added by the layout) are in `lib/seo/ui.ts`. Links inside Urdu copy are written as `/ur/...`; links into the signed-in app (`/?auth=signup`, `/farmer?signup=true`) stay as they are.
+- Urdu copy lives in `lib/content/ur/` and mirrors the English modules one to one (same section ids, block types, FAQ order, guide slugs and dates). Titles, descriptions and nav labels are in `lib/seo/pages-ur.ts`; interface strings (nav, headings added by the layout) are in `lib/seo/ui.ts`. Links inside Urdu copy are written as `/ur/...`; links into the signed-in app (`/signup`, `/signup/farmer`, `/login`) stay as they are.
 - The English registry path is the key that ties a page to its translation (`pageFor(path, "ur")`, `localePath(path, "ur")`). `components/site/*` take a `locale` prop and the shared `components/site/views/*` render both languages, so the English pages and the Urdu ones cannot drift in layout.
 - `buildMetadata({ path, locale })` emits the canonical URL and `hreflang` alternates (`en`, `ur`, `x-default` = English). The sitemap lists every page once per language, each entry with the same alternates. `/llms.txt` has an Urdu section and `/llms-full.txt` appends the Urdu text. JSON-LD sets `inLanguage` per page.
 - Urdu pages put `lang="ur" dir="rtl"` on the page's outermost element (`PageShell`), not on `<html>`: a single root layout cannot know the locale statically. Making `<html lang>` follow the page would mean either moving the whole app under `app/[lang]` (see `node_modules/next/dist/docs/01-app/02-guides/internationalization.md`) or splitting into two root layouts with `global-not-found`; neither was worth the risk to the portals for the pilot.

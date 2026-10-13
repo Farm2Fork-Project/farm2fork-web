@@ -192,7 +192,14 @@ test.skipIf(!baseUrl)(
     );
     await screen.findByText(/Checkout was closed/);
     expect(screen.getAllByText("Payment: pending")).toHaveLength(2);
-    const firstOrderId = firstUrl.searchParams.get("order_id")!;
+    // Checkout URLs carry only the tracker; the gateway fixture maps it back to its order.
+    const orderIdOf = async (url: URL) =>
+      (
+        (await (
+          await fetch(`${process.env.CHECKOUT_TEST_GATEWAY}/__trackers`)
+        ).json()) as Record<string, string>
+      )[url.searchParams.get("tracker")!];
+    const firstOrderId = await orderIdOf(firstUrl);
     // Both orders remain server-owned and the resume path reuses one of them.
     await user.click(
       screen.getAllByRole("button", { name: "Continue payment" })[0],
@@ -201,7 +208,7 @@ test.skipIf(!baseUrl)(
       name: "Open Safepay checkout",
     });
     const resumedUrl = new URL(resumedLink.getAttribute("href")!);
-    const resumedOrderId = resumedUrl.searchParams.get("order_id")!;
+    const resumedOrderId = await orderIdOf(resumedUrl);
     expect(orders.some((order) => order.id === resumedOrderId)).toBe(true);
     expect((await buyer.listOrders()).data).toHaveLength(2);
     const untouchedUrl = resumedOrderId === firstOrderId ? secondUrl : firstUrl;
@@ -253,9 +260,7 @@ test.skipIf(!baseUrl)(
         await screen.findByRole("link", { name: "Open Safepay checkout" })
       ).getAttribute("href")!,
     );
-    expect(retryUrl.searchParams.get("order_id")).toBe(
-      untouchedUrl.searchParams.get("order_id"),
-    );
+    expect(await orderIdOf(retryUrl)).toBe(await orderIdOf(untouchedUrl));
     expect((await callback(retryUrl, "payment.succeeded")).status).toBe(201);
     await user.click(
       screen.getByRole("button", { name: "Refresh payment status" }),

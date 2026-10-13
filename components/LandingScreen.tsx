@@ -1,16 +1,13 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { LandingScreenProps } from "./types";
 import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
 import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
 
-const scrollTo = (id: string) => {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-};
-
-export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenProps) {
+export default function LandingScreen({ onGetStarted, onLogin, seoContent, footerContent }: LandingScreenProps) {
   const { language, setLanguage, t } = useLanguage();
 
   const isRtl = language === "ur";
@@ -18,21 +15,24 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
   return (
     <div className="market-landing" dir={isRtl ? "rtl" : "ltr"}>
       <header className="market-header">
-        <button className="market-brand" onClick={() => scrollTo("home")} aria-label="Farm2Fork home">
+        <Link className="market-brand" href="/" aria-label="Farm2Fork home">
           <span className="market-brand-mark"><IcLeaf size={22} /></span>
           <span>{t("app.title")}</span>
-        </button>
+        </Link>
 
         <nav className="market-nav" aria-label="Main navigation">
-          <button className="market-nav-item" onClick={() => scrollTo("how-it-works")}>
+          <Link className="market-nav-item" href="/how-it-works">
             {t("landing.nav.howItWorks")}
-          </button>
-          <button className="market-nav-item" onClick={() => scrollTo("people")}>
+          </Link>
+          <a className="market-nav-item" href="#people">
             {t("landing.nav.whosItFor")}
-          </button>
-          <button className="market-nav-item" onClick={() => scrollTo("traceability")}>
+          </a>
+          <Link className="market-nav-item" href="/traceability">
             {t("landing.nav.traceProduce")}
-          </button>
+          </Link>
+          <Link className="market-nav-item" href="/guides">
+            {t("landing.nav.guides")}
+          </Link>
         </nav>
 
         <div className="market-header-actions">
@@ -69,9 +69,9 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
                   style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
                 />
               </button>
-              <button className="market-text-link" onClick={() => scrollTo("how-it-works")}>
+              <a className="market-text-link" href="#how-it-works">
                 {t("landing.hero.seeHowItWorks")}
-              </button>
+              </a>
             </div>
             <div className="market-audience-strip" aria-label="Farm2Fork users">
               <span><IcSprout /> {t("landing.hero.farmers")}</span>
@@ -79,7 +79,15 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
               <span><IcTruck /> {t("landing.hero.transporters")}</span>
             </div>
           </div>
-          <div className="market-hero-image" role="img" aria-label="Pakistani farmer with fresh produce at a local market">
+          <div className="market-hero-image">
+            <Image
+              src="/landing/farmer-market-hero.png"
+              alt="A Pakistani farmer in a white shalwar kameez sits beside crates of tomatoes, cauliflower and okra, with a decorated truck behind him at dawn"
+              fill
+              priority
+              sizes="(max-width: 1040px) 100vw, 600px"
+              className="market-hero-photo"
+            />
             <div className="market-photo-caption">
               <IcMapPin size={17} /> {t("landing.hero.badge")}
             </div>
@@ -121,7 +129,7 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
               {t("landing.trace.title1")} <em>{t("landing.trace.title2")}</em>
             </h2>
             <p>{t("landing.trace.desc")}</p>
-            <Link className="market-text-link" href="/trace">
+            <Link className="market-text-link" href="/traceability">
               {t("landing.trace.btn")}{" "}
               <IcArrowRight
                 size={17}
@@ -171,21 +179,23 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
           <div className="market-people-list">
             <article>
               <IcSprout />
-              <h3>{t("landing.people.farmers.title")}</h3>
+              <h3><Link href="/for-farmers">{t("landing.people.farmers.title")}</Link></h3>
               <p>{t("landing.people.farmers.desc")}</p>
             </article>
             <article>
               <IcCrate />
-              <h3>{t("landing.people.buyers.title")}</h3>
+              <h3><Link href="/for-buyers">{t("landing.people.buyers.title")}</Link></h3>
               <p>{t("landing.people.buyers.desc")}</p>
             </article>
             <article>
               <IcTruck />
-              <h3>{t("landing.people.transporters.title")}</h3>
+              <h3><Link href="/for-transporters">{t("landing.people.transporters.title")}</Link></h3>
               <p>{t("landing.people.transporters.desc")}</p>
             </article>
           </div>
         </section>
+
+        {seoContent}
 
         <section className="market-final-cta">
           <div>
@@ -202,14 +212,16 @@ export default function LandingScreen({ onGetStarted, onLogin }: LandingScreenPr
         </section>
       </main>
 
-      <footer className="market-footer">
-        <div className="market-brand">
-          <span className="market-brand-mark"><IcLeaf size={20} /></span>
-          <span>{t("app.title")}</span>
-        </div>
-        <p>{t("landing.footer.desc")}</p>
-        <span>{t("landing.footer.fyp")}</span>
-      </footer>
+      {footerContent ?? (
+        <footer className="market-footer">
+          <div className="market-brand">
+            <span className="market-brand-mark"><IcLeaf size={20} /></span>
+            <span>{t("app.title")}</span>
+          </div>
+          <p>{t("landing.footer.desc")}</p>
+          <span>{t("landing.footer.fyp")}</span>
+        </footer>
+      )}
     </div>
   );
 }

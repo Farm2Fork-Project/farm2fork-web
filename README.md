@@ -107,3 +107,42 @@ CI=true pnpm test
 CI=true pnpm run build
 NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api docker compose build
 ```
+
+## SEO, GEO and AEO
+
+Public pages are server-rendered and indexable; the signed-in portals
+(`/admin`, `/farmer`, `/transporter`, `/financial`, `/order`) are `noindex`.
+
+Environment (all `NEXT_PUBLIC_*`, baked in at build time):
+
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Deployed HTTPS origin, no trailing slash. Drives canonicals, sitemap, Open Graph and JSON-LD. **Set it for every production build.** |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | Enables `/contact` and the Organization `contactPoint`. Without it `/contact` is a 404 and is left out of the sitemap. |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, `NEXT_PUBLIC_BING_SITE_VERIFICATION` | Search Console and Bing Webmaster Tools verification tags. |
+
+Where things live:
+
+- `lib/seo/pages.ts` is the registry of public pages (title, description, dates, priority). The sitemap, nav, footer, `/llms.txt` and the tests all read it.
+- `lib/content/` holds the page copy as typed data: `site-pages.ts`, `faqs.ts`, `glossary.ts`, `legal.ts` and `guides/`. Strings accept `[label](/path)` links and `**bold**`.
+- `lib/seo/jsonld.tsx` builds the structured data (Organization, WebSite, WebPage, Article, FAQPage, HowTo, BreadcrumbList, DefinedTermSet, ItemList).
+- Generated: `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`, `/opengraph-image` (and one per guide), `/llms.txt`, `/llms-full.txt`.
+
+To add a guide: create an `Article` in `lib/content/guides/`, add it to `GUIDES` in `lib/content/guides/index.ts`, then run `pnpm test`. `test/seo.test.ts` checks title and description lengths, broken internal links, answer-first summaries and that no invented user counts or testimonials slip in.
+
+### Urdu pages (`/ur/*`)
+
+Every public page also exists in Urdu at `/ur` + its English path (`/about` -> `/ur/about`, `/` -> `/ur`). The client-side language toggle inside the app is unchanged; the Urdu URLs exist so search engines and AI assistants can index Urdu content.
+
+- Urdu copy lives in `lib/content/ur/` and mirrors the English modules one to one (same section ids, block types, FAQ order, guide slugs and dates). Titles, descriptions and nav labels are in `lib/seo/pages-ur.ts`; interface strings (nav, headings added by the layout) are in `lib/seo/ui.ts`. Links inside Urdu copy are written as `/ur/...`; links into the signed-in app (`/?auth=signup`, `/farmer?signup=true`) stay as they are.
+- The English registry path is the key that ties a page to its translation (`pageFor(path, "ur")`, `localePath(path, "ur")`). `components/site/*` take a `locale` prop and the shared `components/site/views/*` render both languages, so the English pages and the Urdu ones cannot drift in layout.
+- `buildMetadata({ path, locale })` emits the canonical URL and `hreflang` alternates (`en`, `ur`, `x-default` = English). The sitemap lists every page once per language, each entry with the same alternates. `/llms.txt` has an Urdu section and `/llms-full.txt` appends the Urdu text. JSON-LD sets `inLanguage` per page.
+- Urdu pages put `lang="ur" dir="rtl"` on the page's outermost element (`PageShell`), not on `<html>`: a single root layout cannot know the locale statically. Making `<html lang>` follow the page would mean either moving the whole app under `app/[lang]` (see `node_modules/next/dist/docs/01-app/02-guides/internationalization.md`) or splitting into two root layouts with `global-not-found`; neither was worth the risk to the portals for the pilot.
+- Share cards (`opengraph-image`) are English only; Urdu pages reuse them.
+- To add a page: add the English page, then its Urdu content module and an entry in `URDU_PAGE_META`/the route folder under `app/ur/`. `pnpm test` fails until every English page has an Urdu counterpart with matching structure.
+- The Urdu text is a first translation and still needs a native-speaker review (see `docs/urdu-review.md`).
+
+Do not add a root-level `app/loading.tsx`: it wraps every page in a Suspense
+boundary, and React then streams large public pages after a "Loading…"
+placeholder, which hides the content from crawlers that do not run JavaScript.
+Portal loading states live in each portal folder.

@@ -1,4 +1,5 @@
-import { Filter, Search } from 'lucide-react'
+import { IcSearch as Search } from "@/components/icons";
+import { Filter } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const logs = [

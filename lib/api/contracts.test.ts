@@ -27,9 +27,34 @@ test("toBuyerProduct preserves backend data without inventing farmer profile fie
       images: [],
       qualityGrade: 'A',
       status: 'active',
+      farmer: null,
     });
     expect(product).not.toHaveProperty("farmName");
     expect(product).not.toHaveProperty("rating");
     expect(product).not.toHaveProperty("location");
     expect(product).not.toHaveProperty("sales");
+});
+
+test("toBuyerProduct passes through the backend's public farm identity unchanged", () => {
+  const product = toBuyerProduct({
+    id: '66a000000000000000000001',
+    farmerId: '66a000000000000000000002',
+    name: 'Chaunsa Mangoes',
+    category: 'fruits',
+    price: 320,
+    quantity: 400,
+    unit: 'kg',
+    images: [],
+    status: 'active',
+    createdAt: '2026-08-12T00:00:00.000Z',
+    updatedAt: '2026-08-12T00:00:00.000Z',
+    farmer: { farmName: 'Green Valley Farm', city: 'Multan', province: 'Punjab' },
+    originLedgerStatus: 'confirmed',
+  });
+
+  expect(product.farmer).toEqual({
+    farmName: 'Green Valley Farm',
+    city: 'Multan',
+    province: 'Punjab',
+  });
 });

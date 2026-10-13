@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { LuArrowLeft, LuEye, LuEyeOff, LuX } from "react-icons/lu";
 import type { BuyerBusinessType } from "@/lib/api/contracts.ts";
 import { SignUpFormScreenProps } from "./types";
+import { IcArrowLeft, IcClose, IcEye, IcEyeOff } from "@/components/icons";
 
 const BUSINESS_TYPES: Array<{ value: BuyerBusinessType; label: string }> = [
   { value: "individual", label: "Individual" },
@@ -82,15 +82,15 @@ export default function SignUpFormScreen({
         <div className="auth-form-side">
           {onBackHome ? (
             <button className="auth-close" onClick={onBackHome} aria-label="Close and return home">
-              <LuX size={22} />
+              <IcClose size={22} />
             </button>
           ) : null}
           <button className="auth-home-link" onClick={onBackHome}>
-            <LuArrowLeft size={16} /> Back to home
+            <IcArrowLeft size={16} /> Back to home
           </button>
           <div className="auth-card-narrow-header">
             <button className="back-btn" onClick={onBack} aria-label="Go back">
-              <LuArrowLeft size={22} />
+              <IcArrowLeft size={22} />
             </button>
             <h1 id="signup-heading">Create your buyer account</h1>
           </div>
@@ -194,7 +194,7 @@ export default function SignUpFormScreen({
                 type="button"
                 aria-label="Toggle password visibility"
               >
-                {showPassword ? <LuEye size={18} /> : <LuEyeOff size={18} />}
+                {showPassword ? <IcEye size={18} /> : <IcEyeOff size={18} />}
               </button>
             </div>
             </div>

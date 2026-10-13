@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { LuArrowLeft, LuTruck } from "react-icons/lu";
 import type { RegisterTransporterRequest, TransporterVehicleType } from "@/lib/api/contracts.ts";
 import { useLanguage } from "./LanguageContext";
+import { IcArrowLeft, IcTruck } from "@/components/icons";
 
 export type TransporterVehicleInput = Pick<
   RegisterTransporterRequest,
@@ -45,13 +45,13 @@ export default function TransporterSignup2Screen({
       <div className="auth-card">
         <div className="auth-illustration-side">
           <div className="auth-illustration-content">
-            <LuTruck size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
+            <IcTruck size={64} color="var(--primary-green)" style={{ marginBottom: "24px" }} />
             <h1>{t("tsignup.title1")}<br />{t("tsignup.title2")}</h1>
             <p>{t("tsignup.subtitle")}</p>
           </div>
         </div>
         <div className="auth-form-side" style={{ padding: "48px" }}>
-          <button className="back-btn" onClick={onBack} aria-label="Go back" type="button" disabled={isSubmitting}><LuArrowLeft size={24} /></button>
+          <button className="back-btn" onClick={onBack} aria-label="Go back" type="button" disabled={isSubmitting}><IcArrowLeft size={24} /></button>
           <h2>{t("tsignup.header")}</h2>
           {error || submitError ? <div className="auth-error" role="alert">{error || submitError}</div> : null}
           <p>{t("tsignup.step2")}</p>

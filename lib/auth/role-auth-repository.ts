@@ -5,6 +5,7 @@ import {
   type WebRole,
 } from "../api/contracts.ts";
 import { type WebSession, webSession } from "./web-session.ts";
+import { wrongRoleMessage } from "./wrong-role.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
@@ -50,10 +51,7 @@ export class RoleAuthRepository {
     expectedRole: Role,
   ): WebSession["user"] & { role: Role } {
     if (user.role !== expectedRole) {
-      throw new ApiError(
-        403,
-        `This account cannot access the ${expectedRole} application.`,
-      );
+      throw new ApiError(403, wrongRoleMessage(expectedRole, user.role));
     }
 
     return {

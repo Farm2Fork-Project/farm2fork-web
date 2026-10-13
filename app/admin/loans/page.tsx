@@ -1,7 +1,7 @@
 "use client"
 
+import { IcSearch as Search } from "@/components/icons";
 import { useState } from 'react'
-import { Search } from 'lucide-react'
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const extendedLoans = [

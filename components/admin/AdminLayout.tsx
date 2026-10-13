@@ -17,12 +17,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       .then((user) => {
         setRole(user.role)
         if (user.role !== 'admin') {
-          router.replace('/admin/login')
+          router.replace('/login?next=%2Fadmin%2Fdashboard')
         }
       })
       .catch(() => {
         setRole(null)
-        router.replace('/admin/login')
+        router.replace('/login?next=%2Fadmin%2Fdashboard')
       })
       .finally(() => setLoading(false))
   }, [router])

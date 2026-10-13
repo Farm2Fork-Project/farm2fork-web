@@ -1,12 +1,9 @@
 import type { ReactNode } from "react";
-import type { RegisterBuyerRequest } from "@/lib/api/contracts.ts";
 
 /* ───────── Shared Types ───────── */
-export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "signup-transporter" | "verification";
-
 export interface LandingScreenProps {
-  onGetStarted: () => void;
-  onLogin: () => void;
+  /** Set when a non-buyer is signed in: the header then links to their portal instead of sign in. */
+  portalHref?: string;
   /** Server-rendered, English-only content shown between the people and final CTA sections. */
   seoContent?: ReactNode;
   /** Server-rendered footer with links to every public page. Replaces the built-in footer. */
@@ -28,19 +25,6 @@ export interface ProfileScreenProps {
   signedInAs?: string;
   email?: string;
   avatarIcon?: ReactNode;
-}
-
-export interface SignUpFormScreenProps {
-  onBack: () => void;
-  onBackHome?: () => void;
-  identityEmail?: string;
-  onSubmit: (input: RegisterBuyerRequest) => Promise<void> | void;
-}
-
-export interface SignUpRoleScreenProps {
-  onBack: () => void;
-  onBackHome?: () => void;
-  onSelectRole: (role: "buyer" | "farmer" | "transporter") => void;
 }
 
 /* ───────── Financial Partner Types ───────── */
@@ -91,8 +75,4 @@ export interface LogoutModalProps {
   isOpen: boolean
   onConfirm: () => void
   onCancel: () => void
-}
-
-export interface FinancialLoginScreenProps {
-  onLoginSuccess: () => void
 }

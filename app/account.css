@@ -191,3 +191,17 @@
 .lc-photo-remove:focus-visible, .lc-photo-add:focus-within { outline: 3px solid rgba(35, 107, 68, .35); outline-offset: 2px; }
 .lc-photo-add { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 1.5px dashed var(--surface-medium); color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
 .lc-photo-add:hover { border-color: var(--primary-green); color: var(--primary-green); }
+
+/* Checkout */
+.checkout-step { margin: var(--sp-md) 0 0; font-size: calc(15px * var(--font-scale, 1)); font-weight: 700; color: var(--text-dark); }
+.checkout-panel .checkout-hint { color: var(--text-muted); font-size: calc(14px * var(--font-scale, 1)); line-height: 1.5; }
+.checkout-quote-line { display: flex; justify-content: space-between; gap: var(--sp-md); }
+.checkout-quote-total { margin-top: 4px; padding-top: 6px; border-top: 1px solid var(--surface-medium); }
+.checkout-grand-total { padding: var(--sp-md); border-radius: var(--radius-md); background: var(--primary-green-soft); font-size: calc(15px * var(--font-scale, 1)); }
+.checkout-receipt { text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--sp-md); }
+.checkout-receipt > p { color: var(--text-muted); max-width: 46ch; }
+.checkout-receipt-list { width: 100%; display: flex; flex-direction: column; gap: var(--sp-md); text-align: start; }
+.checkout-receipt-row { display: flex; flex-direction: column; gap: var(--sp-sm); padding: var(--sp-md); border: 1px solid var(--surface-medium); border-radius: var(--radius-lg); }
+.checkout-receipt-row .btn { align-self: stretch; text-align: center; justify-content: center; }
+.checkout-receipt-amount { color: var(--text-muted); }
+.checkout-receipt-note { color: var(--text-muted); font-size: 14px; }

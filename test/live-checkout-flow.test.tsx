@@ -134,14 +134,11 @@ test.skipIf(!baseUrl)(
       getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
     } });
     await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-    const placeOrders = screen.getByRole("button", { name: "Place orders" });
+    const placeOrders = screen.getByRole("button", { name: /^Place \d+ orders/ });
     await waitFor(() => expect(placeOrders).toBeEnabled());
     await user.click(placeOrders);
-    const firstLink = await screen.findByRole("link", {
-      name: "Pay farmer group 1 with Safepay",
-    });
-    const secondLink = screen.getByRole("link", {
-      name: "Pay farmer group 2 with Safepay",
+    const [firstLink, secondLink] = await screen.findAllByRole("link", {
+      name: /^Pay/,
     });
     const firstUrl = new URL(firstLink.getAttribute("href")!);
     const secondUrl = new URL(secondLink.getAttribute("href")!);
@@ -195,7 +192,14 @@ test.skipIf(!baseUrl)(
     );
     await screen.findByText(/Checkout was closed/);
     expect(screen.getAllByText("Payment: pending")).toHaveLength(2);
-    const firstOrderId = firstUrl.searchParams.get("order_id")!;
+    // Checkout URLs carry only the tracker; the gateway fixture maps it back to its order.
+    const orderIdOf = async (url: URL) =>
+      (
+        (await (
+          await fetch(`${process.env.CHECKOUT_TEST_GATEWAY}/__trackers`)
+        ).json()) as Record<string, string>
+      )[url.searchParams.get("tracker")!];
+    const firstOrderId = await orderIdOf(firstUrl);
     // Both orders remain server-owned and the resume path reuses one of them.
     await user.click(
       screen.getAllByRole("button", { name: "Continue payment" })[0],
@@ -204,7 +208,7 @@ test.skipIf(!baseUrl)(
       name: "Open Safepay checkout",
     });
     const resumedUrl = new URL(resumedLink.getAttribute("href")!);
-    const resumedOrderId = resumedUrl.searchParams.get("order_id")!;
+    const resumedOrderId = await orderIdOf(resumedUrl);
     expect(orders.some((order) => order.id === resumedOrderId)).toBe(true);
     expect((await buyer.listOrders()).data).toHaveLength(2);
     const untouchedUrl = resumedOrderId === firstOrderId ? secondUrl : firstUrl;
@@ -256,9 +260,7 @@ test.skipIf(!baseUrl)(
         await screen.findByRole("link", { name: "Open Safepay checkout" })
       ).getAttribute("href")!,
     );
-    expect(retryUrl.searchParams.get("order_id")).toBe(
-      untouchedUrl.searchParams.get("order_id"),
-    );
+    expect(await orderIdOf(retryUrl)).toBe(await orderIdOf(untouchedUrl));
     expect((await callback(retryUrl, "payment.succeeded")).status).toBe(201);
     await user.click(
       screen.getByRole("button", { name: "Refresh payment status" }),

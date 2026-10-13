@@ -7,30 +7,24 @@ import { FarmPickupLocation } from "./FarmPickupLocation";
 import FarmerOrders from "./FarmerOrders";
 import FarmFeed from "./FarmFeed";
 import NotificationBell from "@/components/NotificationBell";
-import FarmerProfile from "../ProfileScreen";
+import Link from "next/link";
+import { Avatar } from "../account/Avatar";
 import ScanScreen from "../ScanScreen";
 import { useLanguage } from "./LanguageContext";
 import { ApiClient } from "@/lib/api/client.ts";
 import type {
+  ApiAuthUser,
   ApiFarmerSummary,
   ApiOrder,
   ApiProduct,
   CreateFarmerProductRequest,
 } from "@/lib/api/contracts.ts";
 import { FarmerRepository } from "@/lib/farmer/farmer-repository.ts";
-import { IcBag as ShoppingBag, IcBell as Bell, IcCheckCircle as CheckCircle, IcClose as X, IcFeed as Rss, IcLeaf, IcMenu as Menu, IcPlusCircle as PlusCircle, IcQr as QrCode, IcTractor as Tractor, IcUser, IcUser as User } from "@/components/icons";
+import { IcBag as ShoppingBag, IcCheckCircle as CheckCircle, IcClose as X, IcFeed as Rss, IcLeaf, IcMenu as Menu, IcPlusCircle as PlusCircle, IcQr as QrCode, IcTractor as Tractor, IcUser as User } from "@/components/icons";
 
-type TabType = "listings" | "create" | "orders" | "feed" | "scan" | "profile";
+type TabType = "listings" | "create" | "orders" | "feed" | "scan";
 
-export default function FarmerDashboard({
-  email,
-  userId,
-  onLogout,
-}: {
-  email?: string;
-  userId?: string;
-  onLogout?: () => void;
-}) {
+export default function FarmerDashboard({ email, user }: { email?: string; user?: ApiAuthUser }) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabType>("listings");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -221,18 +215,14 @@ export default function FarmerDashboard({
           <div className="topbar-right">
             <NotificationBell />
 
-            {/* User Profile Card */}
-            <div
-              className="topbar-user"
-              onClick={() => setActiveTab("profile")}
-              style={{ cursor: "pointer" }}
-            >
-              <div className="topbar-avatar" style={{ background: "linear-gradient(135deg, var(--primary-green), #14492a)", color: "white", fontWeight: "bold" }}>F</div>
-              <div className="topbar-user-info">
-                <span className="topbar-user-name">{t("signupRole.farmerRole")}</span>
+            {/* Profile and account live on /account */}
+            <Link className="topbar-user" href="/account" aria-label={t("farmer.tab.profile")}>
+              <Avatar user={{ ...user, email }} size={36} />
+              <span className="topbar-user-info">
+                <span className="topbar-user-name">{user?.fullName || t("signupRole.farmerRole")}</span>
                 <span className="topbar-user-role">{email}</span>
-              </div>
-            </div>
+              </span>
+            </Link>
           </div>
         </header>
 
@@ -332,19 +322,14 @@ export default function FarmerDashboard({
                   <span>{t("farmer.tab.scan")}</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setActiveTab("profile");
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full text-left p-3 rounded-lg text-sm font-semibold flex items-center gap-3 border-none cursor-pointer transition-colors ${activeTab === "profile"
-                    ? "bg-[var(--primary-green-soft)] text-[var(--primary-green)]"
-                    : "bg-white text-gray-600 hover:bg-gray-50"
-                    }`}
+                <Link
+                  href="/account"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-left p-3 rounded-lg text-sm font-semibold flex items-center gap-3 border-none cursor-pointer transition-colors bg-white text-gray-600 hover:bg-gray-50"
                 >
                   <User size={16} />
                   <span>{t("farmer.tab.profile")}</span>
-                </button>
+                </Link>
               </nav>
             </aside>
           </>
@@ -375,21 +360,9 @@ export default function FarmerDashboard({
             ordersError ? <p role="alert">{ordersError}</p> : orders ? <FarmerOrders orders={orders} /> : <p>Loading orders…</p>
           )}
 
-          {activeTab === "feed" && <FarmFeed currentUserId={userId} />}
+          {activeTab === "feed" && <FarmFeed currentUserId={user?.id} />}
 
           {activeTab === "scan" && <ScanScreen />}
-
-          {activeTab === "profile" && (
-            <FarmerProfile
-              email={email}
-              avatarIcon={<IcUser size={28} />}
-              signedInAs={t("settings.sidebar.signedInFarmer")}
-              onLogout={() => {
-                if (onLogout) onLogout();
-                else console.log("Logout");
-              }}
-            />
-          )}
         </main>
 
 

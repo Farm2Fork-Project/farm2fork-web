@@ -22,11 +22,11 @@ import {
 } from "@/lib/cart/cart.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
-import ProfileScreen from "../ProfileScreen";
+import { Avatar } from "../account/Avatar";
 import ScanScreen from "../ScanScreen";
 import { paymentSimulatorEnabled, safepayCheckoutUrl, type PaymentReturn } from "@/lib/buyer/payment-checkout.ts";
 import { CheckoutPanel } from "./CheckoutPanel";
-import { IcCart, IcCrate, IcLeaf, IcLogOut, IcPlus, IcScan, IcStore } from "@/components/icons";
+import { IcCart, IcCrate, IcLeaf, IcScan, IcPlus, IcStore } from "@/components/icons";
 
 type BuyerRepositoryPort = Pick<
   BuyerRepository,
@@ -43,7 +43,7 @@ type BuyerRepositoryPort = Pick<
   | "simulatePaymentSuccess"
 >;
 
-type BuyerTab = "cart" | "marketplace" | "orders" | "scan" | "profile";
+type BuyerTab = "cart" | "marketplace" | "orders" | "scan";
 
 export function BuyerApp({
   repository,
@@ -253,21 +253,16 @@ export function BuyerApp({
             <TabButton active={activeTab === "scan"} onClick={() => setActiveTab("scan")}>
               Trace
             </TabButton>
-            <TabButton active={activeTab === "profile"} onClick={() => setActiveTab("profile")}>
-              Profile
-            </TabButton>
           </nav>
           <div className="topbar-right">
             <NotificationBell />
-            <span className="topbar-user-role">{buyer.email}</span>
-            <button
-              aria-label="Log out"
-              className="topbar-icon-btn"
-              onClick={onLogout}
-              type="button"
-            >
-              <IcLogOut size={18} />
-            </button>
+            <Link className="topbar-user" href="/account" aria-label="Your account and profile">
+              <Avatar user={buyer} size={36} />
+              <span className="topbar-user-info">
+                <span className="topbar-user-name">{buyer.fullName || "Buyer"}</span>
+                <span className="topbar-user-role">{buyer.email}</span>
+              </span>
+            </Link>
           </div>
         </header>
 
@@ -313,9 +308,6 @@ export function BuyerApp({
             />
           ) : null}
           {activeTab === "scan" ? <ScanScreen /> : null}
-          {activeTab === "profile" ? (
-            <ProfileScreen email={buyer.email} onLogout={onLogout} />
-          ) : null}
         </main>
       </div>
     </div>

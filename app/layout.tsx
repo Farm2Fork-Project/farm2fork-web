@@ -3,6 +3,8 @@ import { Atkinson_Hyperlegible_Next, Young_Serif } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import "./site.css";
+import "./auth.css";
+import "./account.css";
 import PushRuntime from "@/components/PushRuntime";
 import { HOME_PAGE } from "@/lib/seo/pages";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo/site";

@@ -64,7 +64,7 @@ describe("sitemap", () => {
     ]);
     for (const entry of entries) {
       expect(entry.url).toMatch(/^https?:\/\//);
-      expect(entry.url).not.toMatch(/\/(admin|farmer|transporter|financial|order|login)(\/|$)/);
+      expect(entry.url).not.toMatch(/\/(admin|farmer|transporter|financial|order|account|login|signup|verify-email|forgot-password)(\/|$)/);
     }
   });
 
@@ -79,6 +79,10 @@ describe("content", () => {
     "/contact",
     "/farmer",
     "/transporter",
+    // The sign-up pages are app routes (noindex), linked from the content.
+    "/login",
+    "/signup",
+    "/signup/farmer",
   ]);
 
   const internalLinks = (value: unknown): string[] => {
@@ -184,7 +188,7 @@ describe("Urdu pages", () => {
   const SUFFIX_LENGTH = " | Farm2Fork".length;
 
   /** App routes that stay in English because they are the signed-in app, not content pages. */
-  const APP_LINKS = new Set(["/", "/farmer", "/transporter"]);
+  const APP_LINKS = new Set(["/", "/farmer", "/transporter", "/login", "/signup", "/signup/farmer"]);
 
   const hrefsIn = (value: unknown): string[] => {
     const json = JSON.stringify(value);

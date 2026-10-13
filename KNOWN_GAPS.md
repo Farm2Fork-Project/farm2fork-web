@@ -11,8 +11,8 @@ picked up deliberately later instead of being rediscovered from scratch.
 
 Farm2Fork's bilingual (English/Urdu, RTL) support is a stated cross-platform goal
 (mobile has full parity), but on web it only exists on the screens that happen to be
-shared across roles — `LoginScreen.tsx`, `SignUpRoleScreen.tsx`, `ProfileScreen.tsx`,
-`ScanScreen.tsx`, `LandingScreen.tsx` — plus each role's own screens *if* that role
+shared across roles — the sign-in, sign-up and account pages (`components/auth`,
+`components/account`), `ScanScreen.tsx`, `LandingScreen.tsx` — plus each role's own screens *if* that role
 already had its own dictionary namespace wired in. Confirmed via grep for
 `useLanguage`/`t(`/`dir=` usage:
 
@@ -23,7 +23,7 @@ already had its own dictionary namespace wired in. Confirmed via grep for
   checkout are all implemented inline inside `components/buyer/BuyerApp.tsx`
   (~1059 lines across the buyer component folder) and never call `t()` or set `dir`.
   Buyer only gets any localized UI at all via the shared screens it happens to reuse
-  (Login/Profile/Scan/SignUpRole).
+  (sign-in, sign-up, account and Scan).
 - **Financial** (`components/financial/*`, ~1843 lines across 7 files: LoginScreen,
   DashboardScreen, LoanDetailScreen, SettingsScreen, Topbar, LogoutModal, and others) —
   zero `useLanguage`/`t()`/`dir` usage anywhere.

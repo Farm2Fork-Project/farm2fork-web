@@ -1,41 +1,23 @@
 'use client'
 
-import { useHydrated } from '@/lib/react/use-hydrated';
-
-import React, { useState, useEffect } from 'react'
-import LoginScreen from '@/components/financial/LoginScreen'
+import React, { useState } from 'react'
+import { PortalGate } from '@/components/auth/PortalGate'
+import { useRouter } from 'next/navigation'
+import { ApiClient } from '@/lib/api/client.ts'
+import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
 import DashboardScreen from '@/components/financial/DashboardScreen'
 import LoanDetailScreen from '@/components/financial/LoanDetailScreen'
 import SettingsScreen from '@/components/financial/SettingsScreen'
 import LogoutModal from '@/components/financial/LogoutModal'
-import { ApiClient } from '@/lib/api/client.ts'
-import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
-import { webSession } from '@/lib/auth/web-session.ts'
-import type { ApiAuthUser } from '@/lib/api/contracts.ts'
 import { LanguageProvider } from '@/components/LanguageContext'
 
 function FinancialPortal() {
-  const mounted = useHydrated();
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter()
   const [currentView, setCurrentView] = useState<'queue' | 'settings' | 'detail'>('queue')
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [logoutBusy, setLogoutBusy] = useState(false)
   const [logoutError, setLogoutError] = useState('')
-
-  useEffect(() => {
-    new ApiClient().request<ApiAuthUser>('/auth/me')
-      .then((user) => {
-        if (user.role === 'financial_partner') webSession.save({ user });
-        setIsAuthenticated(user.role === 'financial_partner');
-      })
-      .catch(() => setIsAuthenticated(false))
-  }, [])
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true)
-    setCurrentView('queue')
-  }
 
   const triggerLogoutModal = () => {
     setShowLogoutModal(true)
@@ -47,21 +29,15 @@ function FinancialPortal() {
     setLogoutError('');
     try {
       await new FirebaseWebAuthRepository({ client: new ApiClient() }).logout();
-      setIsAuthenticated(false);
       setSelectedLoanId(null);
       setCurrentView('queue');
       setShowLogoutModal(false);
+      router.replace('/login?signedout=1');
     } catch {
       setLogoutError('Could not sign out. Please retry.');
     } finally {
       setLogoutBusy(false);
     }
-  }
-
-  if (!mounted) return null
-
-  if (!isAuthenticated) {
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} />
   }
 
   return (
@@ -111,7 +87,7 @@ function FinancialPortal() {
 export default function FinancialPage() {
   return (
     <LanguageProvider>
-      <FinancialPortal />
+      <PortalGate role="financial_partner">{() => <FinancialPortal />}</PortalGate>
     </LanguageProvider>
   )
 }

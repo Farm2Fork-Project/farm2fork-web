@@ -50,7 +50,7 @@ export const HOME_UR: ContentPageData = {
   cta: {
     title: "شروع کرنے کے لیے تیار ہیں؟",
     text: "اپنے کردار کے مطابق مفت اکاؤنٹ بنائیں، یا پہلے دیکھیں کہ پلیٹ فارم کیسے کام کرتا ہے۔",
-    primary: { label: "شروع کریں", href: "/?auth=signup" },
+    primary: { label: "شروع کریں", href: "/signup" },
     secondary: { label: "کیسے کام کرتا ہے", href: "/ur/how-it-works" },
   },
   related: ["/how-it-works", "/traceability", "/for-farmers", "/for-buyers"],

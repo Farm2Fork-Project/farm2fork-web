@@ -1,343 +1,61 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import type { AuthScreen } from "@/components/types";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
 import LandingScreen from "@/components/LandingScreen";
-import LoginScreen from "@/components/LoginScreen";
-import SignUpFormScreen from "@/components/SignUpFormScreen";
-import SignUpRoleScreen from "@/components/SignUpRoleScreen";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { BuyerApp } from "@/components/buyer/BuyerApp";
-import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
 import { ApiClient } from "@/lib/api/client.ts";
+import type { ApiAuthUser } from "@/lib/api/contracts.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
-import { ApiError, type RegisterBuyerRequest } from "@/lib/api/contracts.ts";
-import {
-  FirebaseWebAuthRepository,
-  type FirebaseWebAuthResult,
-} from "@/lib/auth/firebase-web-auth-repository.ts";
-import {
-  beginFirebaseOnboarding,
-  firebaseOnboardingPortalPath,
-  readMatchingFirebaseOnboardingEmail,
-} from "@/lib/auth/firebase-onboarding-flow.ts";
-import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.ts";
-import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
-import {
-  type BuyerSession,
-  type WebSession,
-  webSession,
-} from "@/lib/auth/web-session.ts";
-import { wrongRoleMessage } from "@/lib/auth/wrong-role.ts";
+import { portalPathForRole } from "@/lib/auth/role-routes.ts";
+import { type BuyerSession } from "@/lib/auth/web-session.ts";
+import { useSignOut } from "@/lib/auth/use-sign-out.ts";
 
 type HomeSlots = { seoContent?: ReactNode; footerContent?: ReactNode };
 
 function HomeContent({ seoContent, footerContent }: HomeSlots) {
-  const router = useRouter();
   const searchParams = useSearchParams();
+  const signOut = useSignOut();
   const repository = useMemo(
     () => new BuyerRepository({ client: new ApiClient() }),
     [],
   );
-  const authRepository = useMemo(
-    () => new FirebaseWebAuthRepository({ client: new ApiClient() }),
-    [],
-  );
-  const roleRepository = useMemo(
-    () => new RoleAuthRepository({ client: new ApiClient() }),
-    [],
-  );
   const [session, setSession] = useState<BuyerSession | null>(null);
-  const [authScreen, setAuthScreen] = useState<AuthScreen>(() => {
-    if (searchParams.get("auth") === "login") return "login";
-    if (searchParams.get("auth") === "signup") return "signup-role";
-    return "landing";
-  });
-  const [loginError, setLoginError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [verificationEmail, setVerificationEmail] = useState("");
-  const [pendingOnboarding, setPendingOnboarding] = useState<
-    Omit<RegisterBuyerRequest, "email" | "password"> | null
-  >(null);
-  const [googleIdentityEmail, setGoogleIdentityEmail] = useState("");
+  const [portalHref, setPortalHref] = useState<string | undefined>();
 
-  const beginRoleSelection = useCallback((email: string) => {
-    setGoogleIdentityEmail(beginFirebaseOnboarding(email));
-    setAuthScreen("signup-role");
-    router.replace("/?auth=signup&firebaseOnboarding=true");
-  }, [router]);
-
-  const closeAuth = useCallback(() => {
-    firebaseOnboardingIntent.clear();
-    setGoogleIdentityEmail("");
-    void authRepository.discardFirebaseIdentity();
-    setLoginError("");
-    setAuthScreen("landing");
-    router.replace("/");
-  }, [authRepository, router]);
-
-  const cancelFirebaseOnboarding = useCallback(() => {
-    firebaseOnboardingIntent.clear();
-    setGoogleIdentityEmail("");
-    void authRepository.discardFirebaseIdentity();
-    setAuthScreen("login");
-    router.replace("/?auth=login");
-  }, [authRepository, router]);
-
-  const completeGoogleSignIn = useCallback((result: FirebaseWebAuthResult) => {
-    if (result.kind === "verification_required") {
-      setVerificationEmail(result.email);
-      setAuthScreen("verification");
-      return;
-    }
-    if (result.kind === "onboarding_required") {
-      beginRoleSelection(result.email);
-      return;
-    }
-    if (result.user.role !== "buyer") {
-      throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
-    }
-    setSession({ user: result.user as BuyerSession["user"] });
-    setAuthScreen("landing");
-  }, [beginRoleSelection]);
-
+  // Signing in is a page of its own (/login), so "/" only has to notice who
+  // is already signed in: buyers get the marketplace, other roles a way back
+  // to their own portal.
   useEffect(() => {
     let active = true;
-    roleRepository
-      .getCurrentUser("buyer")
+    new ApiClient()
+      .request<ApiAuthUser>("/auth/me")
       .then((user) => {
-        if (active) setSession({ user });
+        if (!active) return;
+        if (user.role === "buyer") setSession({ user: user as BuyerSession["user"] });
+        else setPortalHref(portalPathForRole(user.role));
       })
       .catch(() => undefined);
     return () => {
       active = false;
     };
-  }, [roleRepository]);
-
-  useEffect(() => {
-    let active = true;
-    authRepository.resumeGoogleRedirect()
-      .then((result) => {
-        if (active && result) completeGoogleSignIn(result);
-      })
-      .catch((error) => {
-        if (!active) return;
-        setLoginError(error instanceof Error ? error.message : "Could not complete Google sign-in.");
-        setAuthScreen("login");
-      });
-    return () => {
-      active = false;
-    };
-  }, [authRepository, completeGoogleSignIn]);
-
-  useEffect(() => {
-    if (searchParams.get("firebaseOnboarding") !== "true") return;
-    const email = readMatchingFirebaseOnboardingEmail(
-      authRepository.getCurrentFirebaseIdentityEmail(),
-    );
-    if (!email) {
-      setLoginError("Your onboarding session expired. Sign in again to choose a role.");
-      setAuthScreen("login");
-      return;
-    }
-    setGoogleIdentityEmail(email);
-    setAuthScreen("signup-role");
-  }, [authRepository, searchParams]);
-
-  useEffect(() => {
-    if (session || authScreen === "landing") return;
-
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeAuth();
-    };
-    document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [authScreen, closeAuth, session]);
-
-  async function login(email: string, password: string) {
-    if (!email || !password) {
-      setLoginError("Please enter your email and password.");
-      return;
-    }
-
-    setIsSubmitting(true);
-    setLoginError("");
-    try {
-      const result = await authRepository.signInWithEmail({ email, password });
-      if (result.kind === "verification_required") {
-        setVerificationEmail(result.email);
-        setAuthScreen("verification");
-        return;
-      }
-      if (result.kind === "onboarding_required") {
-        beginRoleSelection(result.email);
-        return;
-      }
-      if (result.user.role !== "buyer") {
-        throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
-      }
-      setSession({ user: result.user as BuyerSession["user"] });
-      setAuthScreen("landing");
-    } catch (error) {
-      setLoginError(error instanceof Error ? error.message : "Could not sign in.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function registerBuyer(input: RegisterBuyerRequest) {
-    if (googleIdentityEmail) {
-      const { email: _email, password: _password, ...onboarding } = input;
-      const user = await authRepository.onboardBuyer(onboarding);
-      if (user.role !== "buyer") {
-        throw new ApiError(403, wrongRoleMessage("buyer", user.role));
-      }
-      setSession({ user: user as BuyerSession["user"] });
-      setGoogleIdentityEmail("");
-      firebaseOnboardingIntent.clear();
-      setAuthScreen("landing");
-      return;
-    }
-    const { email, password, ...onboarding } = input;
-    const result = await authRepository.signUpWithEmail({ email, password });
-    setPendingOnboarding(onboarding);
-    setVerificationEmail(result.email);
-    setAuthScreen("verification");
-  }
-
-  async function loginWithGoogle() {
-    setIsSubmitting(true);
-    setLoginError("");
-    try {
-      const result = await authRepository.signInWithGoogle();
-      if (!result) return;
-      completeGoogleSignIn(result);
-    } catch (error) {
-      setLoginError(error instanceof Error ? error.message : "Could not sign in with Google.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function requestPasswordReset(email: string) {
-    if (!email.trim()) {
-      setLoginError("Enter your email address before requesting a password reset.");
-      return;
-    }
-    await authRepository.sendPasswordReset(email.trim());
-    setLoginError("Password reset email sent. Check your inbox.");
-  }
-
-  async function logout() {
-    await authRepository.logout();
-    setSession(null);
-    setAuthScreen("login");
-  }
-
-  async function refreshVerification() {
-    setIsSubmitting(true);
-    setLoginError("");
-    try {
-      const result = await authRepository.refreshEmailVerification();
-      if (result.kind === "session") {
-        if (result.user.role !== "buyer") throw new ApiError(403, wrongRoleMessage("buyer", result.user.role));
-        setSession({ user: result.user as BuyerSession["user"] });
-        setAuthScreen("landing");
-        return;
-      }
-      if (result.kind === "onboarding_required") {
-        if (!pendingOnboarding) {
-          beginRoleSelection(result.email);
-          return;
-        }
-        const user = await authRepository.onboardBuyer(pendingOnboarding);
-        if (user.role !== "buyer") throw new ApiError(403, wrongRoleMessage("buyer", user.role));
-        setSession({ user: user as BuyerSession["user"] });
-        setAuthScreen("landing");
-        return;
-      }
-    } catch (error) {
-      setLoginError(error instanceof Error ? error.message : "Could not verify your email.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  }, []);
 
   if (session) {
     const paymentReturn = searchParams.get("payment_return");
-    return <BuyerApp onLogout={logout} repository={repository} session={session}
-      paymentReturn={paymentReturn === "complete" || paymentReturn === "cancel" ? paymentReturn : undefined} />;
+    return (
+      <BuyerApp
+        onLogout={signOut}
+        repository={repository}
+        session={session}
+        paymentReturn={paymentReturn === "complete" || paymentReturn === "cancel" ? paymentReturn : undefined}
+      />
+    );
   }
 
-  return (
-    <>
-      <LandingScreen
-        onGetStarted={() => setAuthScreen("signup-role")}
-        onLogin={() => setAuthScreen("login")}
-        seoContent={seoContent}
-        footerContent={footerContent}
-      />
-      {authScreen === "login" ? (
-        <LoginScreen
-          isSubmitting={isSubmitting}
-          loginError={loginError}
-          onBackHome={closeAuth}
-          onGoSignup={() => {
-            setLoginError("");
-            setAuthScreen("signup-role");
-          }}
-          onLogin={login}
-          onGoogleLogin={loginWithGoogle}
-          onForgotPassword={requestPasswordReset}
-        />
-      ) : null}
-      {authScreen === "signup-role" ? (
-        <SignUpRoleScreen
-          onBack={cancelFirebaseOnboarding}
-          onBackHome={closeAuth}
-          onSelectRole={(role) => {
-            if (role === "buyer") setAuthScreen("signup-form");
-            else {
-              const path = firebaseOnboardingPortalPath(role);
-              if (path && googleIdentityEmail) router.push(path);
-              else if (role === "farmer") router.push("/farmer?signup=true");
-              else router.push("/transporter?signup=true");
-            }
-          }}
-        />
-      ) : null}
-      {authScreen === "signup-form" ? (
-        <SignUpFormScreen
-          identityEmail={googleIdentityEmail || undefined}
-          onBack={() => setAuthScreen("signup-role")}
-          onBackHome={closeAuth}
-          onSubmit={registerBuyer}
-        />
-      ) : null}
-      {authScreen === "verification" ? (
-        <EmailVerificationRequired
-          email={verificationEmail}
-          error={loginError}
-          isSubmitting={isSubmitting}
-          onBack={() => setAuthScreen("signup-form")}
-          onResend={() => authRepository.resendEmailVerification()}
-          onRefresh={refreshVerification}
-        />
-      ) : null}
-    </>
-  );
+  return <LandingScreen portalHref={portalHref} seoContent={seoContent} footerContent={footerContent} />;
 }
-
-function isBuyerSession(session: WebSession | null): session is BuyerSession {
-  return session?.user.role === "buyer";
-}
-
-const noop = () => undefined;
 
 /**
  * The landing page is the public front door, so it is server-rendered: the
@@ -350,14 +68,7 @@ export default function HomeClient({ seoContent, footerContent }: HomeSlots) {
   return (
     <LanguageProvider eager>
       <Suspense
-        fallback={
-          <LandingScreen
-            onGetStarted={noop}
-            onLogin={noop}
-            seoContent={seoContent}
-            footerContent={footerContent}
-          />
-        }
+        fallback={<LandingScreen seoContent={seoContent} footerContent={footerContent} />}
       >
         <HomeContent seoContent={seoContent} footerContent={footerContent} />
       </Suspense>

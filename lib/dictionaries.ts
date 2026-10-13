@@ -1,3 +1,6 @@
+import { accountDictionary } from "./dictionaries-account";
+import { authDictionary } from "./dictionaries-auth";
+
 export const dictionaries: Record<string, Record<string, string>> = {
   en: {
     // General
@@ -774,7 +777,11 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.seed.post2.content": "Expect price stabilization for Basmati Rice (1121) this season. Direct listings here are cutting out middleman cuts by 20%!",
     "feed.seed.post2.tags": "MarketTrends,Rice,DirectMarket",
     "feed.seed.post2.comment1.author": "Ali Raza",
-    "feed.seed.post2.comment1.content": "Agreed, direct prices are much better than selling in local mandi this month."
+    "feed.seed.post2.comment1.content": "Agreed, direct prices are much better than selling in local mandi this month.",
+
+    // Sign-in, sign-up, verify email, forgot password
+    ...authDictionary.en,
+    ...accountDictionary.en,
   },
   ur: {
     // General
@@ -1549,6 +1556,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     "feed.seed.post2.content": "اس سیزن میں باسمتی چاول (1121) کی قیمتوں میں استحکام کی توقع کریں۔ یہاں براہ راست لسٹنگ مڈل مین کے کٹوتی کو 20 فیصد تک کم کر رہی ہے!",
     "feed.seed.post2.tags": "مارکیٹ_رجحانات,چاول,براہ_راست_مارکیٹ",
     "feed.seed.post2.comment1.author": "علی رضا",
-    "feed.seed.post2.comment1.content": "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔"
+    "feed.seed.post2.comment1.content": "متفق، اس ماہ مقامی منڈی میں فروخت کرنے کے مقابلے میں براہ راست قیمتیں بہت بہتر ہیں۔",
+
+    // Sign-in, sign-up, verify email, forgot password
+    ...authDictionary.ur,
+    ...accountDictionary.ur,
   }
 };

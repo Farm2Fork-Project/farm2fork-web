@@ -16,6 +16,7 @@ import type { BuyerRepository, ProductQuery } from "@/lib/buyer/buyer-repository
 import { orderStatusClass } from "@/lib/status.ts";
 import {
   addCartItem,
+  cartGroupLabel,
   groupCartItemsByFarmer,
   removeCartGroup,
   type CartItem,
@@ -481,14 +482,18 @@ function Cart({
     <section>
       <div className="page-header">
         <h1>Your cart</h1>
-        <p>Each farmer&apos;s items become a separate order with its own payment.</p>
+        <p>
+          {groups.length > 1
+            ? `Your items come from ${groups.length} farms, so they're placed as separate orders. You pay for each one.`
+            : "Review your items, then add delivery details to place your order."}
+        </p>
       </div>
       <div className="cart-layout">
         <div className="cart-groups">
           {groups.map((group, index) => (
             <article className="order-card cart-group" key={group.farmerId}>
               <h2>
-                <IcStore size={20} /> Farmer group {index + 1}
+                <IcStore size={20} /> {cartGroupLabel(group, index)}
               </h2>
               {group.items.map((item) => (
                 <div className="order-item-row" key={item.productId}>

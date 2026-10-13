@@ -1,21 +1,8 @@
 'use client'
 
+import { IcPlus as Plus, IcTractor as Tractor } from "@/components/icons";
+import { AlertTriangle, ArrowRight, CheckCircle2, CloudSun, ExternalLink, Info, MoreVertical, SlidersHorizontal, TrendingUp, Truck, Wallet } from "lucide-react";
 import React, { useState } from 'react'
-import {
-  Tractor,
-  Wallet,
-  Truck,
-  AlertTriangle,
-  ExternalLink,
-  SlidersHorizontal,
-  MoreVertical,
-  Plus,
-  CloudSun,
-  CheckCircle2,
-  Info,
-  ArrowRight,
-  TrendingUp
-} from 'lucide-react'
 
 export default function DashboardScreen() {
   const [activeToggle, setActiveToggle] = useState<'daily' | 'monthly'>('monthly')

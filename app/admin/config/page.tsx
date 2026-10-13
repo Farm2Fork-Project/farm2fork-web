@@ -1,4 +1,4 @@
-import { Save, Settings2, SlidersHorizontal } from 'lucide-react'
+import { Save, Settings2, SlidersHorizontal } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 export default function ConfigPage() {

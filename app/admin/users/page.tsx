@@ -1,4 +1,5 @@
-import { Eye, Search, ShieldAlert, UserRound } from 'lucide-react'
+import { IcEye as Eye, IcSearch as Search } from "@/components/icons";
+import { ShieldAlert, UserRound } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const users = [

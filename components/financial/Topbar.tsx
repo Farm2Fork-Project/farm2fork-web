@@ -1,8 +1,10 @@
 'use client'
 
+import { IcBell as Bell, IcLeaf as Leaf, IcSearch as Search } from "@/components/icons";
+import { ArrowLeft, HelpCircle, LogOut } from "lucide-react";
 import React, { useState } from 'react'
-import { Search, Bell, HelpCircle, ArrowLeft, Leaf, LogOut } from 'lucide-react'
 import { TopbarProps } from '../types'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function Topbar({
   currentView,
@@ -23,11 +25,11 @@ export default function Topbar({
   return (
     <>
     <header className="topbar">
-      
+
       {/* Left side: Brand Logo / Back Indicator */}
       <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-lg)' }}>
-        <div 
-          onClick={onNavigateToQueue} 
+        <div
+          onClick={onNavigateToQueue}
           className="cursor-pointer"
           style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-sm)' }}
         >
@@ -39,7 +41,7 @@ export default function Topbar({
 
         {onBack && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', borderLeft: '1px solid var(--surface-medium)', paddingLeft: '16px' }}>
-            <button 
+            <button
               onClick={onBack}
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: 'var(--white)', border: '1px solid var(--surface-medium)', borderRadius: 'var(--radius-md)', cursor: 'pointer', color: 'var(--text-dark)' }}
             >
@@ -75,30 +77,22 @@ export default function Topbar({
 
       {/* Right side: Search, Actions & User card */}
       <div className="topbar-right">
-        
+
         {showSearch && (
           <div className="marketplace-search" style={{ marginBottom: 0 }}>
             <span className="search-icon">
               <Search size={16} />
             </span>
-            <input 
-              type="text" 
-              placeholder="Search..." 
+            <input
+              type="text"
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <button className="topbar-icon-btn" aria-label="Notifications">
-            <Bell size={18} />
-            <span className="badge-dot" />
-          </button>
-          <button className="topbar-icon-btn" aria-label="Help">
-            <HelpCircle size={18} />
-          </button>
-        </div>
+        <NotificationBell />
 
         <div className="flex items-center gap-3 pl-4 border-l border-surface-medium" style={{ borderLeft: '1px solid var(--surface-medium)', paddingLeft: 'var(--sp-lg)' }}>
           <div className="flex items-center gap-2.5" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -111,7 +105,7 @@ export default function Topbar({
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => {
               if (onLogout) onLogout()
             }}

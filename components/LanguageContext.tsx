@@ -16,7 +16,12 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-export function LanguageProvider({ children }: { children: React.ReactNode }) {
+/**
+ * `eager` renders children before the saved language has been read, which is
+ * what lets public pages ship real HTML to crawlers instead of an empty shell.
+ * Returning visitors who chose Urdu briefly see English before it switches.
+ */
+export function LanguageProvider({ children, eager = false }: { children: React.ReactNode; eager?: boolean }) {
   const [language, setLanguage] = useState<Language>("en");
   const [fontSize, setFontSize] = useState<FontSize>("medium");
   const [isLoaded, setIsLoaded] = useState(false);
@@ -24,6 +29,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const savedLang = localStorage.getItem("app_lang");
     if (savedLang === "ur" || savedLang === "en") {
+      // Restore the persisted browser preference after server hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguage(savedLang);
     }
     const savedFont = localStorage.getItem("app_font_size") as FontSize;
@@ -54,7 +61,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     return dictionary[key] || key;
   };
 
-  if (!isLoaded) {
+  if (!isLoaded && !eager) {
     return <div style={{ minHeight: "100vh", background: "#060F0A" }} />;
   }
 

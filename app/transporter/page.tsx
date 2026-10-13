@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LuTruck } from "react-icons/lu";
 import TopBar from "@/components/transporter/TopBar";
 import ShipmentScreen from "@/components/transporter/ShipmentScreen";
 import TransporterSignup1Screen, { type TransporterPersonalInput } from "@/components/transporter/TransporterSignup1Screen";
@@ -27,6 +26,8 @@ import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
 import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
 import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
+import { IcTruck } from "@/components/icons";
+import { wrongRoleMessage } from "@/lib/auth/wrong-role.ts";
 
 function TransporterApp() {
   const router = useRouter();
@@ -77,7 +78,7 @@ function TransporterApp() {
       return;
     }
     if (result.user.role !== "transporter") {
-      throw new ApiError(403, "This account cannot access the transporter application.");
+      throw new ApiError(403, wrongRoleMessage("transporter", result.user.role));
     }
     setSession({ user: result.user as WebSession["user"] & { role: "transporter" } });
   }, [beginRoleSelection]);
@@ -156,7 +157,7 @@ function TransporterApp() {
         return;
       }
       if (result.user.role !== "transporter") {
-        throw new ApiError(403, "This account cannot access the transporter application.");
+        throw new ApiError(403, wrongRoleMessage("transporter", result.user.role));
       }
       setSession({ user: result.user });
     } catch (error) {
@@ -184,7 +185,7 @@ function TransporterApp() {
       if (googleIdentityEmail) {
         const { email: _email, password: _password, ...onboarding } = registration;
         const user = await firebaseAuthRepository.onboardTransporter(onboarding);
-        if (user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
+        if (user.role !== "transporter") throw new ApiError(403, wrongRoleMessage("transporter", user.role));
         setSession({ user });
         setGoogleIdentityEmail("");
         firebaseOnboardingIntent.clear();
@@ -240,7 +241,7 @@ function TransporterApp() {
     try {
       const result = await firebaseAuthRepository.refreshEmailVerification();
       if (result.kind === "session") {
-        if (result.user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
+        if (result.user.role !== "transporter") throw new ApiError(403, wrongRoleMessage("transporter", result.user.role));
         setSession({ user: result.user });
         return;
       }
@@ -250,7 +251,7 @@ function TransporterApp() {
           return;
         }
         const user = await firebaseAuthRepository.onboardTransporter(pendingOnboarding);
-        if (user.role !== "transporter") throw new ApiError(403, "This account cannot access the transporter application.");
+        if (user.role !== "transporter") throw new ApiError(403, wrongRoleMessage("transporter", user.role));
         setSession({ user });
         return;
       }
@@ -309,7 +310,7 @@ function TransporterApp() {
       case "profile": return (
         <TransporterProfileScreen
           email={session.user.email}
-          avatarIcon={<LuTruck size={28} />}
+          avatarIcon={<IcTruck size={28} />}
           signedInAs={t("tTopBar.signedIn")}
           onLogout={logout}
         />

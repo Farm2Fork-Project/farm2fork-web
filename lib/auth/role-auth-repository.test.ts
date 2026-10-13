@@ -57,7 +57,7 @@ test("RoleAuthRepository rejects a mismatched cookie-authenticated role", async 
   });
 
   await expect(repository.getCurrentUser("farmer")).rejects.toMatchObject(
-    new ApiError(403, "This account cannot access the farmer application."),
+    new ApiError(403, "This is a buyer account. Sign in on the home page instead."),
   );
 });
 

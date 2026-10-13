@@ -213,6 +213,8 @@ export interface CreateFarmerProductRequest {
   quantity: number;
   unit: FarmerProductUnit;
   qualityGrade?: FarmerProductQualityGrade;
+  /** Public photo URLs from `uploadProductImages`. */
+  images?: string[];
 }
 
 export interface BuyerProduct {

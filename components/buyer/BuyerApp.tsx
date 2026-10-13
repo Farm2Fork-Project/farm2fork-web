@@ -22,6 +22,7 @@ import {
 } from "@/lib/cart/cart.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
 import { webSession } from "@/lib/auth/web-session.ts";
+import { resolveApiUrl } from "@/lib/loans/loan-repository.ts";
 import { Avatar } from "../account/Avatar";
 import ScanScreen from "../ScanScreen";
 import { paymentSimulatorEnabled, safepayCheckoutUrl, type PaymentReturn } from "@/lib/buyer/payment-checkout.ts";
@@ -361,7 +362,14 @@ function Marketplace({
         {detailError ? <p role="alert">{detailError}</p> : null}
         {selectedProduct ? (
           <div className="pd-layout">
-            <div className="pd-image"><IcLeaf className="leaf" size={100} /></div>
+            <div className="pd-image">
+              {selectedProduct.images[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="pd-photo" src={resolveApiUrl(selectedProduct.images[0])} alt={selectedProduct.name} />
+              ) : (
+                <IcLeaf className="leaf" size={100} />
+              )}
+            </div>
             <div className="pd-info">
               <h1>{selectedProduct.name}</h1>
               {selectedProduct.farmer ? (
@@ -420,7 +428,13 @@ function Marketplace({
           {products.map((product) => (
             <article className="mp-card" key={product.id}>
               <button className="mp-card-img" onClick={() => onOpenProduct(product.id)} type="button">
-                <IcLeaf className="leaf" size={56} />
+                {product.images[0] ? (
+                  // Photos come from Cloudinary or the API; not optimisable by next/image.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img className="mp-card-photo" src={resolveApiUrl(product.images[0])} alt="" loading="lazy" />
+                ) : (
+                  <IcLeaf className="leaf" size={56} />
+                )}
                 <span className="mp-card-grade">Grade {product.qualityGrade ?? "N/A"}</span>
               </button>
               <div className="mp-card-body">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { LuCrosshair, LuMapPin } from "react-icons/lu";
 import { useLanguage } from "../LanguageContext";
@@ -46,6 +46,16 @@ export default function MapPinPicker({
   const [jumpTo, setJumpTo] = useState<GeoPoint | null>(null);
   const [locating, setLocating] = useState(false);
   const [error, setError] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const disabledRef = useRef(disabled);
+  const mountedRef = useRef(true);
+  useEffect(() => { disabledRef.current = disabled; }, [disabled]);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
+
 
   const accept = (point: GeoPoint) => {
     if (!isInPakistan(point)) {
@@ -57,16 +67,18 @@ export default function MapPinPicker({
   };
 
   const useMyLocation = async () => {
+    if (disabled) return;
     setLocating(true);
     setError("");
     try {
       const here = await currentPosition();
+      if (!mountedRef.current || disabledRef.current) return;
       setJumpTo(here);
       accept(here);
     } catch (e) {
-      setError(t(e instanceof Error ? e.message : "map.locationUnavailable"));
+      if (mountedRef.current && !disabledRef.current) setError(t(e instanceof Error ? e.message : "map.locationUnavailable"));
     } finally {
-      setLocating(false);
+      if (mountedRef.current) setLocating(false);
     }
   };
 
@@ -110,6 +122,26 @@ export default function MapPinPicker({
           {value ? formatPoint(value) : t("map.notPinned")}
         </span>
       </div>
+      <details className="map-pin-manual">
+        <summary>{t("map.enterCoordinates")}</summary>
+        <p>{t("map.coordinateHint")}</p>
+        <div className="checkout-address-grid">
+          <label>
+            {t("map.latitude")}
+            <input type="number" step="any" min="23.5" max="37.2" value={latitude} onChange={(event) => setLatitude(event.target.value)} disabled={disabled} />
+          </label>
+          <label>
+            {t("map.longitude")}
+            <input type="number" step="any" min="60.5" max="77.9" value={longitude} onChange={(event) => setLongitude(event.target.value)} disabled={disabled} />
+          </label>
+        </div>
+        <button type="button" className="btn btn-outline" disabled={disabled} onClick={() => {
+          if (!latitude.trim() || !longitude.trim()) { setError(t("map.outsidePakistan")); return; }
+          const point = { lat: Number(latitude), lng: Number(longitude) };
+          if (isInPakistan(point)) setJumpTo(point);
+          accept(point);
+        }}>{t("map.setCoordinates")}</button>
+      </details>
       {error ? (
         <p className="map-pin-error" role="alert">
           {error}

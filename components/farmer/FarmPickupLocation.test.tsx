@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import { LanguageProvider } from "../LanguageContext";
 import { FarmPickupLocation } from "./FarmPickupLocation";
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 test("saves a complete pickup location and blocks an invalid map pin", async () => {
   const repository = {
@@ -22,14 +22,18 @@ test("saves a complete pickup location and blocks an invalid map pin", async () 
   await user.type(screen.getByLabelText("Street or village"), "Farm road");
   await user.type(screen.getByLabelText("Farm city"), "Lahore");
   await user.selectOptions(screen.getByLabelText("Farm province"), "Punjab");
-  await user.type(screen.getByLabelText("Farm latitude"), "0");
-  await user.type(screen.getByLabelText("Farm longitude"), "74.3587");
+  vi.stubGlobal("navigator", { ...navigator, geolocation: {
+    getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 0, longitude: 74.3587 } } as GeolocationPosition),
+  } });
+  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
   await user.click(
     screen.getByRole("button", { name: "Save pickup location" }),
   );
   expect(repository.updateFarmLocation).not.toHaveBeenCalled();
-  await user.clear(screen.getByLabelText("Farm latitude"));
-  await user.type(screen.getByLabelText("Farm latitude"), "31.5204");
+  vi.stubGlobal("navigator", { ...navigator, geolocation: {
+    getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
+  } });
+  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
   await user.click(
     screen.getByRole("button", { name: "Save pickup location" }),
   );

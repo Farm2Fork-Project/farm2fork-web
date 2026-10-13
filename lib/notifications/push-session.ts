@@ -11,16 +11,17 @@ export class PushSession {
     private readonly api: {
       request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
     },
+    private readonly isCurrent: () => boolean = () => true,
   ) {}
   async enable(): Promise<boolean> {
-    if (!(await this.gateway.permission())) return false;
+    if (!this.isCurrent() || !(await this.gateway.permission()) || !this.isCurrent()) return false;
     const token = await this.gateway.token();
-    if (!token) return false;
+    if (!token || !this.isCurrent()) return false;
     await this.api.request("/notifications/device-token", {
       method: "PUT",
       body: { token },
     });
-    return true;
+    return this.isCurrent();
   }
   async disable(): Promise<void> {
     await this.api.request("/notifications/device-token", { method: "DELETE" });

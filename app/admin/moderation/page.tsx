@@ -89,7 +89,7 @@ export default function ModerationPage() {
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{review.target}</div>
                   </td>
                   <td style={{ color: 'var(--text-muted)' }}>
-                    "{review.content}"
+                    &quot;{review.content}&quot;
                   </td>
                   <td>
                     {review.status === 'pending' && <span className="badge badge-soft-yellow">Pending</span>}

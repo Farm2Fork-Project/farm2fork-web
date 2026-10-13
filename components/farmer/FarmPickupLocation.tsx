@@ -7,15 +7,9 @@ import type {
 import { IcMapPin } from "@/components/icons";
 import { useLanguage } from "./LanguageContext";
 
-const provinces = [
-  "Punjab",
-  "Sindh",
-  "Khyber Pakhtunkhwa",
-  "Balochistan",
-  "Gilgit-Baltistan",
-  "Azad Jammu and Kashmir",
-  "Islamabad Capital Territory",
-];
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import { PAKISTAN_PROVINCES, type PakistanProvince } from "@/lib/farmer/farm-location.ts";
+
 export function FarmPickupLocation({
   repository,
 }: {
@@ -54,6 +48,10 @@ export function FarmPickupLocation({
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (saving || !loaded) return;
+    if (typeof location.lat !== "number" || typeof location.lng !== "number") {
+      setError("save");
+      return;
+    }
     setSaving(true);
     setError(null);
     setSaved(false);
@@ -61,7 +59,7 @@ export function FarmPickupLocation({
       const value = await repository.updateFarmLocation({
         address: location.address!.trim(),
         city: location.city!.trim(),
-        province: location.province!,
+        province: location.province! as PakistanProvince,
         lat: location.lat!,
         lng: location.lng!,
       });
@@ -158,55 +156,18 @@ export function FarmPickupLocation({
               <option value="">
                 {ur ? "صوبہ منتخب کریں" : "Select province"}
               </option>
-              {provinces.map((p) => (
+              {PAKISTAN_PROVINCES.map((p) => (
                 <option key={p}>{p}</option>
               ))}
             </select>
           </label>
-          <label>
-            {ur ? "عرض بلد" : "Farm latitude"}
-            <input
-              required
-              type="number"
-              step="any"
-              min="23.5"
-              max="37.2"
-              value={location.lat ?? ""}
-              onChange={(e) => {
-                setSaved(false);
-                setLocation((v) => ({
-                  ...v,
-                  lat:
-                    e.target.value === "" ? undefined : Number(e.target.value),
-                }));
-              }}
-            />
-          </label>
-          <label>
-            {ur ? "طول بلد" : "Farm longitude"}
-            <input
-              required
-              type="number"
-              step="any"
-              min="60.5"
-              max="77.9"
-              value={location.lng ?? ""}
-              onChange={(e) => {
-                setSaved(false);
-                setLocation((v) => ({
-                  ...v,
-                  lng:
-                    e.target.value === "" ? undefined : Number(e.target.value),
-                }));
-              }}
-            />
-          </label>
         </div>
-        <p>
-          {ur
-            ? "اپنی نقشہ ایپ سے فارم کے نقاط کاپی کریں۔"
-            : "Copy your farm coordinates from your map app."}
-        </p>
+        <MapPinPicker
+          value={typeof location.lat === "number" && typeof location.lng === "number" ? { lat: location.lat, lng: location.lng } : null}
+          onChange={(point) => { setSaved(false); setLocation((current) => ({ ...current, ...point })); }}
+          purpose="farm"
+          disabled={loading || saving || !loaded}
+        />
         <button type="submit" className="btn btn-primary">
           {saving
             ? ur

@@ -1,20 +1,21 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { IcCart, IcCheckCircle } from "@/components/icons";
+import { paymentSimulatorEnabled, safepayCheckoutUrl } from "@/lib/buyer/payment-checkout.ts";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { toCreateOrderRequest } from "@/lib/cart/cart.ts";
-import type {
-  ApiOrderAddress,
-  ApiOrderQuote,
-  PaymentGateway,
-} from "@/lib/api/contracts.ts";
+import type { ApiOrderAddress, OrderQuote, PaymentGateway } from "@/lib/api/contracts.ts";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 
-import {
-  paymentSimulatorEnabled,
-  safepayCheckoutUrl,
-} from "@/lib/buyer/payment-checkout.ts";
-import { IcCart, IcCheckCircle } from "@/components/icons";
+const rupees = new Intl.NumberFormat("en-PK");
+
+type QuoteState =
+  | { kind: "ready"; quote: OrderQuote }
+  | { kind: "unavailable" };
 
 function paymentStatusBadgeClass(status: string): string {
   if (status === "success") return "badge-soft-green";
@@ -55,39 +56,57 @@ export function CheckoutPanel({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [results, setResults] = useState<CheckoutResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [dropoff, setDropoff] = useState<GeoPoint | null>(null);
+  // Keyed by pin + farmer, so a moved pin shows "calculating" until its
+  // own quote arrives; a missing entry means the request is in flight.
+  const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
+  const pinKey = dropoff ? JSON.stringify({
+    pin: dropoff,
+    items: groups.map((group) => ({ farmerId: group.farmerId, items: group.items.map((item) => ({ productId: item.product.id, quantity: item.quantity })) })),
+  }) : "";
 
-  const [quoted, setQuoted] = useState<{
-    key: string;
-    quotes: ApiOrderQuote[];
-  } | null>(null);
-  const requestKey = JSON.stringify(
-    groups.map((group) => toCreateOrderRequest(group, address)),
-  );
-  const quotes = quoted?.key === requestKey ? quoted.quotes : null;
+  useEffect(() => {
+    if (!dropoff) return;
+    let cancelled = false;
+    const key = pinKey;
+    for (const group of groups) {
+      repository
+        .quoteOrder(
+          toCreateOrderRequest(group, {
+            street: "-",
+            city: "-",
+            province: "-",
+            lat: dropoff.lat,
+            lng: dropoff.lng,
+          }),
+        )
+        .then(
+          (quote): QuoteState => ({ kind: "ready", quote }),
+          (): QuoteState => ({ kind: "unavailable" }),
+        )
+        .then((result) => {
+          if (cancelled) return;
+          setQuotes((current) => ({ ...current, [`${key}|${group.farmerId}`]: result }));
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [dropoff, groups, repository, pinKey]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (groups.length === 0 || isSubmitting) return;
+    if (!dropoff) {
+      setError("Pin the drop-off location on the map first; the delivery fee is priced from it.");
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
-    if (!quotes) {
-      try {
-        const next = await Promise.all(
-          groups.map((group) =>
-            repository.quoteOrder(toCreateOrderRequest(group, address)),
-          ),
-        );
-        setQuoted({ key: requestKey, quotes: next });
-      } catch (quoteError) {
-        setError(
-          quoteError instanceof Error
-            ? quoteError.message
-            : "Could not price delivery. Check the delivery location and the farmer's pickup location.",
-        );
-      } finally {
-        setIsSubmitting(false);
-      }
+    if (!groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")) {
+      setError("Wait for a delivery quote for every farmer before placing orders.");
+      setIsSubmitting(false);
       return;
     }
     const confirmedFarmers: string[] = [];
@@ -96,7 +115,7 @@ export function CheckoutPanel({
     for (const group of groups) {
       try {
         const order = await repository.createOrder(
-          toCreateOrderRequest(group, address),
+          toCreateOrderRequest(group, { ...address, lat: dropoff.lat, lng: dropoff.lng }),
         );
         // An order already exists even if its gateway handoff fails. Recover it
         // from Orders instead of creating another order from the same cart group.
@@ -203,140 +222,96 @@ export function CheckoutPanel({
       <h3>Checkout</h3>
       <p>Each farmer group becomes its own order and pending payment.</p>
 
-      <fieldset
-        disabled={isSubmitting}
-        style={{ border: 0, padding: 0, margin: 0 }}
-      >
-        <h4 className="checkout-section">Delivery address</h4>
-        <div className="checkout-address-grid">
-          <label>
-            Street
-            <input
-              required
-              value={address.street}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  street: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            City
-            <input
-              required
-              value={address.city}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  city: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            Province
-            <input
-              required
-              value={address.province}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  province: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            ZIP code (optional)
-            <input
-              value={address.zip ?? ""}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  zip: event.target.value || undefined,
-                }))
-              }
-            />
-          </label>
-          <label>
-            Delivery latitude
-            <input
-              required
-              type="number"
-              step="any"
-              min="23.5"
-              max="37.2"
-              value={address.lat ?? ""}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  lat:
-                    event.target.value === ""
-                      ? undefined
-                      : Number(event.target.value),
-                }))
-              }
-            />
-          </label>
-          <label>
-            Delivery longitude
-            <input
-              required
-              type="number"
-              step="any"
-              min="60.5"
-              max="77.9"
-              value={address.lng ?? ""}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  lng:
-                    event.target.value === ""
-                      ? undefined
-                      : Number(event.target.value),
-                }))
-              }
-            />
-          </label>
-        </div>
-        <p>
-          Enter the coordinates of your delivery address in Pakistan. You can
-          copy them from your map app.
-        </p>
-      </fieldset>
-      {quotes ? (
-        <div aria-live="polite">
-          {quotes.map((quote, index) => (
-            <div className="card checkout-quote" key={groups[index].farmerId}>
-              <h4>Farmer group {index + 1}</h4>
-              <p>Items: Rs {quote.totalAmount.toLocaleString("en-PK")}</p>
-              <p>
-                Platform fee ({quote.platformFeePercent}%): Rs{" "}
-                {quote.platformFeeAmount.toLocaleString("en-PK")}
-              </p>
-              <p>
-                Delivery ({quote.deliveryDistanceKm} km estimated): Rs{" "}
-                {quote.deliveryFee.toLocaleString("en-PK")}
-              </p>
-              <strong>
-                Total: Rs {quote.grandTotal.toLocaleString("en-PK")}
-              </strong>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p>
-          Get a quote to review the full total, including delivery, before
-          placing orders.
-        </p>
-      )}
+      <fieldset disabled={isSubmitting} style={{ border: 0, margin: 0, padding: 0 }}>
+      <div className="checkout-address-grid">
+        <label>
+          Street
+          <input
+            required
+            value={address.street}
+            onChange={(event) =>
+              setAddress((current) => ({ ...current, street: event.target.value }))
+            }
+          />
+        </label>
+        <label>
+          City
+          <input
+            required
+            value={address.city}
+            onChange={(event) =>
+              setAddress((current) => ({ ...current, city: event.target.value }))
+            }
+          />
+        </label>
+        <label>
+          Province
+          <select
+            required
+            value={address.province}
+            onChange={(event) =>
+              setAddress((current) => ({ ...current, province: event.target.value }))
+            }
+          >
+            <option value="">Select province</option>
+            {PAKISTAN_PROVINCES.map((province) => (
+              <option key={province} value={province}>
+                {province}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          ZIP code (optional)
+          <input
+            value={address.zip ?? ""}
+            onChange={(event) =>
+              setAddress((current) => ({ ...current, zip: event.target.value || undefined }))
+            }
+          />
+        </label>
+      </div>
 
-      <h4 className="checkout-section">Payment</h4>
+      <div className="checkout-dropoff">
+        <strong>Drop-off location</strong>
+        <MapPinPicker value={dropoff} onChange={setDropoff} purpose="dropoff" disabled={isSubmitting} />
+      </div>
+
+      </fieldset>
+
+      <div className="checkout-quotes" aria-live="polite">
+        {groups.map((group, index) => {
+          const state = quotes[`${pinKey}|${group.farmerId}`];
+          const label =
+            group.items[0]?.product.farmer?.farmName ?? `Order ${index + 1}`;
+          return (
+            <div className="checkout-quote" key={group.farmerId}>
+              <span className="checkout-quote-farm">{label}</span>
+              {!dropoff ? (
+                <span className="checkout-quote-note">Pin the drop-off to see the delivery fee</span>
+              ) : !state ? (
+                <span className="checkout-quote-note">Calculating delivery…</span>
+              ) : state.kind === "unavailable" ? (
+                <span className="checkout-quote-error">
+                  This farm hasn&apos;t pinned its pickup location yet, so it can&apos;t be ordered right now.
+                </span>
+              ) : (
+                <span>
+                  Items Rs {rupees.format(state.quote.totalAmount)} + fee Rs{" "}
+                  {rupees.format(state.quote.platformFeeAmount)} + delivery Rs{" "}
+                  {rupees.format(state.quote.deliveryFee)} ({state.quote.deliveryDistanceKm} km) ={" "}
+                  <strong>Rs {rupees.format(state.quote.grandTotal)}</strong>
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
       <label>
         Payment gateway
         <select
+          disabled={isSubmitting}
           value={gateway}
           onChange={(event) => setGateway(event.target.value as PaymentGateway)}
         >
@@ -350,14 +325,8 @@ export function CheckoutPanel({
         </select>
       </label>
 
-      <button className="cart-shop-btn" disabled={isSubmitting} type="submit">
-        {isSubmitting
-          ? quotes
-            ? "Placing orders…"
-            : "Pricing delivery…"
-          : quotes
-            ? "Place orders"
-            : "Get delivery quote"}
+      <button className="cart-shop-btn" disabled={isSubmitting || !dropoff || !groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")} type="submit">
+        {isSubmitting ? "Placing orders…" : "Place orders"}
       </button>
 
       {error ? <p role="alert">{error}</p> : null}

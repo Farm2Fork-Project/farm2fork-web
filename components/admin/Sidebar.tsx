@@ -89,9 +89,9 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           <div
             onClick={() => setShowLogout(true)}
             className="sidebar-link hover:-translate-y-[1px] hover:brightness-110 transition-all duration-200"
-            style={{ 
-              cursor: 'pointer', 
-              marginTop: '12px', 
+            style={{
+              cursor: 'pointer',
+              marginTop: '12px',
               color: '#ffffff',
               backgroundColor: '#ef4444',
               border: 'none',

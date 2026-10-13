@@ -1,11 +1,13 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render as testingRender, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import type { ApiShipment } from "@/lib/api/contracts.ts";
 import type { BuyerSession } from "@/lib/auth/web-session.ts";
+import { LanguageProvider } from "../LanguageContext";
 import { BuyerApp } from "./BuyerApp";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+const render = (ui: React.ReactNode) => testingRender(<LanguageProvider>{ui}</LanguageProvider>);
 
 const session: BuyerSession = {
   user: {
@@ -261,11 +263,13 @@ test("clearing a confirmed cart keeps the hosted checkout receipt visible", asyn
   await user.click(screen.getByRole("button", { name: /cart \(1\)/i }));
   await user.type(screen.getByLabelText("Street"), "12 Mall Road");
   await user.type(screen.getByLabelText("City"), "Lahore");
-  await user.type(screen.getByLabelText("Province"), "Punjab");
-  await user.type(screen.getByLabelText("Delivery latitude"), "31.5204");
-  await user.type(screen.getByLabelText("Delivery longitude"), "74.3587");
-  await user.click(screen.getByRole("button", { name: "Get delivery quote" }));
-  await user.click(await screen.findByRole("button", { name: "Place orders" }));
+  await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
+  vi.stubGlobal("navigator", { ...navigator, geolocation: {
+    getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
+  } });
+  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "Place orders" })).toBeEnabled());
+  await user.click(screen.getByRole("button", { name: "Place orders" }));
   expect(await screen.findByRole("link", { name: "Pay farmer group 1 with Safepay" })).toBeVisible();
   expect(screen.getByRole("button", { name: /cart \(0\)/i })).toBeVisible();
 });

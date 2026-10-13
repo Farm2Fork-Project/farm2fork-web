@@ -32,6 +32,7 @@ afterEach(() => {
 test("ApiClient invokes the browser fetch function with the browser global receiver", async () => {
   let receiver: unknown;
   const fetchFn = function (this: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias -- The test asserts the browser fetch receiver.
     receiver = this;
     return Promise.resolve(new Response(JSON.stringify({ ok: true }), {
       headers: { "Content-Type": "application/json" },

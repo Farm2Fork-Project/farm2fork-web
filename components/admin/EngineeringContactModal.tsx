@@ -1,19 +1,17 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import { useHydrated } from '@/lib/react/use-hydrated';
+
+import React, { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { IcClose as X } from "@/components/icons";
 import { Bug, Upload } from "lucide-react";
 
 export default function EngineeringContactModal({ onClose }: { onClose: () => void }) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useHydrated();
   const [issueType, setIssueType] = useState('Bug Report')
   const [details, setDetails] = useState('')
 
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
 
   if (!mounted) return null
 
@@ -69,8 +67,8 @@ export default function EngineeringContactModal({ onClose }: { onClose: () => vo
           <button className="btn btn-outline" onClick={onClose}>
             Cancel
           </button>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             style={{ backgroundColor: '#1e293b', gap: '8px' }}
             onClick={() => {
               alert(`Escalated to Engineering:\nCategory: ${issueType}`);

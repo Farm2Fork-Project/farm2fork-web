@@ -16,6 +16,11 @@ export type CartFarmerGroup = {
   items: CartItem[];
 };
 
+/** The farm a cart group is bought from; older carts saved without farm identity get a numbered fallback. */
+export function cartGroupLabel(group: CartFarmerGroup, index: number): string {
+  return group.items[0]?.product.farmer?.farmName ?? `Farm ${index + 1}`;
+}
+
 export function addCartItem(
   items: CartItem[],
   product: BuyerProduct,

@@ -134,14 +134,11 @@ test.skipIf(!baseUrl)(
       getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
     } });
     await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-    const placeOrders = screen.getByRole("button", { name: "Place orders" });
+    const placeOrders = screen.getByRole("button", { name: /^Place \d+ orders/ });
     await waitFor(() => expect(placeOrders).toBeEnabled());
     await user.click(placeOrders);
-    const firstLink = await screen.findByRole("link", {
-      name: "Pay farmer group 1 with Safepay",
-    });
-    const secondLink = screen.getByRole("link", {
-      name: "Pay farmer group 2 with Safepay",
+    const [firstLink, secondLink] = await screen.findAllByRole("link", {
+      name: /^Pay/,
     });
     const firstUrl = new URL(firstLink.getAttribute("href")!);
     const secondUrl = new URL(secondLink.getAttribute("href")!);

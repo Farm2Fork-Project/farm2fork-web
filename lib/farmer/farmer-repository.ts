@@ -40,6 +40,17 @@ export class FarmerRepository {
     });
   }
 
+  /** Uploads listing photos; the returned URLs go in `images` when creating a product. */
+  async uploadProductImages(photos: File[]): Promise<string[]> {
+    const form = new FormData();
+    for (const photo of photos) form.append("images", photo);
+    const response = await this.client.request<{ urls: string[] }>("/products/images", {
+      method: "POST",
+      body: form,
+    });
+    return response.urls;
+  }
+
   /** Soft delete: the listing becomes inactive (history and trace are kept). */
   deleteProduct(id: string): Promise<{ id: string; deleted: boolean }> {
     return this.client.request<{ id: string; deleted: boolean }>(

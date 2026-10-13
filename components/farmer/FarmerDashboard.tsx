@@ -351,6 +351,7 @@ export default function FarmerDashboard({ email, user }: { email?: string; user?
           {activeTab === "create" && (
             <CreateListingForm
               aiClient={repository}
+              onUploadPhotos={(photos) => repository.uploadProductImages(photos)}
               onSubmit={handleCreateListing}
               onCancel={() => setActiveTab("listings")}
             />
@@ -383,5 +384,6 @@ function toListing(product: ApiProduct): Listing {
     quantity: product.quantity,
     status: product.status === "active" ? "Available" : "Out of Stock",
     ledger: product.originLedgerStatus ?? "missing",
+    images: product.images ?? [],
   };
 }

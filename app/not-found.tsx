@@ -8,6 +8,10 @@ export default function NotFound() {
       <Link className="btn btn-primary" href="/">
         Back to home
       </Link>
+      <p>
+        Or try <Link href="/how-it-works">how it works</Link>, the <Link href="/guides">guides</Link> or the{" "}
+        <Link href="/faq">FAQ</Link>.
+      </p>
     </div>
   );
 }

@@ -52,10 +52,10 @@ export function SiteHeader({ locale = "en", path = "/" }: Props) {
 
       <div className="site-header-actions">
         {switchLink}
-        <Link className="site-link-quiet" href="/?auth=login">
+        <Link className="site-link-quiet" href="/login">
           {ui.signIn}
         </Link>
-        <Link className="site-button" href="/?auth=signup">
+        <Link className="site-button" href="/signup">
           {ui.getStarted}
         </Link>
       </div>
@@ -71,8 +71,8 @@ export function SiteHeader({ locale = "en", path = "/" }: Props) {
           <Link href={localePath(path, other)} lang={LOCALE_META[other].lang} hrefLang={LOCALE_META[other].lang}>
             {ui.switchLabel}
           </Link>
-          <Link href="/?auth=login">{ui.signIn}</Link>
-          <Link className="site-button" href="/?auth=signup">
+          <Link href="/login">{ui.signIn}</Link>
+          <Link className="site-button" href="/signup">
             {ui.getStarted}
           </Link>
         </nav>

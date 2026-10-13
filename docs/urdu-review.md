@@ -59,3 +59,13 @@ The Urdu copy follows PRODUCT.md: pilot, no user counts, no testimonials, no
 claims that payments or the AI advisor are production-ready. `test/seo.test.ts`
 checks the Urdu text for invented social proof and for the same statistics as
 the English pages (20 to 40% post-harvest loss, 23.5% of GDP, 37% of labour).
+
+## App screens: sign-in, sign-up and account
+
+`lib/dictionaries-auth.ts` and `lib/dictionaries-account.ts` hold the Urdu for the
+sign-in, sign-up, verify-email, forgot-password, account and inline-confirm screens.
+They are a first translation too. Worth a native read: the plain-language error
+messages (`authError.*`, `signup.err.*`), the CNIC and phone hints, and the form
+labels (`signup.*`), which should match the terms the mobile app uses for the same
+fields. The English-and-Urdu key parity and placeholders are tested in
+`test/i18n-auth.test.ts`.

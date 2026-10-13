@@ -134,7 +134,7 @@ export const HOW_IT_WORKS_UR: ContentPageData = {
   cta: {
     title: "خود آزما کر دیکھیں",
     text: "اپنے کردار کے مطابق مفت اکاؤنٹ بنائیں اور پورا عمل دیکھیں۔",
-    primary: { label: "اپنا کردار منتخب کریں", href: "/?auth=signup" },
+    primary: { label: "اپنا کردار منتخب کریں", href: "/signup" },
     secondary: { label: "عام سوالات پڑھیں", href: "/ur/faq" },
   },
   related: ["/traceability", "/for-farmers", "/for-buyers", "/faq"],
@@ -246,7 +246,7 @@ export const TRACEABILITY_UR: ContentPageData = {
   cta: {
     title: "اپنا پہلا آرڈر ٹریس کریں",
     text: "خریدار اکاؤنٹ بنائیں، کسی مخصوص فارم سے آرڈر دیں، اور اس کا QR کوڈ اسکین کریں۔",
-    primary: { label: "خریدار اکاؤنٹ بنائیں", href: "/?auth=signup" },
+    primary: { label: "خریدار اکاؤنٹ بنائیں", href: "/signup" },
     secondary: { label: "کیسے کام کرتا ہے", href: "/ur/how-it-works" },
   },
   related: ["/how-it-works", "/glossary", "/faq", "/for-buyers"],
@@ -350,7 +350,7 @@ export const FOR_FARMERS_UR: ContentPageData = {
   cta: {
     title: "اپنی پہلی فصل لسٹ کرنے کے لیے تیار ہیں؟",
     text: "اپنے شناختی کارڈ اور فارم کے مقام کے ساتھ کسان اکاؤنٹ بنائیں۔",
-    primary: { label: "کسان کے طور پر سائن اپ کریں", href: "/farmer?signup=true" },
+    primary: { label: "کسان کے طور پر سائن اپ کریں", href: "/signup/farmer" },
     secondary: { label: "کیسے کام کرتا ہے", href: "/ur/how-it-works" },
   },
   related: ["/how-it-works", "/faq", "/guides", "/for-transporters"],
@@ -433,7 +433,7 @@ export const FOR_BUYERS_UR: ContentPageData = {
   cta: {
     title: "اپنے قریب کے فارم سے آرڈر کریں",
     text: "مفت خریدار اکاؤنٹ بنائیں اور موجودہ لسٹنگز دیکھیں۔",
-    primary: { label: "خریدار اکاؤنٹ بنائیں", href: "/?auth=signup" },
+    primary: { label: "خریدار اکاؤنٹ بنائیں", href: "/signup" },
     secondary: { label: "خریداری کی گائیڈ پڑھیں", href: "/ur/guides/buy-fresh-vegetables-directly-from-farmers-pakistan" },
   },
   related: ["/how-it-works", "/traceability", "/faq", "/guides"],
@@ -570,7 +570,7 @@ export const ABOUT_UR: ContentPageData = {
   cta: {
     title: "پلیٹ فارم آزما کر دیکھیں",
     text: "اپنے کردار کے مطابق مفت اکاؤنٹ بنائیں۔",
-    primary: { label: "شروع کریں", href: "/?auth=signup" },
+    primary: { label: "شروع کریں", href: "/signup" },
     secondary: { label: "کیسے کام کرتا ہے", href: "/ur/how-it-works" },
   },
   related: ["/how-it-works", "/traceability", "/guides", "/privacy"],

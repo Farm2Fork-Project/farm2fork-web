@@ -11,8 +11,56 @@ export interface ApiAuthUser {
   email: string;
   role: UserRole;
   phone?: string;
+  /** The person's own name; absent until they add one. */
+  fullName?: string;
+  /** 256px square avatar (Cloudinary URL, or a root-relative path in local development). */
+  avatarUrl?: string;
   isVerified: boolean;
   isActive: boolean;
+}
+
+export interface ApiFarmLocationStatus {
+  address?: string;
+  city?: string;
+  province?: string;
+  lat?: number;
+  lng?: number;
+  complete: boolean;
+}
+
+/** Role details of GET /auth/me/profile; only the caller's own role is filled. */
+export interface ApiProfileDetails {
+  kind: UserRole;
+  /** Identity number with all but the last 4 digits hidden. Read only. */
+  cnicMasked?: string;
+  businessName?: string;
+  businessType?: BuyerBusinessType;
+  farmName?: string;
+  cropTypes?: string[];
+  landSizeAcres?: number;
+  farmLocation?: ApiFarmLocationStatus;
+  vehicleType?: TransporterVehicleType;
+  vehicleNumber?: string;
+  serviceAreas?: string[];
+  institutionName?: string;
+  institutionType?: string;
+}
+
+export interface ApiProfile {
+  user: ApiAuthUser;
+  displayName: string;
+  profile: ApiProfileDetails;
+}
+
+/** PATCH /auth/me/profile: send only the fields that changed. */
+export interface UpdateProfileRequest {
+  fullName?: string;
+  phone?: string;
+  businessName?: string;
+  businessType?: BuyerBusinessType;
+  farmName?: string;
+  cropTypes?: string[];
+  landSizeAcres?: number;
 }
 
 export type BuyerBusinessType =

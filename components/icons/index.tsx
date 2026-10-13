@@ -110,6 +110,8 @@ export const IcFeed = build("feed");
 export const IcEdit = build("edit");
 export const IcTrash = build("trash");
 export const IcGrid = build("grid");
+export const IcCamera = build("camera");
+export const IcMail = build("mail");
 
 const icons = {
   leaf: IcLeaf, sprout: IcSprout, wheat: IcWheat, rice: IcRice, mango: IcMango, maize: IcMaize,
@@ -122,5 +124,5 @@ const icons = {
   help: IcHelp, alert: IcAlert, lock: IcLock, eye: IcEye, eyeOff: IcEyeOff, bell: IcBell,
   user: IcUser, users: IcUsers, logOut: IcLogOut, message: IcMessage, clipboard: IcClipboard,
   file: IcFile, heart: IcHeart, star: IcStar, sparkles: IcSparkles, send: IcSend, feed: IcFeed,
-  edit: IcEdit, trash: IcTrash, grid: IcGrid,
+  edit: IcEdit, trash: IcTrash, grid: IcGrid, camera: IcCamera, mail: IcMail,
 } satisfies Record<IconName, ReturnType<typeof createIcon>>;

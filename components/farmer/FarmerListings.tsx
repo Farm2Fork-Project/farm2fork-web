@@ -1,11 +1,9 @@
 "use client";
 
-import { useHydrated } from "@/lib/react/use-hydrated";
-
-import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import { useLanguage } from "./LanguageContext";
-import { IcCarrot as Carrot, IcCheck as Check, IcClose as X, IcEye as Eye, IcEyeOff as EyeOff, IcGrid as LayoutGrid, IcLeaf as Leaf, IcMango as Apple, IcMapPin as MapPin, IcMilk as Milk, IcPackage as Package, IcPlus as Plus, IcSearch as Search, IcStar as Star, IcTractor as Tractor, IcTrash as Trash2, IcWheat as Wheat } from "@/components/icons";
+import { IcCarrot as Carrot, IcCheck as Check, IcClose as X, IcEye as Eye, IcEyeOff as EyeOff, IcGrid as LayoutGrid, IcLeaf as Leaf, IcMango as Apple, IcMapPin as MapPin, IcMilk as Milk, IcPackage as Package, IcPlus as Plus, IcSearch as Search, IcTractor as Tractor, IcTrash as Trash2, IcWheat as Wheat } from "@/components/icons";
 
 export interface Listing {
   id: string;
@@ -49,30 +47,33 @@ export default function FarmerListings({
   const allListings = listings;
   const activeCount = listings.filter((l) => l.status === "Available").length;
   const farmPlace = [farm?.city, farm?.province].filter(Boolean).join(", ");
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
-  const mounted = useHydrated();
+  const detailRef = useRef<HTMLElement>(null);
+  const openedFromRef = useRef<HTMLElement | null>(null);
 
-
+  // The detail panel opens in place (not in a dialog): bring it into view and
+  // hand it focus; closing returns focus to the card that opened it.
   useEffect(() => {
-    if (deleteConfirmId || selectedListing) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+    if (selectedListing) {
+      detailRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+      detailRef.current?.focus({ preventScroll: true });
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [deleteConfirmId, selectedListing]);
+  }, [selectedListing]);
 
-  const confirmDelete = () => {
-    if (deleteConfirmId) {
-      onDelete(deleteConfirmId);
-      setDeleteConfirmId(null);
-    }
+  const closeDetail = () => {
+    setSelectedListing(null);
+    openedFromRef.current?.focus();
   };
+
+  const categoryLabel = (category: string) =>
+    category === "Vegetables" ? t("farmer.create.cat.veg") :
+    category === "Fruits" ? t("farmer.create.cat.fruit") :
+    category === "Grains" ? t("farmer.create.cat.grain") :
+    category === "Dairy" ? t("farmer.create.cat.dairy") : category;
+  const unitLabel = (unit: string) =>
+    unit === "kg" ? t("unit.kg") : unit === "dozen" ? t("unit.dozen") : unit === "litre" || unit === "liter" ? t("unit.litre") : unit;
 
   const filteredListings = listings.filter((listing) => {
     const matchesCategory = selectedCategory === "All" || listing.category.toLowerCase() === selectedCategory.toLowerCase();
@@ -83,84 +84,6 @@ export default function FarmerListings({
 
   return (
     <div className="animate-in w-full">
-
-      {/* ── Delete Confirmation Modal ── */}
-      {mounted && deleteConfirmId && createPortal(
-        <div
-          className="modal-overlay"
-          onClick={() => setDeleteConfirmId(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0, 0, 0, 0.5)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999
-          }}
-        >
-          <div
-            className="modal"
-            style={{
-              maxWidth: 400,
-              width: "90%",
-              textAlign: "center",
-              position: "relative",
-              zIndex: 10000
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: "50%",
-                background: "#FEE2E2",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-              }}
-            >
-              <Trash2 size={22} color="var(--error-red, #EF4444)" />
-            </div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-dark)", marginBottom: 6 }}>
-              {t("farmer.listings.deleteTitle")}
-            </h3>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 24, lineHeight: 1.5 }}>
-              {t("farmer.listings.deleteDesc")}
-            </p>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button
-                className="btn btn-secondary"
-                style={{ flex: 1, justifyContent: "center" }}
-                onClick={() => setDeleteConfirmId(null)}
-              >
-                {t("farmer.listings.cancel")}
-              </button>
-              <button
-                className="btn"
-                style={{
-                  flex: 1,
-                  justifyContent: "center",
-                  background: "var(--error-red, #EF4444)",
-                  color: "white",
-                }}
-                onClick={confirmDelete}
-              >
-                {t("farmer.listings.delete")}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 24 }}>
@@ -295,6 +218,56 @@ export default function FarmerListings({
         </button>
       </div>
 
+      {/* ── Listing detail, inline ── */}
+      {selectedListing ? (
+        <section
+          ref={detailRef}
+          className="fl-detail"
+          tabIndex={-1}
+          aria-labelledby="fl-detail-title"
+          onKeyDown={(event) => {
+            if (event.key === "Escape") closeDetail();
+          }}
+        >
+          <div className="fl-detail-head">
+            <div className="fl-detail-icon"><Leaf size={24} /></div>
+            <div className="fl-detail-title">
+              <h3 id="fl-detail-title">{selectedListing.name}</h3>
+              <p>{categoryLabel(selectedListing.category)}</p>
+            </div>
+            <button type="button" className="fl-detail-close" onClick={closeDetail} aria-label={t("farmer.listings.cancel")}>
+              <X size={20} />
+            </button>
+          </div>
+          <dl className="fl-detail-grid">
+            <div>
+              <dt>{t("farmer.listings.price")}</dt>
+              <dd>Rs. {selectedListing.price} / {unitLabel(selectedListing.unit)}</dd>
+            </div>
+            <div>
+              <dt>{t("farmer.listings.gradeLabel")}</dt>
+              <dd>{t("farmer.listings.grade").replace("{grade}", selectedListing.grade)}</dd>
+            </div>
+            <div>
+              <dt>{t("farmer.listings.stockLabel")}</dt>
+              <dd>{selectedListing.quantity} {unitLabel(selectedListing.unit)}</dd>
+            </div>
+            <div>
+              <dt>{t("farmer.listings.statusLabel")}</dt>
+              <dd>
+                <span className={selectedListing.status === "Available" ? "fl-status fl-status--ok" : "fl-status fl-status--out"}>
+                  {selectedListing.status === "Available" ? t("farmer.listings.available") : t("farmer.listings.soldOut")}
+                </span>
+              </dd>
+            </div>
+          </dl>
+          <div className="fl-detail-desc">
+            <h4>{t("farmer.listings.descriptionLabel")}</h4>
+            <p>{selectedListing.description || t("farmer.listings.noDescription")}</p>
+          </div>
+        </section>
+      ) : null}
+
       {/* ── Empty State / Grid Render Layout ── */}
       {filteredListings.length === 0 ? (
         <div style={{ background: "white", border: "1px solid var(--surface-medium, #E5E7EB)", borderRadius: "var(--radius-xl, 16px)", textAlign: "center", padding: "48px 24px" }}>
@@ -332,9 +305,11 @@ export default function FarmerListings({
             return (
               <div
                 key={listing.id}
-                className="mp-card"
-                onClick={() => setSelectedListing(listing)}
-                style={{ cursor: "pointer" }}
+                className="mp-card fl-card"
+                onClick={(event) => {
+                  openedFromRef.current = event.currentTarget;
+                  setSelectedListing(listing);
+                }}
               >
                 <div className="mp-card-img">
                   <Leaf className="leaf" size={56} />
@@ -349,7 +324,20 @@ export default function FarmerListings({
                 </div>
 
                 <div className="mp-card-body">
-                  <div className="mp-card-name">{listing.name}</div>
+                  <div className="mp-card-name">
+                    <button
+                      type="button"
+                      className="fl-open"
+                      aria-expanded={selectedListing?.id === listing.id}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        openedFromRef.current = event.currentTarget;
+                        setSelectedListing(listing);
+                      }}
+                    >
+                      {listing.name}
+                    </button>
+                  </div>
                   <span className={`ledger-chip ledger-chip--${listing.ledger}`}>
                     {t(`farmer.ledger.${listing.ledger}`)}
                   </span>
@@ -386,20 +374,17 @@ export default function FarmerListings({
                         {isOutStock ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfirmId(listing.id);
-                        }}
-                        title={t("farmer.listings.delete")}
-                        className="mp-add-btn"
-                        style={{
-                          background: "#FEE2E2",
-                          color: "var(--error-red)",
-                        }}
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      <span className="fl-delete-wrap" onClick={(e) => e.stopPropagation()}>
+                        <InlineConfirm
+                          label={t("farmer.listings.delete")}
+                          prompt={t("farmer.listings.deleteTitle")}
+                          confirmLabel={t("farmer.listings.delete")}
+                          onConfirm={() => onDelete(listing.id)}
+                          triggerClassName="mp-add-btn fl-delete"
+                          icon={<Trash2 size={16} />}
+                          iconOnly
+                        />
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -408,114 +393,6 @@ export default function FarmerListings({
             );
           })}
         </div>
-      )}
-
-      {/* ── Listing Detail Modal ── */}
-      {mounted && selectedListing && createPortal(
-        <div
-          className="modal-overlay"
-          onClick={() => setSelectedListing(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(0, 0, 0, 0.5)",
-            backdropFilter: "blur(4px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999
-          }}
-        >
-          <div
-            className="modal"
-            style={{
-              maxWidth: 500,
-              width: "90%",
-              maxHeight: "90vh",
-              overflowY: "auto",
-              position: "relative",
-              zIndex: 10000
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, borderBottom: "1px solid var(--surface-medium)", paddingBottom: 12 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: "var(--text-dark)", margin: 0 }}>
-                {t("farmer.listings.detailTitle") || "Listing Details"}
-              </h3>
-              <button
-                onClick={() => setSelectedListing(null)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)" }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <div style={{ width: 48, height: 48, borderRadius: "var(--radius-lg, 12px)", background: "var(--primary-green-soft)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Leaf size={24} color="var(--primary-green)" />
-                </div>
-                <div>
-                  <h4 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-dark)", margin: 0 }}>{selectedListing.name}</h4>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.5px", marginTop: 2 }}>
-                    {selectedListing.category === "Vegetables" ? t("farmer.create.cat.veg") :
-                     selectedListing.category === "Fruits" ? t("farmer.create.cat.fruit") :
-                     selectedListing.category === "Grains" ? t("farmer.create.cat.grain") :
-                     selectedListing.category === "Dairy" ? t("farmer.create.cat.dairy") : selectedListing.category}
-                  </p>
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, background: "var(--surface-light)", padding: 16, borderRadius: "var(--radius-lg, 12px)", border: "1px solid var(--surface-medium)" }}>
-                <div>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: 4 }}>Price</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-dark)" }}>
-                    Rs. {selectedListing.price} / {selectedListing.unit === "kg" ? t("unit.kg") : selectedListing.unit === "dozen" ? t("unit.dozen") : selectedListing.unit === "litre" || selectedListing.unit === "liter" ? t("unit.litre") : selectedListing.unit}
-                  </span>
-                </div>
-                <div>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: 4 }}>Grade</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-dark)" }}>
-                    {t("farmer.listings.grade").replace("{grade}", selectedListing.grade)}
-                  </span>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: 4 }}>Stock</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-dark)" }}>
-                    {selectedListing.quantity} {selectedListing.unit === "kg" ? t("unit.kg") : selectedListing.unit === "dozen" ? t("unit.dozen") : selectedListing.unit === "litre" || selectedListing.unit === "liter" ? t("unit.litre") : selectedListing.unit}
-                  </span>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: 4 }}>Status</span>
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: selectedListing.status === "Available" ? "var(--success)" : "var(--error-red)",
-                    background: selectedListing.status === "Available" ? "var(--primary-green-soft)" : "#FEE2E2",
-                    padding: "2px 8px",
-                    borderRadius: "var(--radius-sm, 6px)",
-                    display: "inline-block"
-                  }}>
-                    {selectedListing.status === "Available" ? "Available" : t("farmer.listings.soldOut")}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700, display: "block", marginBottom: 6 }}>Description</span>
-                <p style={{ fontSize: 13, color: "var(--text-dark)", lineHeight: 1.6, margin: 0, background: "var(--surface-light)", padding: 12, borderRadius: "var(--radius-lg, 12px)", border: "1px solid var(--surface-medium)" }}>
-                  {selectedListing.description || "No description provided."}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>,
-        document.body
       )}
 
     </div>

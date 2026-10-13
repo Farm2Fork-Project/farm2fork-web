@@ -11,8 +11,8 @@ web
 Farm2Fork's web app has grown beyond its original "admin panel only" scope into a multi-role surface. Treat the actual routes/components as ground truth over any older spec:
 
 - **Buyers** — land on the public marketing/landing page at `/`, sign up, browse the marketplace, build a farmer-grouped cart, check out, and track orders/payments. This is the primary acquisition surface for the whole product, so the public landing page carries real persuasive weight, not just a login gate.
-- **Farmers** — a self-service portal at `/farmer` (`?signup=true` to onboard) for creating/viewing API-backed listings and managing their own orders/feed.
-- **Transporters** — a self-service portal at `/transporter` (`?signup=true` to onboard) for claiming available deliveries and updating shipment status.
+- **Farmers** — a self-service portal at `/farmer` (sign up at `/signup/farmer`) for creating/viewing API-backed listings and managing their own orders/feed.
+- **Transporters** — a mobile-app page at `/transporter` (transporters work from the Flutter app).
 - **Financial partners** — a portal at `/financial` for reviewing farmer loan applications.
 - **Administrators** — a full internal panel under `/admin/*` (dashboard, users, products, orders, loans, audit-logs, config, moderation) — English-only is acceptable here per the original spec; this audience is assumed English-literate.
 

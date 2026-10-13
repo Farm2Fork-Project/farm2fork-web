@@ -130,7 +130,7 @@ export function GuideView({ slug, locale = "en" }: { slug: string; locale?: Loca
             <Link className="site-button" href={localePath("/how-it-works", locale)}>
               {ui.guide.cta1}
             </Link>
-            <Link className="site-button site-button-quiet" href="/?auth=signup">
+            <Link className="site-button site-button-quiet" href="/signup">
               {ui.guide.cta2}
             </Link>
           </div>

@@ -90,7 +90,7 @@ test("BuyerApp validates the session before it renders live marketplace data", a
   await userEvent.click(screen.getByRole("button", { name: "Add Roma Tomatoes to cart" }));
   await userEvent.click(screen.getByRole("button", { name: /cart \(1\)/i }));
   expect(screen.getByText(/Roma Tomatoes/)).toBeVisible();
-  expect(screen.getByText("Farmer group 1")).toBeVisible();
+  expect(screen.getByRole("heading", { name: "Farm 1" })).toBeVisible();
 
   await userEvent.click(screen.getByRole("button", { name: "Orders" }));
   expect(await screen.findByText("Payment: pending")).toBeVisible();
@@ -295,9 +295,9 @@ test("clearing a confirmed cart keeps the hosted checkout receipt visible", asyn
     getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
   } });
   await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "Place orders" })).toBeEnabled());
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
-  expect(await screen.findByRole("link", { name: "Pay farmer group 1 with Safepay" })).toBeVisible();
+  await waitFor(() => expect(screen.getByRole("button", { name: /^Place orders?/ })).toBeEnabled());
+  await user.click(screen.getByRole("button", { name: /^Place orders?/ }));
+  expect(await screen.findByRole("link", { name: "Pay Rs 306 on Safepay" })).toBeVisible();
   expect(screen.getByRole("button", { name: /cart \(0\)/i })).toBeVisible();
 });
 

@@ -117,9 +117,11 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
   await user.click(screen.getByRole("button", { name: /Use my current location/ }));
   expect(await screen.findAllByText("Rs 1,402")).toHaveLength(2);
   expect(quoteOrder).toHaveBeenCalledTimes(2);
+  expect(screen.getByText("Total for all 2 orders")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Place 2 orders · Rs 2,804" })).toBeEnabled();
   expect(quoteOrder.mock.calls[0][0].shippingAddress).toMatchObject(LAHORE);
 
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
+  await user.click(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }));
 
   const shippingAddress = {
     street: "12 Mall Road",
@@ -139,7 +141,9 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
   expect(initiatePayment).toHaveBeenNthCalledWith(2, "order-2", "safepay");
   expect(onConfirmedFarmers).toHaveBeenCalledWith(["farmer-1", "farmer-2"]);
   expect(screen.getByText("2 orders placed")).toBeVisible();
-  expect(screen.getAllByText("pending")).toHaveLength(2);
+  expect(screen.getAllByText("Awaiting payment")).toHaveLength(2);
+  expect(screen.queryByText(/farmer group/i)).not.toBeInTheDocument();
+  expect(screen.getAllByRole("link", { name: /^Pay Rs 1,402 to / })).toHaveLength(2);
 
   await user.click(screen.getByRole("button", { name: "View orders" }));
   expect(onViewOrders).toHaveBeenCalled();
@@ -153,8 +157,8 @@ test("CheckoutPanel refuses to order without a drop-off pin", async () => {
     quoteOrder: vi.fn(),
   });
   await fillAddress(user);
-  await user.click(screen.getByRole("button", { name: "Place orders" }));
-  expect(screen.getByRole("button", { name: "Place orders" })).toBeDisabled();
+  await user.click(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }));
+  expect(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ })).toBeDisabled();
   expect(createOrder).not.toHaveBeenCalled();
 });
 

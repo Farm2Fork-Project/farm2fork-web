@@ -3,6 +3,9 @@ import { firebaseAuthRedirectRewrites } from "./lib/firebase/auth-redirect-proxy
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  images: {
+    formats: ["image/avif", "image/webp"],
+  },
   turbopack: {
     root: __dirname,
   },

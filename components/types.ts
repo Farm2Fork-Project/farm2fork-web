@@ -7,6 +7,10 @@ export type AuthScreen = "landing" | "login" | "signup-role" | "signup-form" | "
 export interface LandingScreenProps {
   onGetStarted: () => void;
   onLogin: () => void;
+  /** Server-rendered, English-only content shown between the people and final CTA sections. */
+  seoContent?: ReactNode;
+  /** Server-rendered footer with links to every public page. Replaces the built-in footer. */
+  footerContent?: ReactNode;
 }
 
 export interface LoginScreenProps {
@@ -40,23 +44,6 @@ export interface SignUpRoleScreenProps {
 }
 
 /* ───────── Financial Partner Types ───────── */
-export interface LoanApplication {
-  id: string
-  applicant: string
-  farmName: string
-  location: string
-  amount: string
-  term: string
-  interestRate: string
-  revenue: string
-  creditScore: number
-  dti: string
-  riskProfile: 'Low' | 'Medium' | 'High'
-  status: 'Ledger Pending' | 'Ledger Approved' | 'Ledger Rejected' | 'Ledger Needs Docs'
-  /** ISO date the application entered the credit queue. */
-  submittedAt?: string
-}
-
 export interface DashboardScreenProps {
   onSelectLoan: (id: string) => void
   onLogout: () => void

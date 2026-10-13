@@ -1,7 +1,8 @@
 'use client'
 
+import { IcLeaf as Leaf } from "@/components/icons";
+import { ClipboardList, TrendingUp } from "lucide-react";
 import React, { useState } from 'react'
-import { ClipboardList, Leaf, TrendingUp } from 'lucide-react'
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
 
 const metrics = [
@@ -49,38 +50,38 @@ export default function DashboardPage() {
               <h3 style={{ fontSize: 16, fontWeight: 700 }}>Harvest Progress</h3>
               <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>Comparison between Projected vs Actual yield (k/ton)</p>
             </div>
-            
+
             <div style={{ display: 'flex', background: 'var(--surface-medium)', borderRadius: 'var(--radius-pill)', padding: 3 }}>
-              <button 
+              <button
                 onClick={() => setHarvestView('monthly')}
-                style={{ 
-                  background: harvestView === 'monthly' ? 'var(--white)' : 'transparent', 
-                  color: harvestView === 'monthly' ? 'var(--text-dark)' : 'var(--text-muted)', 
-                  border: 'none', 
-                  padding: '4px 14px', 
-                  fontSize: 12, 
-                  fontWeight: 600, 
-                  borderRadius: 'var(--radius-pill)', 
-                  cursor: 'pointer', 
-                  transition: 'all 0.2s', 
-                  boxShadow: harvestView === 'monthly' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' 
+                style={{
+                  background: harvestView === 'monthly' ? 'var(--white)' : 'transparent',
+                  color: harvestView === 'monthly' ? 'var(--text-dark)' : 'var(--text-muted)',
+                  border: 'none',
+                  padding: '4px 14px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-pill)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: harvestView === 'monthly' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                 }}
               >
                 Monthly
               </button>
-              <button 
+              <button
                 onClick={() => setHarvestView('daily')}
-                style={{ 
-                  background: harvestView === 'daily' ? 'var(--white)' : 'transparent', 
-                  color: harvestView === 'daily' ? 'var(--text-dark)' : 'var(--text-muted)', 
-                  border: 'none', 
-                  padding: '4px 14px', 
-                  fontSize: 12, 
-                  fontWeight: 600, 
-                  borderRadius: 'var(--radius-pill)', 
-                  cursor: 'pointer', 
-                  transition: 'all 0.2s', 
-                  boxShadow: harvestView === 'daily' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' 
+                style={{
+                  background: harvestView === 'daily' ? 'var(--white)' : 'transparent',
+                  color: harvestView === 'daily' ? 'var(--text-dark)' : 'var(--text-muted)',
+                  border: 'none',
+                  padding: '4px 14px',
+                  fontSize: 12,
+                  fontWeight: 600,
+                  borderRadius: 'var(--radius-pill)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: harvestView === 'daily' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'
                 }}
               >
                 Daily

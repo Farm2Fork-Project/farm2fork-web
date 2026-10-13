@@ -33,7 +33,11 @@ export class ApiClient {
     const headers = new Headers(suppliedHeaders);
     headers.set("Accept", "application/json");
 
-    if (body !== undefined) {
+    // FormData (file uploads) must go as-is: the browser sets the multipart
+    // boundary in Content-Type itself.
+    const isFormData =
+      typeof FormData !== "undefined" && body instanceof FormData;
+    if (body !== undefined && !isFormData) {
       headers.set("Content-Type", "application/json");
     }
 
@@ -47,7 +51,9 @@ export class ApiClient {
         ...requestInit,
         headers,
         credentials: "include",
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        ...(body === undefined
+          ? {}
+          : { body: isFormData ? (body as FormData) : JSON.stringify(body) }),
       });
     } catch {
       throw new ApiError(0, "Network request failed.");

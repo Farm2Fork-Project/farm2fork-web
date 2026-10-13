@@ -1,5 +1,6 @@
+import { IcCheckCircle as CheckCircle, IcSearch as Search } from "@/components/icons";
+import { Filter, ShieldAlert, XCircle } from "lucide-react";
 import AdminPageShell from '@/components/admin/screens/AdminPageShell'
-import { ShieldAlert, CheckCircle, XCircle, Search, Filter } from 'lucide-react'
 
 const mockReviews = [
   {
@@ -88,7 +89,7 @@ export default function ModerationPage() {
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{review.target}</div>
                   </td>
                   <td style={{ color: 'var(--text-muted)' }}>
-                    "{review.content}"
+                    &quot;{review.content}&quot;
                   </td>
                   <td>
                     {review.status === 'pending' && <span className="badge badge-soft-yellow">Pending</span>}

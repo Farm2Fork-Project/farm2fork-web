@@ -14,7 +14,7 @@ is Swagger metadata, not a URL segment.
 For local development:
 
 ```dotenv
-NEXT_PUBLIC_API_BASE_URL=http://localhost:3002/api
+NEXT_PUBLIC_API_BASE_URL=http://localhost:3000/api
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=farm2fork-2a5b9
 # Required by the Docker build; local HTTP derives the Firebase hosted domain.
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=farm2fork-2a5b9.firebaseapp.com
@@ -23,6 +23,9 @@ NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=farm2fork-2a5b9.firebaseapp.com
 ```bash
 pnpm dev
 ```
+
+The web app uses `http://localhost:3001` for both `dev` and `start`.
+Run the backend separately on `http://localhost:3000`.
 
 The backend must allow the exact web origin through `CORS_ORIGIN` and
 `WEB_APP_ORIGIN`, for example `http://localhost:3001`. Browser requests use

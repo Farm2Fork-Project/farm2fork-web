@@ -1,6 +1,11 @@
 import { ApiClient } from "../api/client.ts";
 
-export type LoanStatus = "pending" | "under_review" | "approved" | "rejected" | "repaid";
+export type LoanStatus =
+  | "pending"
+  | "under_review"
+  | "approved"
+  | "rejected"
+  | "repaid";
 
 export const LOAN_STATUSES: LoanStatus[] = [
   "pending",
@@ -53,7 +58,14 @@ export interface LoanPage {
   limit: number;
 }
 
-/** Financial-partner side of /loans. */
+export interface LoanLimits {
+  minAmount: number;
+  maxAmount: number;
+  maxDurationMonths: number;
+  maxDocuments: number;
+}
+
+/** Role-scoped loan API. */
 export class LoanRepository {
   private readonly client: Pick<ApiClient, "request">;
 
@@ -61,20 +73,60 @@ export class LoanRepository {
     this.client = client ?? new ApiClient();
   }
 
-  list(status?: LoanStatus): Promise<LoanPage> {
+  limits(): Promise<LoanLimits> {
+    return this.client.request<LoanLimits>("/loans/limits");
+  }
+
+  async listAll(): Promise<LoanApplication[]> {
+    const result: LoanApplication[] = [];
+    let page = 1;
+    let total = 0;
+    do {
+      const response = await this.list(undefined, page++);
+      result.push(...response.data);
+      total = response.total;
+      if (!response.data.length) break;
+    } while (result.length < total);
+    return result;
+  }
+
+  apply(input: {
+    amount: number;
+    purpose: string;
+    durationMonths: number;
+    documents: File[];
+  }): Promise<LoanApplication> {
+    const form = new FormData();
+    form.set("amount", String(input.amount));
+    form.set("purpose", input.purpose);
+    form.set("durationMonths", String(input.durationMonths));
+    input.documents.forEach((file) => form.append("documents", file));
+    return this.client.request<LoanApplication>("/loans", {
+      method: "POST",
+      body: form,
+    });
+  }
+
+  list(status?: LoanStatus, page?: number): Promise<LoanPage> {
     const query = new URLSearchParams({ limit: "50" });
     if (status) query.set("status", status);
+    if (page) query.set("page", String(page));
     return this.client.request<LoanPage>(`/loans?${query.toString()}`);
   }
 
   get(id: string): Promise<LoanApplication> {
-    return this.client.request<LoanApplication>(`/loans/${encodeURIComponent(id)}`);
+    return this.client.request<LoanApplication>(
+      `/loans/${encodeURIComponent(id)}`,
+    );
   }
 
   startReview(id: string): Promise<LoanApplication> {
-    return this.client.request<LoanApplication>(`/loans/${encodeURIComponent(id)}/review`, {
-      method: "POST",
-    });
+    return this.client.request<LoanApplication>(
+      `/loans/${encodeURIComponent(id)}/review`,
+      {
+        method: "POST",
+      },
+    );
   }
 
   decide(
@@ -82,10 +134,13 @@ export class LoanRepository {
     decision: "approved" | "rejected",
     note?: string,
   ): Promise<LoanApplication> {
-    return this.client.request<LoanApplication>(`/loans/${encodeURIComponent(id)}/decision`, {
-      method: "POST",
-      body: { decision, ...(note ? { note } : {}) },
-    });
+    return this.client.request<LoanApplication>(
+      `/loans/${encodeURIComponent(id)}/decision`,
+      {
+        method: "POST",
+        body: { decision, ...(note ? { note } : {}) },
+      },
+    );
   }
 
   markInstalmentPaid(id: string, index: number): Promise<LoanApplication> {

@@ -1,12 +1,20 @@
 "use client";
+import { useBuyerCopy } from "@/lib/buyer/use-buyer-copy";
 
 import { FormEvent, useEffect, useState } from "react";
 import { IcCart, IcCheckCircle } from "@/components/icons";
-import { paymentSimulatorEnabled, safepayCheckoutUrl } from "@/lib/buyer/payment-checkout.ts";
+import {
+  paymentSimulatorEnabled,
+  safepayCheckoutUrl,
+} from "@/lib/buyer/payment-checkout.ts";
 import type { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
 import type { CartFarmerGroup } from "@/lib/cart/cart.ts";
 import { cartGroupLabel, toCreateOrderRequest } from "@/lib/cart/cart.ts";
-import type { ApiOrderAddress, OrderQuote, PaymentGateway } from "@/lib/api/contracts.ts";
+import type {
+  ApiOrderAddress,
+  OrderQuote,
+  PaymentGateway,
+} from "@/lib/api/contracts.ts";
 import MapPinPicker from "@/components/maps/MapPinPicker";
 import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
 import type { GeoPoint } from "@/lib/geo/geo-point.ts";
@@ -57,14 +65,17 @@ export function CheckoutPanel({
   repository,
   onConfirmedFarmers,
   onViewOrders,
+  onBusyChange,
   simulatorEnabled = paymentSimulatorEnabled(),
 }: {
+  onBusyChange?: (busy: boolean) => void;
   groups: CartFarmerGroup[];
   repository: CheckoutRepository;
   onConfirmedFarmers: (farmerIds: string[]) => void;
   onViewOrders: () => void;
   simulatorEnabled?: boolean;
 }) {
+  const copy = useBuyerCopy();
   const [address, setAddress] = useState<ApiOrderAddress>({
     street: "",
     city: "",
@@ -77,16 +88,25 @@ export function CheckoutPanel({
   const [dropoff, setDropoff] = useState<GeoPoint | null>(null);
   // Keyed by pin + farmer, so a moved pin shows "calculating" until its
   // own quote arrives; a missing entry means the request is in flight.
+  const [quoteReload, setQuoteReload] = useState(0);
   const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
-  const pinKey = dropoff ? JSON.stringify({
-    pin: dropoff,
-    items: groups.map((group) => ({ farmerId: group.farmerId, items: group.items.map((item) => ({ productId: item.product.id, quantity: item.quantity })) })),
-  }) : "";
+  const pinKey = dropoff
+    ? JSON.stringify({
+        pin: dropoff,
+        items: groups.map((group) => ({
+          farmerId: group.farmerId,
+          items: group.items.map((item) => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+          })),
+        })),
+      })
+    : "";
 
   useEffect(() => {
     if (!dropoff) return;
     let cancelled = false;
-    const key = pinKey;
+    const key = `${pinKey}|${quoteReload}`;
     for (const group of groups) {
       repository
         .quoteOrder(
@@ -104,27 +124,42 @@ export function CheckoutPanel({
         )
         .then((result) => {
           if (cancelled) return;
-          setQuotes((current) => ({ ...current, [`${key}|${group.farmerId}`]: result }));
+          setQuotes((current) => ({
+            ...current,
+            [`${key}|${group.farmerId}`]: result,
+          }));
         });
     }
     return () => {
       cancelled = true;
     };
-  }, [dropoff, groups, repository, pinKey]);
+  }, [dropoff, groups, repository, pinKey, quoteReload]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (groups.length === 0 || isSubmitting) return;
     if (!dropoff) {
-      setError("Pin the drop-off location on the map first; the delivery fee is priced from it.");
+      setError(
+        "Pin the drop-off location on the map first; the delivery fee is priced from it.",
+      );
       return;
     }
 
     setIsSubmitting(true);
+    onBusyChange?.(true);
     setError(null);
-    if (!groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready")) {
-      setError("Wait for a delivery quote for every farmer before placing orders.");
+    if (
+      !groups.every(
+        (group) =>
+          quotes[`${pinKey}|${quoteReload}|${group.farmerId}`]?.kind ===
+          "ready",
+      )
+    ) {
+      setError(
+        "Wait for a delivery quote for every farmer before placing orders.",
+      );
       setIsSubmitting(false);
+      onBusyChange?.(false);
       return;
     }
     const confirmedFarmers: string[] = [];
@@ -133,12 +168,16 @@ export function CheckoutPanel({
     for (const [index, group] of groups.entries()) {
       try {
         const order = await repository.createOrder(
-          toCreateOrderRequest(group, { ...address, lat: dropoff.lat, lng: dropoff.lng }),
+          toCreateOrderRequest(group, {
+            ...address,
+            lat: dropoff.lat,
+            lng: dropoff.lng,
+          }),
         );
         // An order already exists even if its gateway handoff fails. Recover it
         // from Orders instead of creating another order from the same cart group.
         confirmedFarmers.push(group.farmerId);
-        const quoted = quotes[`${pinKey}|${group.farmerId}`];
+        const quoted = quotes[`${pinKey}|${quoteReload}|${group.farmerId}`];
         const result: CheckoutResult = {
           farmerId: group.farmerId,
           farmName: cartGroupLabel(group, index),
@@ -169,6 +208,7 @@ export function CheckoutPanel({
     setResults(nextResults);
     if (confirmedFarmers.length > 0) onConfirmedFarmers(confirmedFarmers);
     setIsSubmitting(false);
+    onBusyChange?.(false);
   }
 
   if (results.length > 0) {
@@ -179,15 +219,19 @@ export function CheckoutPanel({
           <IcCheckCircle size={40} color="var(--success)" />
           <h3>
             {results.length === 1
-              ? "Order placed"
-              : `${results.length} orders placed`}
+              ? copy("Order placed")
+              : copy("{count} orders placed", { count: results.length })}
           </h3>
           <p>
             {unpaid
               ? results.length === 1
-                ? "Your order is saved but not confirmed yet. Pay now to confirm it. Payment opens on Safepay's secure page."
-                : "Your orders are saved but not confirmed yet. Pay for each one to confirm it. Payment opens on Safepay's secure page."
-              : "Your payment is confirmed."}
+                ? copy(
+                    "Your order is saved but not confirmed yet. Pay now to confirm it. Payment opens on Safepay's secure page.",
+                  )
+                : copy(
+                    "Your orders are saved but not confirmed yet. Pay for each one to confirm it. Payment opens on Safepay's secure page.",
+                  )
+              : copy("Your payment is confirmed.")}
           </p>
           <div className="checkout-receipt-list">
             {results.map((result) => (
@@ -196,24 +240,40 @@ export function CheckoutPanel({
                   <span>
                     <strong>{result.farmName}</strong>
                     {result.amount !== undefined ? (
-                      <span className="checkout-receipt-amount"> · Rs {rupees.format(result.amount)}</span>
+                      <span className="checkout-receipt-amount">
+                        {" "}
+                        · Rs {rupees.format(result.amount)}
+                      </span>
                     ) : null}
                   </span>
                   <span
                     className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}
                   >
-                    {paymentStatusLabel(result.paymentStatus)}
+                    {copy(paymentStatusLabel(result.paymentStatus))}
                   </span>
                 </div>
                 {result.checkoutUrl ? (
                   <a className="btn btn-primary" href={result.checkoutUrl}>
                     {results.length === 1
-                      ? `Pay${result.amount !== undefined ? ` Rs ${rupees.format(result.amount)}` : ""} on Safepay`
-                      : `Pay${result.amount !== undefined ? ` Rs ${rupees.format(result.amount)}` : ""} to ${result.farmName}`}
+                      ? copy("Pay{amount} on Safepay", {
+                          amount:
+                            result.amount !== undefined
+                              ? ` Rs ${rupees.format(result.amount)}`
+                              : "",
+                        })
+                      : copy("Pay{amount} to {farm}", {
+                          amount:
+                            result.amount !== undefined
+                              ? ` Rs ${rupees.format(result.amount)}`
+                              : "",
+                          farm: result.farmName,
+                        })}
                   </a>
                 ) : result.paymentStatus !== "success" ? (
                   <p className="checkout-receipt-note">
-                    We couldn&apos;t open payment for this order. Open Orders and choose Pay to try again.
+                    {copy(
+                      "We couldn't open payment for this order. Open Orders and choose Pay to try again.",
+                    )}
                   </p>
                 ) : null}
               </div>
@@ -225,7 +285,7 @@ export function CheckoutPanel({
             onClick={onViewOrders}
             type="button"
           >
-            View orders
+            {copy("View orders")}
           </button>
         </div>
       </div>
@@ -236,116 +296,174 @@ export function CheckoutPanel({
     return (
       <div className="cart-empty">
         <IcCart size={72} />
-        <h2>Your cart is empty</h2>
-        <p>Add products from the marketplace to start an order.</p>
+        <h2>{copy("Your cart is empty")}</h2>
+        <p>{copy("Add products from the marketplace to start an order.")}</p>
       </div>
     );
   }
 
-  const allQuoted = groups.every((group) => quotes[`${pinKey}|${group.farmerId}`]?.kind === "ready");
-  const total = dropoff && allQuoted
-    ? groups.reduce((sum, group) => {
-        const state = quotes[`${pinKey}|${group.farmerId}`];
-        return sum + (state?.kind === "ready" ? state.quote.grandTotal : 0);
-      }, 0)
-    : null;
+  const allQuoted = groups.every(
+    (group) =>
+      quotes[`${pinKey}|${quoteReload}|${group.farmerId}`]?.kind === "ready",
+  );
+  const total =
+    dropoff && allQuoted
+      ? groups.reduce((sum, group) => {
+          const state = quotes[`${pinKey}|${quoteReload}|${group.farmerId}`];
+          return sum + (state?.kind === "ready" ? state.quote.grandTotal : 0);
+        }, 0)
+      : null;
   const several = groups.length > 1;
   const submitLabel = isSubmitting
     ? "Placing order…"
     : several
-      ? `Place ${groups.length} orders${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`
-      : `Place order${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`;
+      ? `${copy("Place {count} orders", { count: groups.length })}${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`
+      : `${copy("Place order")}${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`;
 
   return (
     <form className="checkout-panel" onSubmit={submit}>
-      <h3>Checkout</h3>
+      <h3>{copy("Checkout")}</h3>
       <p>
         {several
-          ? `Your items come from ${groups.length} farms, so you'll place ${groups.length} orders and pay for each one.`
-          : "Add your delivery details, place the order, then pay securely on Safepay."}
+          ? copy(
+              "Your items come from {count} farms, so you'll place {count} orders and pay for each one.",
+              { count: groups.length },
+            )
+          : copy(
+              "Add your delivery details, place the order, then pay securely on Safepay.",
+            )}
       </p>
 
-      <fieldset disabled={isSubmitting} style={{ border: 0, margin: 0, padding: 0 }}>
-      <h4 className="checkout-step">1. Delivery address</h4>
-      <div className="checkout-address-grid">
-        <label>
-          Street
-          <input
-            required
-            value={address.street}
-            onChange={(event) =>
-              setAddress((current) => ({ ...current, street: event.target.value }))
-            }
-          />
-        </label>
-        <label>
-          City
-          <input
-            required
-            value={address.city}
-            onChange={(event) =>
-              setAddress((current) => ({ ...current, city: event.target.value }))
-            }
-          />
-        </label>
-        <label>
-          Province
-          <select
-            required
-            value={address.province}
-            onChange={(event) =>
-              setAddress((current) => ({ ...current, province: event.target.value }))
-            }
-          >
-            <option value="">Select province</option>
-            {PAKISTAN_PROVINCES.map((province) => (
-              <option key={province} value={province}>
-                {province}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          ZIP code (optional)
-          <input
-            value={address.zip ?? ""}
-            onChange={(event) =>
-              setAddress((current) => ({ ...current, zip: event.target.value || undefined }))
-            }
-          />
-        </label>
-      </div>
+      <fieldset
+        disabled={isSubmitting}
+        style={{ border: 0, margin: 0, padding: 0 }}
+      >
+        <h4 className="checkout-step">{copy("1. Delivery address")}</h4>
+        <div className="checkout-address-grid">
+          <label>
+            {copy("Street")}
+            <input
+              required
+              value={address.street}
+              onChange={(event) =>
+                setAddress((current) => ({
+                  ...current,
+                  street: event.target.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            {copy("City")}
+            <input
+              required
+              value={address.city}
+              onChange={(event) =>
+                setAddress((current) => ({
+                  ...current,
+                  city: event.target.value,
+                }))
+              }
+            />
+          </label>
+          <label>
+            {copy("Province")}
+            <select
+              required
+              value={address.province}
+              onChange={(event) =>
+                setAddress((current) => ({
+                  ...current,
+                  province: event.target.value,
+                }))
+              }
+            >
+              <option value="">{copy("Select province")}</option>
+              {PAKISTAN_PROVINCES.map((province) => (
+                <option key={province} value={province}>
+                  {province}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            {copy("ZIP code (optional)")}
+            <input
+              value={address.zip ?? ""}
+              onChange={(event) =>
+                setAddress((current) => ({
+                  ...current,
+                  zip: event.target.value || undefined,
+                }))
+              }
+            />
+          </label>
+        </div>
 
-      <div className="checkout-dropoff">
-        <h4 className="checkout-step">2. Drop-off location</h4>
-        <p className="checkout-hint">Pin where the delivery should arrive. The delivery fee is calculated from this pin.</p>
-        <MapPinPicker value={dropoff} onChange={setDropoff} purpose="dropoff" disabled={isSubmitting} />
-      </div>
-
+        <div className="checkout-dropoff">
+          <h4 className="checkout-step">{copy("2. Drop-off location")}</h4>
+          <p className="checkout-hint">
+            {copy(
+              "Pin where the delivery should arrive. The delivery fee is calculated from this pin.",
+            )}
+          </p>
+          <MapPinPicker
+            value={dropoff}
+            onChange={setDropoff}
+            purpose="dropoff"
+            disabled={isSubmitting}
+          />
+        </div>
       </fieldset>
 
-      <h4 className="checkout-step">3. Your {several ? "orders" : "order"}</h4>
+      <h4 className="checkout-step">
+        {copy(several ? "3. Your orders" : "3. Your order")}
+      </h4>
       <div className="checkout-quotes" aria-live="polite">
         {groups.map((group, index) => {
-          const state = quotes[`${pinKey}|${group.farmerId}`];
+          const state = quotes[`${pinKey}|${quoteReload}|${group.farmerId}`];
           const label = cartGroupLabel(group, index);
           return (
             <div className="checkout-quote" key={group.farmerId}>
               <span className="checkout-quote-farm">{label}</span>
               {!dropoff ? (
-                <span className="checkout-quote-note">Pin the drop-off to see the delivery fee</span>
+                <span className="checkout-quote-note">
+                  {copy("Pin the drop-off to see the delivery fee")}
+                </span>
               ) : !state ? (
-                <span className="checkout-quote-note">Calculating delivery…</span>
+                <span className="checkout-quote-note">
+                  {copy("Calculating delivery\u2026")}
+                </span>
               ) : state.kind === "unavailable" ? (
                 <span className="checkout-quote-error">
-                  This farm hasn&apos;t pinned its pickup location yet, so it can&apos;t be ordered right now.
+                  {copy(
+                    "Could not calculate this order. Check availability and the delivery pin, then retry.",
+                  )}
                 </span>
               ) : (
                 <>
-                  <span className="checkout-quote-line"><span>Items</span><span>Rs {rupees.format(state.quote.totalAmount)}</span></span>
-                  <span className="checkout-quote-line"><span>Service fee</span><span>Rs {rupees.format(state.quote.platformFeeAmount)}</span></span>
-                  <span className="checkout-quote-line"><span>Delivery ({state.quote.deliveryDistanceKm} km)</span><span>Rs {rupees.format(state.quote.deliveryFee)}</span></span>
-                  <span className="checkout-quote-line checkout-quote-total"><span>Order total</span><strong>Rs {rupees.format(state.quote.grandTotal)}</strong></span>
+                  <span className="checkout-quote-line">
+                    <span>{copy("Items")}</span>
+                    <span>Rs {rupees.format(state.quote.totalAmount)}</span>
+                  </span>
+                  <span className="checkout-quote-line">
+                    <span>{copy("Service fee")}</span>
+                    <span>
+                      Rs {rupees.format(state.quote.platformFeeAmount)}
+                    </span>
+                  </span>
+                  <span className="checkout-quote-line">
+                    <span>
+                      {copy("Delivery ({distance} km)", {
+                        distance: state.quote.deliveryDistanceKm,
+                      })}
+                    </span>
+                    <span>Rs {rupees.format(state.quote.deliveryFee)}</span>
+                  </span>
+                  <span className="checkout-quote-line checkout-quote-total">
+                    <span>{copy("Order total")}</span>
+                    <strong>Rs {rupees.format(state.quote.grandTotal)}</strong>
+                  </span>
                 </>
               )}
             </div>
@@ -353,20 +471,40 @@ export function CheckoutPanel({
         })}
         {several && total !== null ? (
           <div className="checkout-quote-line checkout-grand-total">
-            <span>Total for all {groups.length} orders</span>
+            <span>
+              {copy("Total for all {count} orders", { count: groups.length })}
+            </span>
             <strong>Rs {rupees.format(total)}</strong>
           </div>
         ) : null}
       </div>
 
-      <h4 className="checkout-step">4. Payment</h4>
+      {dropoff &&
+      !allQuoted &&
+      groups.some(
+        (group) =>
+          quotes[`${pinKey}|${quoteReload}|${group.farmerId}`]?.kind ===
+          "unavailable",
+      ) ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          disabled={isSubmitting}
+          onClick={() => setQuoteReload((value) => value + 1)}
+        >
+          {copy("Retry delivery quotes")}
+        </button>
+      ) : null}
+      <h4 className="checkout-step">{copy("4. Payment")}</h4>
       {simulatorEnabled ? (
         <label>
-          Payment method
+          {copy("Payment method")}
           <select
             disabled={isSubmitting}
             value={gateway}
-            onChange={(event) => setGateway(event.target.value as PaymentGateway)}
+            onChange={(event) =>
+              setGateway(event.target.value as PaymentGateway)
+            }
           >
             <option value="safepay">Safepay</option>
             <option value="jazzcash">JazzCash (local simulation)</option>
@@ -375,17 +513,27 @@ export function CheckoutPanel({
         </label>
       ) : (
         <p className="checkout-hint">
-          You&apos;ll pay on Safepay&apos;s secure page with a card or mobile wallet. Farm2Fork never sees your card details.
+          {copy(
+            "You'll pay on Safepay's secure page with a card or mobile wallet. Farm2Fork never sees your card details.",
+          )}
         </p>
       )}
 
-      <button className="cart-shop-btn" disabled={isSubmitting || !dropoff || !allQuoted} type="submit">
+      <button
+        className="cart-shop-btn"
+        disabled={isSubmitting || !dropoff || !allQuoted}
+        type="submit"
+      >
         {submitLabel}
       </button>
       <p className="checkout-hint">
         {several
-          ? "Next, you'll pay for each order on Safepay. An order isn't confirmed until it's paid."
-          : "Next, you'll pay on Safepay. Your order isn't confirmed until it's paid."}
+          ? copy(
+              "Next, you'll pay for each order on Safepay. An order isn't confirmed until it's paid.",
+            )
+          : copy(
+              "Next, you'll pay on Safepay. Your order isn't confirmed until it's paid.",
+            )}
       </p>
 
       {error ? <p role="alert">{error}</p> : null}

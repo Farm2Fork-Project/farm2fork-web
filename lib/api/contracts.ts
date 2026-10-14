@@ -216,6 +216,7 @@ export interface CreateFarmerProductRequest {
 }
 
 export interface BuyerProduct {
+  description?: string;
   id: string;
   farmerId: string;
   name: string;
@@ -280,6 +281,7 @@ export interface ApiOrderItem {
 }
 
 export interface ApiOrder {
+  canCancel?: boolean;
   id: string;
   buyerId: string;
   farmerId: string;
@@ -399,6 +401,7 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     id: product.id,
     farmerId: product.farmerId,
     name: product.name,
+    description: product.description,
     price: product.price,
     quantity: product.quantity,
     unit: product.unit,

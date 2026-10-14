@@ -57,19 +57,32 @@ export class CommunityRepository {
     if (input.tags.length) form.set("tags", input.tags.join(","));
     for (const photo of input.photos) form.append("images", photo);
     return withResolvedImages(
-      await this.client.request<CommunityPost>("/community/posts", { method: "POST", body: form }),
+      await this.client.request<CommunityPost>("/community/posts", {
+        method: "POST",
+        body: form,
+      }),
     );
   }
 
   remove(postId: string): Promise<unknown> {
-    return this.client.request(`/community/posts/${encodeURIComponent(postId)}`, {
-      method: "DELETE",
-    });
+    return this.client.request(
+      `/community/posts/${encodeURIComponent(postId)}`,
+      {
+        method: "DELETE",
+      },
+    );
   }
 
   comments(postId: string): Promise<CommunityComment[]> {
     return this.client.request<CommunityComment[]>(
       `/community/posts/${encodeURIComponent(postId)}/comments`,
+    );
+  }
+
+  removeComment(postId: string, commentId: string): Promise<unknown> {
+    return this.client.request(
+      `/community/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`,
+      { method: "DELETE" },
     );
   }
 

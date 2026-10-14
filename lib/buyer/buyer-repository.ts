@@ -72,7 +72,10 @@ export class BuyerRepository {
   }
 
   quoteOrder(input: CreateOrderRequest): Promise<ApiOrderQuote> {
-    return this.client.request<ApiOrderQuote>("/orders/quote", { method: "POST", body: input });
+    return this.client.request<ApiOrderQuote>("/orders/quote", {
+      method: "POST",
+      body: input,
+    });
   }
 
   createOrder(input: CreateOrderRequest): Promise<ApiOrder> {
@@ -80,6 +83,13 @@ export class BuyerRepository {
       method: "POST",
       body: input,
     });
+  }
+
+  cancelOrder(id: string): Promise<ApiOrder> {
+    return this.client.request<ApiOrder>(
+      `/orders/${encodeURIComponent(id)}/cancel`,
+      { method: "PATCH" },
+    );
   }
 
   listOrders(query: PaginationQuery = {}): Promise<ApiPage<ApiOrder>> {
@@ -90,13 +100,10 @@ export class BuyerRepository {
     orderId: string,
     gateway: PaymentGateway,
   ): Promise<InitiatePaymentResponse> {
-    return this.client.request<InitiatePaymentResponse>(
-      "/payments",
-      {
-        method: "POST",
-        body: { orderId, gateway },
-      },
-    );
+    return this.client.request<InitiatePaymentResponse>("/payments", {
+      method: "POST",
+      body: { orderId, gateway },
+    });
   }
 
   simulatePaymentSuccess(paymentId: string): Promise<ApiPayment> {

@@ -157,8 +157,6 @@ export const GRADABLE_CROPS = [
   "rice",
   "mango",
   "maize",
-  "cotton",
-  "sugarcane",
 ] as const;
 export type GradableCrop = (typeof GRADABLE_CROPS)[number];
 

@@ -114,3 +114,54 @@ test("CreateListingForm keeps the form and shows the error when photo upload fai
   expect(onSubmit).not.toHaveBeenCalled();
   expect(screen.getByLabelText(/product title/i)).toHaveValue("Roma Tomatoes");
 });
+
+
+test("Other crops can publish with a manual grade without a quality request", async () => {
+  const user = userEvent.setup();
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  const aiClient = {
+    aiStatus: vi.fn().mockResolvedValue({ available: true, qualityModel: "trained" }),
+    suggestPrice: vi.fn(),
+    checkQuality: vi.fn(),
+  };
+  render(<LanguageProvider><CreateListingForm onCancel={vi.fn()} onSubmit={onSubmit}
+    aiClient={aiClient} /></LanguageProvider>);
+  await fillRequired(user);
+  await user.selectOptions(screen.getByLabelText("Crop in the photo"), "other");
+  await user.selectOptions(screen.getByLabelText(/grade \/ quality/i), "C");
+  await user.click(screen.getByRole("button", { name: /publish listing/i }));
+  expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ name: "Roma Tomatoes", qualityGrade: "C" }));
+  expect(aiClient.checkQuality).not.toHaveBeenCalled();
+});
+
+
+test.each([false, true])("invalidating an applied AI grade restores manual selection (override=%s)", async (manualOverride) => {
+  const user = userEvent.setup();
+  const aiClient = {
+    aiStatus: vi.fn().mockResolvedValue({ available: true, qualityModel: "trained" }),
+    suggestPrice: vi.fn(),
+    checkQuality: vi.fn().mockResolvedValue({
+      modelGrade: "B", suggestedListingGrade: "B", confidenceScore: 0.8,
+      crop: "mango", cropSupported: true, modelStatus: "trained", lowConfidence: false,
+    }),
+  };
+  const onSubmit = vi.fn().mockResolvedValue(undefined);
+  render(<LanguageProvider><CreateListingForm onCancel={vi.fn()} onSubmit={onSubmit}
+    aiClient={aiClient} /></LanguageProvider>);
+  await fillRequired(user);
+  const manualGrade = screen.getByLabelText(/grade \/ quality/i);
+  await user.selectOptions(manualGrade, "C");
+  await user.selectOptions(screen.getByLabelText("Crop in the photo"), "mango");
+  await user.upload(document.getElementById("ai-photo") as HTMLInputElement,
+    new File(["x"], "mango.jpg", { type: "image/jpeg" }));
+  await user.click(screen.getByRole("button", { name: "Check quality" }));
+  expect(manualGrade).toHaveValue("C");
+  await user.click(await screen.findByRole("button", { name: "Use grade B" }));
+  expect(manualGrade).toHaveValue("B");
+  if (manualOverride) await user.selectOptions(manualGrade, "A");
+  await user.selectOptions(screen.getByLabelText("Crop in the photo"), "other");
+  expect(manualGrade).toHaveValue(manualOverride ? "A" : "C");
+  await user.click(screen.getByRole("button", { name: /publish listing/i }));
+  expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ qualityGrade: manualOverride ? "A" : "C" }));
+  expect(aiClient.checkQuality).toHaveBeenCalledTimes(1);
+});

@@ -1,7 +1,12 @@
 // Runs only via backend scripts/test/web-checkout-e2e.ts.
 // The fixture uses test JWT identities and local Safepay API responses.
 import { createHmac } from "node:crypto";
-import { cleanup, render as testingRender, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render as testingRender,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import { ApiClient } from "../lib/api/client.ts";
@@ -16,8 +21,12 @@ import { BuyerApp } from "../components/buyer/BuyerApp";
 import type { BuyerSession } from "../lib/auth/web-session.ts";
 
 const baseUrl = process.env.CHECKOUT_TEST_API;
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
-const render = (ui: React.ReactNode) => testingRender(<LanguageProvider>{ui}</LanguageProvider>);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+const render = (ui: React.ReactNode) =>
+  testingRender(<LanguageProvider>{ui}</LanguageProvider>);
 
 test.skipIf(!baseUrl)(
   "web checkout, cancel/resume and signed settlement persist through the real backend",
@@ -130,11 +139,21 @@ test.skipIf(!baseUrl)(
     await user.type(screen.getByLabelText("Street"), "12 Mall Road");
     await user.type(screen.getByLabelText("City"), "Lahore");
     await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
-    vi.stubGlobal("navigator", { ...navigator, geolocation: {
-      getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
-    } });
-    await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-    const placeOrders = screen.getByRole("button", { name: /^Place \d+ orders/ });
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      geolocation: {
+        getCurrentPosition: (ok: PositionCallback) =>
+          ok({
+            coords: { latitude: 31.5204, longitude: 74.3587 },
+          } as GeolocationPosition),
+      },
+    });
+    await user.click(
+      screen.getByRole("button", { name: /Use my current location/ }),
+    );
+    const placeOrders = screen.getByRole("button", {
+      name: /^Place \d+ orders/,
+    });
     await waitFor(() => expect(placeOrders).toBeEnabled());
     await user.click(placeOrders);
     const [firstLink, secondLink] = await screen.findAllByRole("link", {
@@ -178,7 +197,10 @@ test.skipIf(!baseUrl)(
       listProducts: buyer.listProducts.bind(buyer),
       listOrders: buyer.listOrders.bind(buyer),
       listPayments: buyer.listPayments.bind(buyer),
-      listShipments: () => new ShipmentRepository({client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!)}).listShipments(),
+      listShipments: () =>
+        new ShipmentRepository({
+          client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!),
+        }).listShipments(),
       simulatePaymentSuccess: buyer.simulatePaymentSuccess.bind(buyer),
     };
     cleanup();
@@ -384,7 +406,9 @@ test.skipIf(!baseUrl)(
           );
         }
         await waitFor(async () => {
-          expect((await transport.getTransporterStatus()).activeShipmentId).toBeUndefined();
+          expect(
+            (await transport.getTransporterStatus()).activeShipmentId,
+          ).toBeUndefined();
         });
       }
       await user.click(screen.getByRole("button", { name: "Go offline" }));
@@ -407,9 +431,17 @@ test.skipIf(!baseUrl)(
         (await buyer.listOrders()).data.every((o) => o.status === "delivered"),
       ).toBe(true);
       cleanup();
-      render(<BuyerApp paymentReturn="complete" session={session} repository={port} onLogout={() => undefined} />);
-      await waitFor(() => expect(screen.getAllByText("Shipment: delivered")).toHaveLength(2));
-
+      render(
+        <BuyerApp
+          paymentReturn="complete"
+          session={session}
+          repository={port}
+          onLogout={() => undefined}
+        />,
+      );
+      await waitFor(() =>
+        expect(screen.getAllByText("Shipment: Delivered")).toHaveLength(2),
+      );
     }
   },
   30_000,

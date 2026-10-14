@@ -1,8 +1,10 @@
+import { collectPages } from "../api/pagination.ts";
 import type { ApiRequestOptions } from "../api/client.ts";
 import type { FarmLocation, FarmLocationStatus } from "./farm-location.ts";
 import type {
   AiStatus,
   ApiOrder,
+  ApiShipment,
   ApiPage,
   ApiProduct,
   CreateFarmerProductRequest,
@@ -12,7 +14,10 @@ import type {
   QualityCheckResult,
 } from "../api/contracts.ts";
 
-export type { FarmLocation as FarmLocationInput, FarmLocationStatus as FarmLocation } from "./farm-location.ts";
+export type {
+  FarmLocation as FarmLocationInput,
+  FarmLocationStatus as FarmLocation,
+} from "./farm-location.ts";
 
 type ApiRequester = {
   request<T>(path: string, options?: ApiRequestOptions): Promise<T>;
@@ -26,11 +31,23 @@ export class FarmerRepository {
   }
 
   listMyProducts(): Promise<ApiPage<ApiProduct>> {
-    return this.client.request<ApiPage<ApiProduct>>("/products/mine?limit=100");
+    return collectPages((page) =>
+      this.client.request<ApiPage<ApiProduct>>(
+        `/products/mine?limit=100${page === 1 ? "" : `&page=${page}`}`,
+      ),
+    );
   }
 
   listOrders(): Promise<ApiPage<ApiOrder>> {
-    return this.client.request<ApiPage<ApiOrder>>("/orders?limit=20");
+    return collectPages((page) =>
+      this.client.request<ApiPage<ApiOrder>>(
+        `/orders?limit=20${page === 1 ? "" : `&page=${page}`}`,
+      ),
+    );
+  }
+
+  listShipments(): Promise<ApiShipment[]> {
+    return this.client.request<ApiShipment[]>("/shipments");
   }
 
   createProduct(input: CreateFarmerProductRequest): Promise<ApiProduct> {
@@ -40,14 +57,33 @@ export class FarmerRepository {
     });
   }
 
+  updateProduct(
+    id: string,
+    input: Partial<CreateFarmerProductRequest> & {
+      status?: "active" | "inactive";
+      expectedQuantity?: number;
+    },
+  ): Promise<ApiProduct> {
+    return this.client.request<ApiProduct>(
+      `/products/${encodeURIComponent(id)}`,
+      {
+        method: "PATCH",
+        body: input,
+      },
+    );
+  }
+
   /** Uploads listing photos; the returned URLs go in `images` when creating a product. */
   async uploadProductImages(photos: File[]): Promise<string[]> {
     const form = new FormData();
     for (const photo of photos) form.append("images", photo);
-    const response = await this.client.request<{ urls: string[] }>("/products/images", {
-      method: "POST",
-      body: form,
-    });
+    const response = await this.client.request<{ urls: string[] }>(
+      "/products/images",
+      {
+        method: "POST",
+        body: form,
+      },
+    );
     return response.urls;
   }
 
@@ -74,10 +110,13 @@ export class FarmerRepository {
   }
 
   updateFarmLocation(location: FarmLocation): Promise<FarmLocationStatus> {
-    return this.client.request<FarmLocationStatus>("/farmers/me/farm-location", {
-      method: "PATCH",
-      body: location,
-    });
+    return this.client.request<FarmLocationStatus>(
+      "/farmers/me/farm-location",
+      {
+        method: "PATCH",
+        body: location,
+      },
+    );
   }
 
   aiStatus(): Promise<AiStatus> {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LuImagePlus, LuMessageCircle, LuTrash2, LuX } from "react-icons/lu";
+import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import { useLanguage } from "./LanguageContext";
 import {
   CommunityRepository,
@@ -27,7 +28,10 @@ export default function FarmFeed({
   currentUserId?: string;
 }) {
   const { t, language } = useLanguage();
-  const community = useMemo(() => repository ?? new CommunityRepository(), [repository]);
+  const community = useMemo(
+    () => repository ?? new CommunityRepository(),
+    [repository],
+  );
   const [tag, setTag] = useState<string | null>(null);
   const [state, setState] = useState<FeedState>({ kind: "loading" });
   const [reload, setReload] = useState(0);
@@ -52,23 +56,37 @@ export default function FarmFeed({
       <Composer
         community={community}
         onPosted={(post) =>
-          setState((s) => (s.kind === "ready" ? { kind: "ready", posts: [post, ...s.posts] } : s))
+          setState((s) =>
+            s.kind === "ready"
+              ? { kind: "ready", posts: [post, ...s.posts] }
+              : s,
+          )
         }
       />
 
       {tag ? (
-        <button type="button" className="feed-tag-filter" onClick={() => setTag(null)}>
+        <button
+          type="button"
+          className="feed-tag-filter"
+          onClick={() => setTag(null)}
+        >
           #{tag} <LuX size={14} aria-hidden="true" />
           <span className="sr-only">{t("feed.clearTag")}</span>
         </button>
       ) : null}
 
       {state.kind === "loading" ? (
-        <p className="text-muted">…</p>
+        <p className="text-muted" role="status">
+          {t("feed.loading")}
+        </p>
       ) : state.kind === "error" ? (
         <div className="card" role="alert">
           <p>{t("feed.loadFailed")}</p>
-          <button type="button" className="btn btn-outline" onClick={() => setReload((n) => n + 1)}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={() => setReload((n) => n + 1)}
+          >
             {t("feed.retry")}
           </button>
         </div>
@@ -84,11 +102,17 @@ export default function FarmFeed({
             post={post}
             community={community}
             date={date}
+            currentUserId={currentUserId}
             canRemove={post.author.id === currentUserId}
             onTag={setTag}
             onRemoved={() =>
               setState((s) =>
-                s.kind === "ready" ? { kind: "ready", posts: s.posts.filter((p) => p.id !== post.id) } : s,
+                s.kind === "ready"
+                  ? {
+                      kind: "ready",
+                      posts: s.posts.filter((p) => p.id !== post.id),
+                    }
+                  : s,
               )
             }
           />
@@ -125,6 +149,7 @@ function Composer({
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (posting || !title.trim() || !content.trim()) return;
     const parsed = parseTags(tags);
     if (parsed.length > 5) {
       setError(t("feed.tooManyTags"));
@@ -133,7 +158,14 @@ function Composer({
     setPosting(true);
     setError("");
     try {
-      onPosted(await community.create({ title: title.trim(), content: content.trim(), tags: parsed, photos }));
+      onPosted(
+        await community.create({
+          title: title.trim(),
+          content: content.trim(),
+          tags: parsed,
+          photos,
+        }),
+      );
       reset();
     } catch {
       setError(t("feed.postFailed"));
@@ -144,7 +176,11 @@ function Composer({
 
   if (!open) {
     return (
-      <button type="button" className="card feed-composer-prompt" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="card feed-composer-prompt"
+        onClick={() => setOpen(true)}
+      >
         {t("feed.composer.placeholder")}
       </button>
     );
@@ -186,7 +222,9 @@ function Composer({
             <button
               type="button"
               aria-label={t("feed.removePhoto")}
-              onClick={() => setPhotos((list) => list.filter((p) => p !== photo))}
+              onClick={() =>
+                setPhotos((list) => list.filter((p) => p !== photo))
+              }
             >
               <LuX size={12} />
             </button>
@@ -201,19 +239,30 @@ function Composer({
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) setPhotos((list) => [...list, file].slice(0, MAX_POST_PHOTOS));
+                if (file)
+                  setPhotos((list) =>
+                    [...list, file].slice(0, MAX_POST_PHOTOS),
+                  );
                 e.target.value = "";
               }}
             />
           </label>
         ) : null}
       </div>
-      {error ? <p role="alert" className="text-error">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-error">
+          {error}
+        </p>
+      ) : null}
       <div className="feed-actions">
         <button type="button" className="btn btn-outline" onClick={reset}>
           {t("feed.composer.cancel")}
         </button>
-        <button type="submit" className="btn btn-primary" disabled={posting || !title.trim() || !content.trim()}>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={posting || !title.trim() || !content.trim()}
+        >
           {t("feed.composer.post")}
         </button>
       </div>
@@ -228,11 +277,13 @@ function PostCard({
   canRemove,
   onTag,
   onRemoved,
+  currentUserId,
 }: {
   post: CommunityPost;
   community: CommunityRepository;
   date: Intl.DateTimeFormat;
   canRemove: boolean;
+  currentUserId?: string;
   onTag: (tag: string) => void;
   onRemoved: () => void;
 }) {
@@ -241,36 +292,91 @@ function PostCard({
   const [count, setCount] = useState(post.commentCount);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [commentsError, setCommentsError] = useState("");
+  const commentRequest = useRef(0);
+  const busyRef = useRef(false);
+  const loadComments = async () => {
+    const request = ++commentRequest.current;
+    setCommentsLoading(true);
+    setCommentsError("");
+    try {
+      const list = await community.comments(post.id);
+      if (request === commentRequest.current) setComments(list);
+    } catch {
+      if (request === commentRequest.current)
+        setCommentsError(t("feed.actionFailed"));
+    } finally {
+      if (request === commentRequest.current) setCommentsLoading(false);
+    }
+  };
 
   const toggleComments = () => {
-    if (comments) {
-      setComments(null);
-      return;
-    }
-    community.comments(post.id).then(setComments, () => setComments([]));
+    setCommentsOpen((open) => !open);
+    if (!commentsOpen && !comments) void loadComments();
   };
 
   const addComment = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!draft.trim()) return;
+    if (!draft.trim() || busyRef.current) return;
+    busyRef.current = true;
+    setActionError("");
     setBusy(true);
     try {
       const comment = await community.addComment(post.id, draft.trim());
       setComments((list) => [...(list ?? []), comment]);
       setCount((n) => n + 1);
       setDraft("");
+    } catch {
+      setActionError(t("feed.actionFailed"));
     } finally {
+      busyRef.current = false;
       setBusy(false);
     }
   };
 
   const remove = async () => {
-    if (!window.confirm(t("feed.removeConfirm"))) return;
-    await community.remove(post.id);
-    onRemoved();
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    setActionError("");
+    try {
+      await community.remove(post.id);
+      onRemoved();
+    } catch {
+      setActionError(t("feed.actionFailed"));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
+  };
+  const removeComment = async (id: string) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBusy(true);
+    setActionError("");
+    try {
+      await community.removeComment(post.id, id);
+      setComments((list) =>
+        (list ?? []).filter((comment) => comment.id !== id),
+      );
+      setCount((count) => Math.max(0, count - 1));
+    } catch {
+      setActionError(t("feed.actionFailed"));
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
-  const role = post.author.role === "farmer" ? t("signupRole.farmerRole") : post.author.role === "buyer" ? t("signupRole.buyerRole") : "";
+  const role =
+    post.author.role === "farmer"
+      ? t("signupRole.farmerRole")
+      : post.author.role === "buyer"
+        ? t("signupRole.buyerRole")
+        : "";
 
   return (
     <article className="card feed-post">
@@ -281,13 +387,22 @@ function PostCard({
         <div>
           <strong>{post.author.name}</strong>
           <span className="text-muted">
-            {[role, post.author.city, date.format(new Date(post.createdAt))].filter(Boolean).join(" · ")}
+            {[role, post.author.city, date.format(new Date(post.createdAt))]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </div>
         {canRemove ? (
-          <button type="button" className="topbar-icon-btn" aria-label={t("feed.remove")} onClick={() => void remove()}>
-            <LuTrash2 size={16} />
-          </button>
+          <InlineConfirm
+            label={t("feed.remove")}
+            prompt={t("feed.removeConfirm")}
+            confirmLabel={t("feed.remove")}
+            onConfirm={remove}
+            busy={busy}
+            triggerClassName="topbar-icon-btn"
+            icon={<LuTrash2 size={16} />}
+            iconOnly
+          />
         ) : null}
       </header>
       <h3>{post.title}</h3>
@@ -304,24 +419,61 @@ function PostCard({
       {post.tags.length ? (
         <div className="feed-post-tags">
           {post.tags.map((tag) => (
-            <button key={tag} type="button" className="badge badge-soft-blue" onClick={() => onTag(tag)}>
+            <button
+              key={tag}
+              type="button"
+              className="badge badge-soft-blue"
+              onClick={() => onTag(tag)}
+            >
               #{tag}
             </button>
           ))}
         </div>
       ) : null}
-      <button type="button" className="feed-comments-toggle" onClick={toggleComments} aria-expanded={comments !== null}>
-        <LuMessageCircle size={16} aria-hidden="true" /> {t("feed.post.commentsCount").replace("{count}", String(count))}
+      <button
+        type="button"
+        className="feed-comments-toggle"
+        onClick={toggleComments}
+        aria-expanded={commentsOpen}
+      >
+        <LuMessageCircle size={16} aria-hidden="true" />{" "}
+        {t("feed.post.commentsCount").replace("{count}", String(count))}
       </button>
-      {comments ? (
+      {actionError ? <p role="alert">{actionError}</p> : null}
+      {commentsOpen ? (
         <div className="feed-comments">
-          {comments.map((c) => (
+          {commentsLoading ? <p role="status">{t("feed.loading")}</p> : null}
+          {commentsError ? (
+            <div>
+              <p role="alert">{commentsError}</p>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => void loadComments()}
+              >
+                {t("feed.retry")}
+              </button>
+            </div>
+          ) : null}
+          {(comments ?? []).map((c) => (
             <div key={c.id} className="feed-comment">
               <strong>{c.author.name}</strong>
               <p>{c.content}</p>
+              {c.author.id === currentUserId ? (
+                <InlineConfirm
+                  label={t("feed.removeComment")}
+                  prompt={t("feed.removeCommentConfirm")}
+                  confirmLabel={t("feed.removeComment")}
+                  onConfirm={() => removeComment(c.id)}
+                  busy={busy}
+                />
+              ) : null}
             </div>
           ))}
-          <form className="feed-comment-form" onSubmit={(e) => void addComment(e)}>
+          <form
+            className="feed-comment-form"
+            onSubmit={(e) => void addComment(e)}
+          >
             <input
               className="input"
               maxLength={2000}
@@ -330,7 +482,11 @@ function PostCard({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
             />
-            <button type="submit" className="btn btn-primary" disabled={busy || !draft.trim()}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={busy || !draft.trim()}
+            >
               {t("feed.post.comment")}
             </button>
           </form>

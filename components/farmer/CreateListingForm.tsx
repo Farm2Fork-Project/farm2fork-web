@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useLanguage } from "./LanguageContext";
 import AiListingAssistant, { type AiAssistantClient } from "./AiListingAssistant";
 import type {
@@ -32,6 +32,14 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient, onUplo
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Vegetables");
   const [grade, setGrade] = useState("A");
+  const appliedAiGrade = useRef<{ manual: string; applied: string } | null>(null);
+  const invalidateAiGrade = useCallback(() => {
+    const previous = appliedAiGrade.current;
+    appliedAiGrade.current = null;
+    if (previous) {
+      setGrade((current) => current === previous.applied ? previous.manual : current);
+    }
+  }, []);
   const [price, setPrice] = useState("");
   const [unit, setUnit] = useState<FarmerProductUnit>("kg");
   const [quantity, setQuantity] = useState("");
@@ -171,7 +179,10 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient, onUplo
                 <select
                   id="farmer-product-grade"
                   value={grade}
-                  onChange={(e) => setGrade(e.target.value)}
+                  onChange={(e) => {
+                    appliedAiGrade.current = null;
+                    setGrade(e.target.value);
+                  }}
                   className="select w-full py-3 px-4 text-base rounded-xl border-gray-300 focus:border-[var(--primary-green)] bg-white"
                 >
                   <option value="A">{t("farmer.create.grade.A")}</option>
@@ -251,7 +262,11 @@ export default function CreateListingForm({ onSubmit, onCancel, aiClient, onUplo
                 unit={unit}
                 grade={grade as "A" | "B" | "C"}
                 onApplyPrice={(value) => setPrice(String(value))}
-                onApplyGrade={setGrade}
+                onApplyGrade={(value) => {
+                  appliedAiGrade.current = { manual: appliedAiGrade.current?.manual ?? grade, applied: value };
+                  setGrade(value);
+                }}
+                onInvalidateGrade={invalidateAiGrade}
               />
             ) : null}
 

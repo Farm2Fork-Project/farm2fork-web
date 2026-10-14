@@ -28,6 +28,7 @@ type Props = {
   grade: "A" | "B" | "C";
   onApplyPrice: (price: number) => void;
   onApplyGrade: (grade: "A" | "B" | "C") => void;
+  onInvalidateGrade?: () => void;
 };
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
@@ -38,17 +39,11 @@ function fill(template: string, values: Record<string, string | number>): string
   );
 }
 
-/** Best guess of the crop from what the farmer typed, to pre-select it. */
-function guessCrop(productName: string): GradableCrop | "" {
-  const text = productName.toLowerCase();
-  return GRADABLE_CROPS.find((crop) => text.includes(crop)) ?? "";
-}
-
 /**
  * Farmer-facing AI help while creating a listing: a price range from the
  * rule-based estimator and a photo quality check from the grading model.
  * Both are suggestions the farmer applies explicitly; neither is ever
- * presented as more certain than it is (rule-based price, untrained model).
+ * presented as certified quality. Only four crops have model support.
  */
 export default function AiListingAssistant({
   client,
@@ -58,13 +53,15 @@ export default function AiListingAssistant({
   grade,
   onApplyPrice,
   onApplyGrade,
+  onInvalidateGrade,
 }: Props) {
   const { t, language } = useLanguage();
   const [status, setStatus] = useState<AiStatus | null>(null);
   const [price, setPrice] = useState<PriceSuggestion | null>(null);
   const [priceError, setPriceError] = useState("");
   const [pricing, setPricing] = useState(false);
-  const [crop, setCrop] = useState<GradableCrop | "">("");
+  const [crop, setCrop] = useState<GradableCrop | "other" | "">("");
+  const qualityRequest = useRef(0);
   const [photo, setPhoto] = useState<File | null>(null);
   const [quality, setQuality] = useState<QualityCheckResult | null>(null);
   const [qualityError, setQualityError] = useState("");
@@ -84,6 +81,19 @@ export default function AiListingAssistant({
       active = false;
     };
   }, [client]);
+
+  // A changed listing needs a fresh, deliberate crop choice and photo.
+  useEffect(() => {
+    onInvalidateGrade?.();
+    qualityRequest.current += 1;
+    setCrop("");
+    setPhoto(null);
+    setQuality(null);
+    setQualityError("");
+    setGrading(false);
+    if (photoInput.current) photoInput.current.value = "";
+    return () => { qualityRequest.current += 1; };
+  }, [productName, category, onInvalidateGrade]);
 
   const errorText = (error: unknown) =>
     error instanceof ApiError && error.status === 503
@@ -123,7 +133,8 @@ export default function AiListingAssistant({
   };
 
   const requestQuality = async () => {
-    const selectedCrop = crop || guessCrop(productName);
+    if (crop === "other") return;
+    const selectedCrop = crop;
     if (!selectedCrop) {
       setQualityError(t("farmer.ai.needCrop"));
       return;
@@ -132,19 +143,26 @@ export default function AiListingAssistant({
       setQualityError(t("farmer.ai.needPhoto"));
       return;
     }
+    const request = ++qualityRequest.current;
+    setQuality(null);
     setGrading(true);
     setQualityError("");
     try {
-      setQuality(await client.checkQuality(photo, selectedCrop));
+      const result = await client.checkQuality(photo, selectedCrop);
+      if (request === qualityRequest.current) setQuality(result);
     } catch (error) {
+      if (request !== qualityRequest.current) return;
       setQuality(null);
       setQualityError(errorText(error));
     } finally {
-      setGrading(false);
+      if (request === qualityRequest.current) setGrading(false);
     }
   };
 
   const onPhoto = (file: File | undefined) => {
+    onInvalidateGrade?.();
+    qualityRequest.current += 1;
+    setGrading(false);
     setQuality(null);
     setQualityError("");
     if (!file) return setPhoto(null);
@@ -227,10 +245,16 @@ export default function AiListingAssistant({
         <select
           id="ai-crop"
           className="select ai-input"
-          value={crop || guessCrop(productName)}
+          value={crop}
           onChange={(event) => {
-            setCrop(event.target.value as GradableCrop | "");
+            onInvalidateGrade?.();
+            qualityRequest.current += 1;
+            setCrop(event.target.value as GradableCrop | "other" | "");
             setQuality(null);
+            setQualityError("");
+            setPhoto(null);
+            setGrading(false);
+            if (photoInput.current) photoInput.current.value = "";
           }}
         >
           <option value="">{t("farmer.ai.cropPlaceholder")}</option>
@@ -239,32 +263,40 @@ export default function AiListingAssistant({
               {t(`farmer.ai.crop.${option}`)}
             </option>
           ))}
+          <option value="other">{t("farmer.ai.crop.other")}</option>
         </select>
-        <input
-          ref={photoInput}
-          id="ai-photo"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="sr-only"
-          onChange={(event) => onPhoto(event.target.files?.[0])}
-        />
-        <button
-          type="button"
-          className="btn btn-outline ai-action"
-          onClick={() => photoInput.current?.click()}
-        >
-          <Camera size={14} aria-hidden="true" />
-          {photo ? photo.name : t("farmer.ai.choosePhoto")}
-        </button>
-        <button
-          type="button"
-          className="btn btn-outline ai-action"
-          onClick={() => void requestQuality()}
-          disabled={grading || !photo || status?.available === false}
-        >
-          {grading ? <Loader2 size={14} className="spin" aria-hidden="true" /> : null}
-          {grading ? t("farmer.ai.working") : t("farmer.ai.checkQuality")}
-        </button>
+        <p className="ai-note">{t("farmer.ai.advisory")}</p>
+        {crop === "other" ? (
+          <p className="ai-note" role="status">{t("farmer.ai.noGrading")}</p>
+        ) : (
+          <>
+            <input
+              ref={photoInput}
+              id="ai-photo"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => onPhoto(event.target.files?.[0])}
+            />
+            <button
+              type="button"
+              className="btn btn-outline ai-action"
+              onClick={() => photoInput.current?.click()}
+            >
+              <Camera size={14} aria-hidden="true" />
+              {photo ? photo.name : t("farmer.ai.choosePhoto")}
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline ai-action"
+              onClick={() => void requestQuality()}
+              disabled={grading || !crop || !photo || status?.available === false}
+            >
+              {grading ? <Loader2 size={14} className="spin" aria-hidden="true" /> : null}
+              {grading ? t("farmer.ai.working") : t("farmer.ai.checkQuality")}
+            </button>
+          </>
+        )}
         {qualityError ? (
           <p className="ai-note ai-note--error" role="alert">{qualityError}</p>
         ) : null}
@@ -285,7 +317,7 @@ export default function AiListingAssistant({
             {quality.modelStatus === "trained" && quality.lowConfidence ? (
               <p className="ai-note">{t("farmer.ai.lowConfidence")}</p>
             ) : null}
-            {quality.suggestedListingGrade ? (
+            {quality.cropSupported && quality.suggestedListingGrade ? (
               <button
                 type="button"
                 className="ai-link"
@@ -293,9 +325,9 @@ export default function AiListingAssistant({
               >
                 {fill(t("farmer.ai.useGrade"), { grade: quality.suggestedListingGrade })}
               </button>
-            ) : (
+            ) : quality.modelGrade === "D" ? (
               <p className="ai-note ai-note--warn">{t("farmer.ai.gradeD")}</p>
-            )}
+            ) : null}
           </div>
         ) : null}
       </div>

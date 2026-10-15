@@ -4,7 +4,7 @@ import { LogOut, RotateCcw } from "lucide-react";
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import AdminPageShell from '@/components/admin/screens/AdminPageShell'
+
 import { ApiClient } from '@/lib/api/client.ts'
 import { FirebaseWebAuthRepository } from '@/lib/auth/firebase-web-auth-repository.ts'
 
@@ -22,7 +22,7 @@ export default function LogoutPage() {
   }, [attempt])
 
   return (
-    <AdminPageShell title="Logout" description={status === 'complete' ? "Your secure session has been cleared. Return to the login page when you want to sign in again." : "Clearing your session and push notification registration."}>
+    <main className="app-boundary">
       <div className="card" style={{ maxWidth: 720, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 18 }}>
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'rgba(35, 107, 68, 0.12)', display: 'grid', placeItems: 'center', color: 'var(--primary-green)' }}>
@@ -30,7 +30,7 @@ export default function LogoutPage() {
           </div>
           <div>
             <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-dark)' }}>{status === 'complete' ? "You are signed out" : status === 'failed' ? "Could not sign out" : "Signing out…"}</h3>
-            <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>The app chrome stays visible so logout feels like part of the admin panel.</p>
+            <p style={{ color: 'var(--text-muted)', marginTop: 4 }}>Your secure session and device notification registration are cleared together.</p>
           </div>
         </div>
 
@@ -46,6 +46,6 @@ export default function LogoutPage() {
           </a>
         </div>
       </div>
-    </AdminPageShell>
+    </main>
   )
 }

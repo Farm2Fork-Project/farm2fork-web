@@ -276,6 +276,7 @@ export interface CreateOrderRequest {
 }
 
 export interface ApiOrderItem {
+  unit?: string;
   productId: string;
   farmerId: string;
   productName: string;
@@ -350,6 +351,10 @@ export interface ApiShipmentStatusHistory {
 }
 
 export interface ApiShipment {
+  pickupContact?: { name?: string; phone?: string };
+  deliveryContact?: { name?: string; phone?: string };
+  issue?: { reason: string; note?: string; stage: string; reportedAt: string; resolvedAt?: string; resolution?: string };
+  assignmentHistory?: { fromTransporterId?: string; transporterId: string; assignedBy: string; reason: string; timestamp: string }[];
   deliveryFee?: number;
   deliveryDistanceKm?: number;
   id: string;
@@ -366,6 +371,10 @@ export interface ApiShipment {
 }
 
 export interface ApiAvailableDelivery {
+  farmName?: string;
+  items?: Array<{productName: string; quantity: number; unit?: string}>;
+  pickup?: {lat: number; lng: number; city: string; province: string};
+  dropoffArea?: {lat: number; lng: number; city: string; province: string};
   deliveryFee?: number;
   deliveryDistanceKm?: number;
   distanceToPickupKm?: number;

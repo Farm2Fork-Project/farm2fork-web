@@ -76,3 +76,17 @@ test("failed online update keeps server state and supports retry", async () => {
   await user.click(screen.getByRole("button", { name: "Go online" }));
   expect(await screen.findByText("Online")).toBeVisible();
 });
+
+test('GPS measurement completed while hidden never sends a location', async () => {
+ let resolvePosition: PositionCallback | undefined;
+ const original = Object.getOwnPropertyDescriptor(navigator, 'geolocation');
+ Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition: vi.fn((resolve: PositionCallback) => { resolvePosition = resolve; }) } });
+ const repository = { getTransporterStatus: vi.fn().mockResolvedValue({online:false,locationFresh:false,radiusKm:20}), setAvailability:vi.fn(),updateLocation:vi.fn() };
+ render(<LanguageProvider><TransporterAvailability repository={repository} onRefresh={vi.fn()} revision={0}/></LanguageProvider>);
+ await screen.findByText('Offline'); await userEvent.click(screen.getByRole('button',{name:'Use current GPS location'}));
+ Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'}); document.dispatchEvent(new Event('visibilitychange'));
+ resolvePosition?.({coords:{latitude:31.5,longitude:74.3},timestamp:Date.now()} as GeolocationPosition);
+ await Promise.resolve(); expect(repository.setAvailability).not.toHaveBeenCalled(); expect(repository.updateLocation).not.toHaveBeenCalled();
+ Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
+ if (original) Object.defineProperty(navigator,'geolocation',original); else Reflect.deleteProperty(navigator,'geolocation');
+});

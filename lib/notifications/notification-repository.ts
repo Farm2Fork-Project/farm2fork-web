@@ -7,7 +7,8 @@ export type NotificationType =
   | "delivery_update"
   | "loan_update"
   | "admin_action"
-  | "delivery_offer";
+  | "delivery_offer"
+  | "payout_recorded";
 
 export interface AppNotification {
   id: string;

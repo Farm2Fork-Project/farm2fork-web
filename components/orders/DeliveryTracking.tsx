@@ -7,11 +7,14 @@ export function DeliveryTracking({
   orderStatus,
   unavailable = false,
   address,
+  showHistory = true,
 }: {
   shipment?: ApiShipment;
   orderStatus: string;
   unavailable?: boolean;
   address?: ApiOrderAddress;
+  /** Set false when the caller already draws the shipment's steps. */
+  showHistory?: boolean;
 }) {
   const { language } = useLanguage();
   const ur = language === "ur";
@@ -68,7 +71,7 @@ export function DeliveryTracking({
             {ur ? "ڈیلیوری: " : "Shipment: "}
             {states[shipment.status] ?? shipment.status}
           </p>
-          {shipment.statusHistory.length > 0 ? (
+          {showHistory && shipment.statusHistory.length > 0 ? (
             <ol className="shipment-timeline">
               {shipment.statusHistory.map((entry) => (
                 <li key={`${entry.status}-${entry.timestamp}`}>

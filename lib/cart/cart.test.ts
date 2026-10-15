@@ -5,6 +5,8 @@ import {
   removeCartItem,
   groupCartItemsByFarmer,
   toCreateOrderRequest,
+  reconcileCart,
+  cartTotals,
 } from "./cart.ts";
 
 const product = {
@@ -88,4 +90,48 @@ test("saved carts are account-scoped and corrupted data is ignored", async () =>
       "buyer-1",
     ),
   ).toEqual([]);
+});
+
+test("reconcileCart drops sold-out listings, clamps stock and reports price moves", () => {
+  const items = [
+    ...addCartItem([], product, 5),
+    ...addCartItem([], { ...product, id: "p2" }, 3),
+    ...addCartItem([], { ...product, id: "p3" }, 2),
+    ...addCartItem([], { ...product, id: "p4" }, 2),
+  ];
+  const { items: next, changes } = reconcileCart(
+    items,
+    new Map([
+      ["p1", { ...product, quantity: 2, price: 150 }],
+      ["p2", null],
+      ["p3", { ...product, id: "p3", quantity: 0 }],
+    ]),
+  );
+
+  expect(next.map((item) => [item.productId, item.quantity])).toEqual([
+    ["p1", 2],
+    ["p4", 2],
+  ]);
+  expect(next[0].product.price).toBe(150);
+  expect(changes.map((change) => [change.productId, change.kind])).toEqual([
+    ["p1", "less_stock"],
+    ["p1", "price_up"],
+    ["p2", "unavailable"],
+    ["p3", "unavailable"],
+  ]);
+});
+
+test("reconcileCart leaves an unchanged cart as the same array", () => {
+  const items = addCartItem([], product, 2);
+  const result = reconcileCart(items, new Map([["p1", { ...product }]]));
+  expect(result.items).toBe(items);
+  expect(result.changes).toEqual([]);
+});
+
+test("cartTotals adds units and PKR across lines", () => {
+  const items = [
+    ...addCartItem([], product, 2),
+    ...addCartItem([], { ...product, id: "p2", price: 10 }, 3),
+  ];
+  expect(cartTotals(items)).toEqual({ lines: 2, units: 5, amount: 270 });
 });

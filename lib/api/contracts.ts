@@ -217,6 +217,10 @@ export interface CreateFarmerProductRequest {
 
 export interface BuyerProduct {
   description?: string;
+  category?: string;
+  createdAt?: string;
+  /** Ledger state of the listing's origin record; absent on saved carts. */
+  originLedgerStatus?: OriginLedgerStatus;
   id: string;
   farmerId: string;
   name: string;
@@ -402,6 +406,9 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     farmerId: product.farmerId,
     name: product.name,
     description: product.description,
+    category: product.category,
+    createdAt: product.createdAt,
+    originLedgerStatus: product.originLedgerStatus,
     price: product.price,
     quantity: product.quantity,
     unit: product.unit,

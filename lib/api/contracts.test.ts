@@ -21,6 +21,8 @@ test("toBuyerProduct preserves backend data without inventing farmer profile fie
       id: '66a000000000000000000001',
       farmerId: '66a000000000000000000002',
       name: 'Roma Tomatoes',
+      category: 'vegetables',
+      createdAt: '2026-08-12T00:00:00.000Z',
       price: 120,
       quantity: 20,
       unit: 'kg',

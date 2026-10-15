@@ -101,3 +101,29 @@ test("BuyerRepository preserves the hosted checkout URL when initiating Safepay"
     },
   ]);
 });
+
+test("BuyerRepository sends marketplace filters and omits unset ones", async () => {
+  const paths: string[] = [];
+  const repository = new BuyerRepository({
+    client: {
+      request: async <T>(path: string) => {
+        paths.push(path);
+        return { data: [] } as T;
+      },
+    },
+  });
+
+  await repository.listProducts({
+    qualityGrade: "A",
+    maxPrice: 300,
+    verifiedOrigin: true,
+    sortBy: "price",
+    sortOrder: "asc",
+  });
+  await repository.listProducts({ verifiedOrigin: false, search: undefined });
+
+  expect(paths[0]).toBe(
+    "/products?qualityGrade=A&maxPrice=300&verifiedOrigin=true&sortBy=price&sortOrder=asc&status=active",
+  );
+  expect(paths[1]).toBe("/products?status=active");
+});

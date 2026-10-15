@@ -1,21 +1,27 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LandingScreenProps } from "./types";
 import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
+import { useReveal } from "@/lib/react/use-reveal";
 import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
+
+/** Position in a staggered group; read by the reveal transition in motion.css. */
+const step = (index: number) => ({ "--i": index }) as CSSProperties;
 
 export default function LandingScreen({ portalHref, seoContent, footerContent }: LandingScreenProps) {
   const router = useRouter();
   const { language, setLanguage, t } = useLanguage();
 
   const isRtl = language === "ur";
+  const rootRef = useReveal<HTMLDivElement>();
 
   return (
-    <div className="market-landing" dir={isRtl ? "rtl" : "ltr"}>
+    <div className="market-landing" dir={isRtl ? "rtl" : "ltr"} ref={rootRef}>
       <header className="market-header">
         <Link className="market-brand" href="/" aria-label="Farm2Fork home">
           <span className="market-brand-mark"><IcLeaf size={22} /></span>
@@ -74,10 +80,7 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
             <div className="market-hero-actions">
               <Link className="market-primary" href={portalHref ?? "/signup"}>
                 {portalHref ? t("landing.nav.openPortal") : t("landing.getStarted")}{" "}
-                <IcArrowRight
-                  size={18}
-                  style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
-                />
+                <IcArrowRight size={18} className="market-arrow" />
               </Link>
               <a className="market-text-link" href="#how-it-works">
                 {t("landing.hero.seeHowItWorks")}
@@ -107,24 +110,24 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
         <LandingProducts onSignIn={() => router.push("/login")} />
 
         <section id="how-it-works" className="market-process market-section">
-          <div className="market-section-heading">
+          <div className="market-section-heading" data-reveal>
             <p>{t("landing.process.pretitle")}</p>
             <h2>
               {t("landing.process.title1")} <em>{t("landing.process.title2")}</em>
             </h2>
           </div>
           <div className="market-process-row">
-            <article>
+            <article data-reveal style={step(0)}>
               <IcSprout size={28} />
               <h3>{t("landing.process.step1.title")}</h3>
               <p>{t("landing.process.step1.desc")}</p>
             </article>
-            <article>
+            <article data-reveal style={step(1)}>
               <IcUsers size={28} />
               <h3>{t("landing.process.step2.title")}</h3>
               <p>{t("landing.process.step2.desc")}</p>
             </article>
-            <article>
+            <article data-reveal style={step(2)}>
               <IcTruck size={28} />
               <h3>{t("landing.process.step3.title")}</h3>
               <p>{t("landing.process.step3.desc")}</p>
@@ -133,7 +136,7 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
         </section>
 
         <section id="traceability" className="market-trace market-section">
-          <div className="market-trace-copy">
+          <div className="market-trace-copy" data-reveal>
             <IcScan className="market-large-icon" size={36} />
             <h2>
               {t("landing.trace.title1")} <em>{t("landing.trace.title2")}</em>
@@ -141,35 +144,32 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
             <p>{t("landing.trace.desc")}</p>
             <Link className="market-text-link" href="/traceability">
               {t("landing.trace.btn")}{" "}
-              <IcArrowRight
-                size={17}
-                style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
-              />
+              <IcArrowRight size={17} className="market-arrow" />
             </Link>
           </div>
           <ol className="market-route" aria-label="Produce journey">
-            <li>
+            <li data-reveal style={step(0)}>
               <span><IcSprout /></span>
               <div>
                 <strong>{t("landing.trace.step1")}</strong>
                 <small>{t("landing.trace.step1.sub")}</small>
               </div>
             </li>
-            <li>
+            <li data-reveal style={step(1)}>
               <span><IcCrate /></span>
               <div>
                 <strong>{t("landing.trace.step2")}</strong>
                 <small>{t("landing.trace.step2.sub")}</small>
               </div>
             </li>
-            <li>
+            <li data-reveal style={step(2)}>
               <span><IcTruck /></span>
               <div>
                 <strong>{t("landing.trace.step3")}</strong>
                 <small>{t("landing.trace.step3.sub")}</small>
               </div>
             </li>
-            <li>
+            <li data-reveal style={step(3)}>
               <span><IcBadgeCheck /></span>
               <div>
                 <strong>{t("landing.trace.step4")}</strong>
@@ -180,24 +180,24 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
         </section>
 
         <section id="people" className="market-people market-section">
-          <div className="market-section-heading">
+          <div className="market-section-heading" data-reveal>
             <p>{t("landing.people.pretitle")}</p>
             <h2>
               {t("landing.people.title1")} <em>{t("landing.people.title2")}</em>
             </h2>
           </div>
           <div className="market-people-list">
-            <article>
+            <article data-reveal style={step(0)}>
               <IcSprout />
               <h3><Link href="/for-farmers">{t("landing.people.farmers.title")}</Link></h3>
               <p>{t("landing.people.farmers.desc")}</p>
             </article>
-            <article>
+            <article data-reveal style={step(1)}>
               <IcCrate />
               <h3><Link href="/for-buyers">{t("landing.people.buyers.title")}</Link></h3>
               <p>{t("landing.people.buyers.desc")}</p>
             </article>
-            <article>
+            <article data-reveal style={step(2)}>
               <IcTruck />
               <h3><Link href="/for-transporters">{t("landing.people.transporters.title")}</Link></h3>
               <p>{t("landing.people.transporters.desc")}</p>
@@ -208,16 +208,13 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
         {seoContent}
 
         <section className="market-final-cta">
-          <div>
+          <div data-reveal>
             <h2>{t("landing.cta.titleNew")}</h2>
             <p>{t("landing.cta.desc")}</p>
           </div>
           <Link className="market-primary market-primary-light" href={portalHref ?? "/signup"}>
             {t("landing.cta.btn")}{" "}
-            <IcArrowRight
-              size={18}
-              style={{ transform: isRtl ? "scaleX(-1)" : "none", transition: "transform 0.2s" }}
-            />
+            <IcArrowRight size={18} className="market-arrow" />
           </Link>
         </section>
       </main>

@@ -18,6 +18,7 @@ import type {
 import MapPinPicker from "@/components/maps/MapPinPicker";
 import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
 import type { GeoPoint } from "@/lib/geo/geo-point.ts";
+import { paymentStateLabel } from "@/lib/buyer/order-progress.ts";
 
 const rupees = new Intl.NumberFormat("en-PK");
 
@@ -29,21 +30,6 @@ function paymentStatusBadgeClass(status: string): string {
   if (status === "success") return "badge-soft-green";
   if (status === "failed" || status === "refunded") return "badge-soft-red";
   return "badge-soft-blue";
-}
-
-function paymentStatusLabel(status: string): string {
-  switch (status) {
-    case "success":
-      return "Paid";
-    case "pending":
-      return "Awaiting payment";
-    case "failed":
-      return "Payment failed";
-    case "refunded":
-      return "Refunded";
-    default:
-      return "Payment not started";
-  }
 }
 
 type CheckoutRepository = Pick<
@@ -140,7 +126,9 @@ export function CheckoutPanel({
     if (groups.length === 0 || isSubmitting) return;
     if (!dropoff) {
       setError(
-        "Pin the drop-off location on the map first; the delivery fee is priced from it.",
+        copy(
+          "Pin the drop-off location on the map first; the delivery fee is priced from it.",
+        ),
       );
       return;
     }
@@ -156,7 +144,7 @@ export function CheckoutPanel({
       )
     ) {
       setError(
-        "Wait for a delivery quote for every farmer before placing orders.",
+        copy("Wait for a delivery quote for every farmer before placing orders."),
       );
       setIsSubmitting(false);
       onBusyChange?.(false);
@@ -197,9 +185,9 @@ export function CheckoutPanel({
         const message =
           checkoutError instanceof Error
             ? checkoutError.message
-            : "Could not place this order.";
+            : copy("Could not place this order.");
         setError(
-          `${message} Check Orders to see what was saved before trying again.`,
+          `${message} ${copy("Check Orders to see what was saved before trying again.")}`,
         );
         break;
       }
@@ -249,7 +237,7 @@ export function CheckoutPanel({
                   <span
                     className={`badge ${paymentStatusBadgeClass(result.paymentStatus)}`}
                   >
-                    {copy(paymentStatusLabel(result.paymentStatus))}
+                    {copy(paymentStateLabel(result.paymentStatus))}
                   </span>
                 </div>
                 {result.checkoutUrl ? (
@@ -315,13 +303,13 @@ export function CheckoutPanel({
       : null;
   const several = groups.length > 1;
   const submitLabel = isSubmitting
-    ? "Placing order…"
+    ? copy("Placing order…")
     : several
       ? `${copy("Place {count} orders", { count: groups.length })}${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`
       : `${copy("Place order")}${total !== null ? ` · Rs ${rupees.format(total)}` : ""}`;
 
   return (
-    <form className="checkout-panel" onSubmit={submit}>
+    <form className="checkout-panel" id="checkout" onSubmit={submit}>
       <h3>{copy("Checkout")}</h3>
       <p>
         {several
@@ -425,7 +413,10 @@ export function CheckoutPanel({
           const label = cartGroupLabel(group, index);
           return (
             <div className="checkout-quote" key={group.farmerId}>
-              <span className="checkout-quote-farm">{label}</span>
+              <span className="checkout-quote-farm">
+                {label}
+                <small>{copy("{count} products", { count: group.items.length })}</small>
+              </span>
               {!dropoff ? (
                 <span className="checkout-quote-note">
                   {copy("Pin the drop-off to see the delivery fee")}
@@ -519,6 +510,12 @@ export function CheckoutPanel({
         </p>
       )}
 
+      {simulatorEnabled ? (
+        <p className="checkout-test-note">
+          {copy("Test mode: payments here are simulated and no money moves.")}
+        </p>
+      ) : null}
+
       <button
         className="cart-shop-btn"
         disabled={isSubmitting || !dropoff || !allQuoted}
@@ -526,6 +523,11 @@ export function CheckoutPanel({
       >
         {submitLabel}
       </button>
+      {!dropoff ? (
+        <p className="checkout-hint">
+          {copy("Pin the drop-off location to place your order.")}
+        </p>
+      ) : null}
       <p className="checkout-hint">
         {several
           ? copy(

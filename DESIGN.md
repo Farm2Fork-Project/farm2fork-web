@@ -267,6 +267,12 @@ The "how it works" steps use a 52px circle with a drawn icon (green on a 8% gree
 - **Inline confirm (`.ic-*`)** replaces confirmation dialogs for short decisions: the button becomes "Are you sure?  Cancel | Confirm" in place, focus lands on Cancel, Escape cancels. `.btn-danger-solid` is the one solid red button.
 - **Avatar** is the photo from the API or a green-soft circle with initials.
 
+### Motion (`app/motion.css`)
+Landing and the buyer product page share one motion language: things arrive once, fast out and long settle (ease-out-quart), and then rest. The hero stages headline, lede, actions and photo in a 0.9s cascade; sections and cards reveal on scroll through `data-reveal` + `lib/react/use-reveal.ts` (hidden state exists only after the client adds `.motion-ready`, so server HTML, crawlers and reduced-motion visitors get the finished page). Only opacity and the individual `translate`/`scale`/`rotate` properties animate, so reveals compose with hover transforms. Scroll-driven effects (hero photo drift, header edge) are progressive enhancement behind `@supports (animation-timeline: scroll())`. The only loops are a slow light behind the closing call to action and a quiet ring on the final trace stop.
+
+### Product page (`.pdp-*`, `app/product.css`)
+The buyer product page answers "can I trust this and who made it" on one screen: gallery and a sticky buy panel (price, quantity, add to cart, three assurances), a four-tile proof strip, the ledger journey rendered inline from `/trace/products/:id` (with a dashed "next step" placeholder for unsold produce), an About/How-buying side column, a sage-tinted farm panel (owner, location, member since, listings, delivered orders, acres, crops with drawn crop icons, certifications) from the public `/farmers/:id/public` endpoint, then "More from this farm" and "More <category> from other farms" rows built from the shared `ProductCard`. Each data block loads and fails on its own, so a failed journey or farm lookup never hides the product. Product title and price run larger than the page-title step (up to 42px/44px) on purpose. On phones the buy button scrolls out of view, so a slim fixed bar takes over.
+
 ## Do's and Don'ts
 
 ### Do:

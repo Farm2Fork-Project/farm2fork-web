@@ -26,9 +26,12 @@ export type ProductQuery = {
   limit?: number;
   search?: string;
   category?: string;
+  farmerId?: string;
   qualityGrade?: string;
   minPrice?: number;
   maxPrice?: number;
+  /** Only listings whose origin record is confirmed on the ledger. */
+  verifiedOrigin?: boolean;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
 };
@@ -130,11 +133,12 @@ export class BuyerRepository {
 
 function withQuery(
   path: string,
-  query: Record<string, string | number | undefined>,
+  query: Record<string, string | number | boolean | undefined>,
 ): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) params.set(key, String(value));
+    if (value === undefined || value === false) continue;
+    params.set(key, String(value));
   }
 
   const search = params.toString();

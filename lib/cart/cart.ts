@@ -152,3 +152,89 @@ export function readSavedCart(
     return [];
   }
 }
+
+export type CartChange = {
+  productId: string;
+  name: string;
+  kind: "unavailable" | "less_stock" | "price_up" | "price_down";
+  /** Previous and new value: quantity for stock, PKR for price. */
+  from?: number;
+  to?: number;
+};
+
+/**
+ * Brings saved cart items in line with the listings as the server has them
+ * now. `fresh` maps a product id to its current listing, or `null` when the
+ * listing is gone; an id that is missing means the lookup failed, so that item
+ * is left exactly as it was. Returns the same array when nothing changed.
+ */
+export function reconcileCart(
+  items: CartItem[],
+  fresh: ReadonlyMap<string, BuyerProduct | null>,
+): { items: CartItem[]; changes: CartChange[] } {
+  const changes: CartChange[] = [];
+  const next: CartItem[] = [];
+  let touched = false;
+
+  for (const item of items) {
+    if (!fresh.has(item.productId)) {
+      next.push(item);
+      continue;
+    }
+    const product = fresh.get(item.productId) ?? null;
+    const stock = product ? Math.floor(product.quantity) : 0;
+    if (!product || product.status !== "active" || stock < 1) {
+      changes.push({
+        productId: item.productId,
+        name: item.product.name,
+        kind: "unavailable",
+      });
+      touched = true;
+      continue;
+    }
+    const quantity = Math.min(item.quantity, stock);
+    if (quantity < item.quantity) {
+      changes.push({
+        productId: item.productId,
+        name: product.name,
+        kind: "less_stock",
+        from: item.quantity,
+        to: quantity,
+      });
+    }
+    if (product.price !== item.product.price) {
+      changes.push({
+        productId: item.productId,
+        name: product.name,
+        kind: product.price > item.product.price ? "price_up" : "price_down",
+        from: item.product.price,
+        to: product.price,
+      });
+    }
+    const same =
+      quantity === item.quantity &&
+      product.price === item.product.price &&
+      product.quantity === item.product.quantity &&
+      product.name === item.product.name;
+    if (!same) touched = true;
+    next.push(same ? item : { ...item, quantity, product });
+  }
+
+  return { items: touched ? next : items, changes };
+}
+
+/** Item count and PKR total across a set of cart items. */
+export function cartTotals(items: CartItem[]): {
+  lines: number;
+  units: number;
+  amount: number;
+} {
+  return {
+    lines: items.length,
+    units: items.reduce((sum, item) => sum + item.quantity, 0),
+    amount: items.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0,
+    ),
+  };
+}

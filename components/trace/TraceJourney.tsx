@@ -2,21 +2,20 @@
 
 import type { ReactNode } from "react";
 import {
-  LuCircleCheckBig,
-  LuCircleX,
-  LuClock,
-  LuCreditCard,
-  LuHourglass,
-  LuLock,
-  LuMapPin,
-  LuPackage,
-  LuShieldAlert,
-  LuShieldCheck,
-  LuStore,
-  LuTriangleAlert,
-  LuTruck,
-  LuUserCheck,
-} from "react-icons/lu";
+  IcAlert,
+  IcBadgeCheck,
+  IcCard,
+  IcCheckCircle,
+  IcClock,
+  IcHourglass,
+  IcLock,
+  IcMapPin,
+  IcPackage,
+  IcShield,
+  IcStore,
+  IcTruck,
+  IcUser,
+} from "@/components/icons";
 import { useLanguage } from "../LanguageContext";
 import {
   type ProductTrace,
@@ -29,17 +28,30 @@ import {
 type Role = "farmer" | "buyer" | "transporter";
 
 const EVENT_META: Record<TraceEventType, { icon: ReactNode; role: Role }> = {
-  listed: { icon: <LuStore size={16} />, role: "farmer" },
-  payment_confirmed: { icon: <LuCreditCard size={16} />, role: "buyer" },
-  shipment_assigned: { icon: <LuUserCheck size={16} />, role: "transporter" },
-  shipment_picked_up: { icon: <LuPackage size={16} />, role: "transporter" },
-  shipment_in_transit: { icon: <LuTruck size={16} />, role: "transporter" },
-  shipment_delivered: { icon: <LuCircleCheckBig size={16} />, role: "transporter" },
-  shipment_failed: { icon: <LuCircleX size={16} />, role: "transporter" },
+  listed: { icon: <IcStore size={16} />, role: "farmer" },
+  payment_confirmed: { icon: <IcCard size={16} />, role: "buyer" },
+  shipment_assigned: { icon: <IcUser size={16} />, role: "transporter" },
+  shipment_picked_up: { icon: <IcPackage size={16} />, role: "transporter" },
+  shipment_in_transit: { icon: <IcTruck size={16} />, role: "transporter" },
+  shipment_delivered: { icon: <IcCheckCircle size={16} />, role: "transporter" },
+  shipment_failed: { icon: <IcAlert size={16} />, role: "transporter" },
 };
 
+export type TraceOrigin = "verified" | "pending" | "missing" | "unverified";
+
+/** How far the listing's origin record can be trusted, from the ledger state. */
+export function traceOrigin(trace: ProductTrace): TraceOrigin {
+  const listedEvent = trace.events.find((event) => event.type === "listed");
+  const originOnChain = listedEvent?.ledger.onChain;
+  if (trace.summary.originVerified) return "verified";
+  if (originOnChain === "mismatch" || originOnChain === "not_found") {
+    return "unverified";
+  }
+  return listedEvent ? "pending" : "missing";
+}
+
 /** Replaces `{name}` placeholders in a translated template. */
-function fill(template: string, values: Record<string, string | number>): string {
+export function fill(template: string, values: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) =>
     key in values ? String(values[key]) : match,
   );
@@ -60,16 +72,7 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
   const formatDate = (iso: string) => dateFormat.format(new Date(iso));
 
   const { product, farmer, events, summary } = trace;
-  const listedEvent = events.find((event) => event.type === "listed");
-  const originOnChain = listedEvent?.ledger.onChain;
-  const origin: "verified" | "pending" | "missing" | "unverified" =
-    summary.originVerified
-      ? "verified"
-      : originOnChain === "mismatch" || originOnChain === "not_found"
-        ? "unverified"
-        : listedEvent
-          ? "pending"
-          : "missing";
+  const origin = traceOrigin(trace);
   const farmPlace = [farmer?.city, farmer?.province].filter(Boolean).join(", ");
 
   return (
@@ -79,13 +82,13 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
           <div className={`trace-origin trace-origin--${origin}`} role="status">
             <span className="trace-origin-icon" aria-hidden="true">
               {origin === "verified" ? (
-                <LuShieldCheck size={22} />
+                <IcBadgeCheck size={22} />
               ) : origin === "unverified" ? (
-                <LuTriangleAlert size={22} />
+                <IcAlert size={22} />
               ) : origin === "pending" ? (
-                <LuHourglass size={22} />
+                <IcHourglass size={22} />
               ) : (
-                <LuShieldAlert size={22} />
+                <IcShield size={22} />
               )}
             </span>
             <div>
@@ -176,7 +179,7 @@ export default function TraceJourney({ trace }: { trace: ProductTrace }) {
   );
 }
 
-function TraceEventItem({
+export function TraceEventItem({
   event,
   formatDate,
 }: {
@@ -204,7 +207,7 @@ function TraceEventItem({
           <div>
             <h3>{t(`trace.event.${event.type}`)}</h3>
             <div className="trace-event-time">
-              <LuClock size={13} aria-hidden="true" />
+              <IcClock size={13} aria-hidden="true" />
               <time dateTime={event.occurredAt}>{formatDate(event.occurredAt)}</time>
             </div>
           </div>
@@ -215,7 +218,7 @@ function TraceEventItem({
           <div className="tl-location">
             {event.location ? (
               <>
-                <LuMapPin size={14} aria-hidden="true" /> {event.location}
+                <IcMapPin size={14} aria-hidden="true" /> {event.location}
               </>
             ) : null}
             {event.location && event.reference ? <span aria-hidden="true">·</span> : null}
@@ -243,7 +246,7 @@ function LedgerProof({
   if (status === "confirmed") {
     return (
       <div className="tl-hash" title={ledger.txHash}>
-        <LuLock size={12} className="lock-icon" aria-hidden="true" />
+        <IcLock size={12} className="lock-icon" aria-hidden="true" />
         <span>{t("trace.ledger.confirmed")}</span>
         {ledger.txHash ? (
           <code dir="ltr">{shortenTxHash(ledger.txHash)}</code>
@@ -253,11 +256,11 @@ function LedgerProof({
         ) : null}
         {ledger.onChain === "verified" ? (
           <span className="trace-onchain trace-onchain--ok">
-            <LuShieldCheck size={12} aria-hidden="true" /> {t("trace.onChain.verified")}
+            <IcBadgeCheck size={12} aria-hidden="true" /> {t("trace.onChain.verified")}
           </span>
         ) : ledger.onChain ? (
           <span className="trace-onchain trace-onchain--bad">
-            <LuTriangleAlert size={12} aria-hidden="true" />{" "}
+            <IcAlert size={12} aria-hidden="true" />{" "}
             {t(ledger.onChain === "mismatch" ? "trace.onChain.mismatch" : "trace.onChain.notFound")}
           </span>
         ) : null}
@@ -268,9 +271,9 @@ function LedgerProof({
   return (
     <div className={`tl-hash trace-ledger--${status}`}>
       {status === "pending" ? (
-        <LuHourglass size={12} aria-hidden="true" />
+        <IcHourglass size={12} aria-hidden="true" />
       ) : (
-        <LuTriangleAlert size={12} aria-hidden="true" />
+        <IcAlert size={12} aria-hidden="true" />
       )}
       <span>{t(`trace.ledger.${status}`)}</span>
     </div>

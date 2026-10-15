@@ -108,7 +108,7 @@ test("BuyerApp validates the session before it renders live marketplace data", a
   expect(screen.getByRole("heading", { name: "Farm 1" })).toBeVisible();
 
   await userEvent.click(screen.getByRole("button", { name: "Orders" }));
-  expect(await screen.findByText("Payment: pending")).toBeVisible();
+  expect(await screen.findByText("Awaiting payment")).toBeVisible();
   expect(listPayments).toHaveBeenCalledOnce();
   expect(listShipments).toHaveBeenCalledOnce();
 
@@ -267,7 +267,7 @@ test("BuyerApp settles a pending payment and refreshes its timeline", async () =
   );
 
   expect(simulatePaymentSuccess).toHaveBeenCalledWith("payment-1");
-  expect(await screen.findByText("Payment: success")).toBeVisible();
+  expect(await screen.findByText("Paid")).toBeVisible();
   expect(listPayments).toHaveBeenCalledTimes(2);
 });
 
@@ -365,8 +365,8 @@ test("Safepay return reads persisted status and resumes the existing order", asy
       }}
     />,
   );
-  expect(await screen.findByText("Payment: pending")).toBeVisible();
-  expect(screen.queryByText("Payment: success")).not.toBeInTheDocument();
+  expect(await screen.findByText("Awaiting payment")).toBeVisible();
+  expect(screen.queryByText("Paid")).not.toBeInTheDocument();
   expect(
     screen.queryByRole("button", { name: "Simulate payment success" }),
   ).not.toBeInTheDocument();
@@ -405,7 +405,7 @@ test("Safepay return reads persisted status and resumes the existing order", asy
   await userEvent.click(
     screen.getByRole("button", { name: "Refresh payment status" }),
   );
-  expect(await screen.findByText("Payment: success")).toBeVisible();
+  expect(await screen.findByText("Paid")).toBeVisible();
   expect(
     screen.queryByRole("link", { name: "Open Safepay checkout" }),
   ).not.toBeInTheDocument();
@@ -441,7 +441,7 @@ test("cancel return preserves a pending order and offers payment retry", async (
       }}
     />,
   );
-  expect(await screen.findByText("Payment: not initiated")).toBeVisible();
+  expect(await screen.findByText("Payment not started")).toBeVisible();
   expect(screen.getByText(/Checkout was closed/)).toBeVisible();
   expect(
     screen.getByRole("button", { name: "Continue payment" }),
@@ -700,7 +700,7 @@ test("a failed status refresh removes the previous hosted checkout link", async 
   await userEvent.click(
     screen.getByRole("button", { name: "Refresh payment status" }),
   );
-  expect(await screen.findByText("Payment: failed")).toBeVisible();
+  expect(await screen.findByText("Payment failed")).toBeVisible();
   expect(
     screen.queryByRole("link", { name: "Open Safepay checkout" }),
   ).not.toBeInTheDocument();
@@ -788,7 +788,17 @@ test("empty marketplace results stop loading and offer filter recovery", async (
     await screen.findByRole("heading", { name: "No products found" }),
   ).toBeVisible();
   expect(screen.queryByText("Loading products…")).not.toBeInTheDocument();
-  expect(screen.getByRole("button", { name: "Clear filters" })).toBeEnabled();
+  // Nothing is filtered yet, so there is nothing to clear.
+  expect(
+    screen.queryByRole("button", { name: "Clear filters" }),
+  ).not.toBeInTheDocument();
+
+  await userEvent.type(screen.getByLabelText("Search products"), "mango");
+  expect(
+    await screen.findByRole("button", { name: "Clear filters" }),
+  ).toBeEnabled();
+  await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+  expect(screen.getByLabelText("Search products")).toHaveValue("");
 });
 
 test("only server-approved unpaid drafts can be cancelled, with failure recovery", async () => {

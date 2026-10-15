@@ -35,9 +35,12 @@ export function notificationTime(iso: string, locale: string): string {
 export default function NotificationInbox({
   repository,
   onRead,
+  role, onNavigate,
 }: {
   repository: NotificationRepository;
   onRead?: () => void;
+  role?: "transporter" | "admin";
+  onNavigate?: () => void;
 }) {
   const { t, language } = useLanguage();
   const [items, setItems] = useState<AppNotification[] | null>(null);
@@ -217,6 +220,7 @@ export default function NotificationInbox({
               <div className="notif-entry-content">
                 <div className="notif-entry-heading">
                   <strong dir="auto">{n.title}</strong>
+                  {role === "admin" && <a className="notif-link" href="/admin/orders" onClick={onNavigate}>Inspect delivery operations</a>}
                   {!n.isRead && (
                     <span className="notif-unread-label">
                       {t("push.unread")}
@@ -231,6 +235,8 @@ export default function NotificationInbox({
                       language === "ur" ? "ur-PK" : "en-PK",
                     )}
                   </time>
+                  {role === "transporter" && <a className="notif-link" href={n.type === "payout_recorded" ? "/transporter?tab=earnings" : "/transporter?tab=shipments"} onClick={onNavigate}>{language === "ur" ? "موجودہ تفصیل کھولیں" : "Open current details"}</a>}
+                  {role === "admin" && <a className="notif-link" href="/admin/orders" onClick={onNavigate}>Inspect delivery operations</a>}
                   {!n.isRead && (
                     <button
                       type="button"

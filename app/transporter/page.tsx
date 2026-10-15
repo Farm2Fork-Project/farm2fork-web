@@ -9,7 +9,8 @@ import TransporterSignup2Screen, { type TransporterVehicleInput } from "@/compon
 import ScanScreen from "@/components/transporter/ScanScreen";
 import { type AppTab } from "@/components/transporter/types";
 import { LanguageProvider, useLanguage } from "@/components/transporter/LanguageContext";
-import TransporterProfileScreen from "@/components/ProfileScreen";
+import { EarningsScreen } from "@/components/delivery/EarningsScreen";
+import { AccountView } from "@/components/account/AccountView";
 import LoginScreen from "@/components/LoginScreen";
 import { EmailVerificationRequired } from "@/components/auth/EmailVerificationRequired";
 import { ApiClient } from "@/lib/api/client.ts";
@@ -24,15 +25,14 @@ import {
 } from "@/lib/auth/firebase-onboarding-flow.ts";
 import { firebaseOnboardingIntent } from "@/lib/auth/firebase-onboarding-intent.ts";
 import { RoleAuthRepository } from "@/lib/auth/role-auth-repository.ts";
-import { type WebSession, webSession } from "@/lib/auth/web-session.ts";
+import { type WebSession } from "@/lib/auth/web-session.ts";
 import { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
-import { IcTruck } from "@/components/icons";
 import { wrongRoleMessage } from "@/lib/auth/wrong-role.ts";
 
 function TransporterApp() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const authRepository = useMemo(
     () => new RoleAuthRepository({ client: new ApiClient() }),
     [],
@@ -49,6 +49,7 @@ function TransporterApp() {
   const [authMode, setAuthMode] = useState<"login" | "signup1" | "signup2">("login");
   const [draft, setDraft] = useState<TransporterPersonalInput | null>(null);
   const [activeTab, setActiveTab] = useState<AppTab>("shipments");
+  useEffect(() => { const tab = searchParams.get("tab"); if (tab === "earnings" || tab === "shipments") setActiveTab(tab); }, [searchParams]);
   const [authError, setAuthError] = useState("");
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -305,16 +306,10 @@ function TransporterApp() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "shipments": return <ShipmentScreen repository={shipmentRepository} />;
+      case "shipments": return <ShipmentScreen key={session.user.id} repository={shipmentRepository} />;
       case "scan": return <ScanScreen />;
-      case "profile": return (
-        <TransporterProfileScreen
-          email={session.user.email}
-          avatarIcon={<IcTruck size={28} />}
-          signedInAs={t("tTopBar.signedIn")}
-          onLogout={logout}
-        />
-      );
+      case "earnings": return <EarningsScreen />;
+      case "profile": return <AccountView />;
       default: return <div>Screen not found</div>;
     }
   };

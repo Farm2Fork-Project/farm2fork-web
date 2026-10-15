@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   ApiAvailableDelivery,
   ApiShipment,
@@ -8,6 +8,8 @@ import type {
 } from "@/lib/api/contracts.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
+import type { DeliveryRepository } from '@/lib/delivery/delivery-repository';
+import { DriverHandover } from "@/components/delivery/DriverHandover";
 import { TransporterAvailability } from "./TransporterAvailability";
 import { orderStatusClass } from "@/lib/status.ts";
 import { useLanguage } from "./LanguageContext";
@@ -30,13 +32,14 @@ type ShipmentTab = "available" | "mine";
 const NEXT_NORMAL_STATUS: Partial<Record<ShipmentStatus, ShipmentStatus>> = {
   assigned: "picked_up",
   picked_up: "in_transit",
-  in_transit: "delivered",
+
 };
 
 export default function ShipmentScreen({
-  repository,
+  repository, handoverRepository,
 }: {
   repository: ShipmentRepositoryPort;
+  handoverRepository?: DeliveryRepository;
 }) {
   const { t } = useLanguage();
   const [statusRevision, setStatusRevision] = useState(0);
@@ -56,21 +59,34 @@ export default function ShipmentScreen({
     null,
   );
 
+  const listEpoch = useRef(0);
+  const actionLock = useRef(false);
   useEffect(() => {
     let active = true;
 
+    let loading = false;
+    const load = () => {
+    if (loading || document.visibilityState === "hidden") return;
+    if (actionLock.current) return;
+    loading = true; const epoch = listEpoch.current;
     Promise.all([repository.listAvailable(), repository.listShipments()])
       .then(([availableDeliveries, ownedShipments]) => {
-        if (!active) return;
+        if (!active || epoch !== listEpoch.current) return;
         setAvailable(availableDeliveries);
         setShipments(ownedShipments);
+        if (ownedShipments.some(s => ["assigned", "picked_up", "in_transit"].includes(s.status))) setActiveTab("mine");
         setLoadError(null);
       })
       .catch((error: unknown) => {
         if (active) setLoadError(toErrorMessage(error));
-      });
-
+      }).finally(() => { loading = false; });
+    };
+    load();
+    const timer = setInterval(load, 30000);
+    document.addEventListener("visibilitychange", load);
     return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", load);
       active = false;
     };
   }, [repository]);
@@ -92,7 +108,7 @@ export default function ShipmentScreen({
     );
   }, [searchQuery, shipments]);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     const [offers, mine] = await Promise.all([
       repository.listAvailable(),
       repository.listShipments(),
@@ -100,23 +116,29 @@ export default function ShipmentScreen({
     setAvailable(offers);
     setShipments(mine);
     setLoadError(null);
-  }
+  }, [repository]);
   async function declineDelivery(orderId: string) {
-    if (claimingOrderId) return;
+    if (actionLock.current) return;
+    actionLock.current = true;
+    listEpoch.current++;
     setClaimingOrderId(orderId);
     setActionError(null);
     try {
       await repository.decline(orderId);
-      await refresh();
+      setAvailable(current => current?.filter(offer => offer.orderId !== orderId) ?? []);
+      try { await refresh(); } catch { setLoadError("Decline saved. Refresh offers to update the list."); }
     } catch (error) {
       setActionError(toErrorMessage(error));
     } finally {
+      actionLock.current = false;
       setClaimingOrderId(null);
     }
   }
 
   async function claimDelivery(orderId: string) {
-    if (claimingOrderId) return;
+    if (actionLock.current) return;
+    actionLock.current = true;
+    listEpoch.current++;
     setActionError(null);
     setClaimingOrderId(orderId);
 
@@ -136,6 +158,7 @@ export default function ShipmentScreen({
         }
       }
     } finally {
+      actionLock.current = false;
       setClaimingOrderId(null);
     }
   }
@@ -151,17 +174,25 @@ export default function ShipmentScreen({
       return;
     }
 
+    if (actionLock.current) return;
+    actionLock.current = true;
+    listEpoch.current++;
     setActionError(null);
     setPendingShipmentId(id);
     try {
       const shipment = await repository.updateStatus(id, { status, note });
       setShipments((current) => replaceShipment(current ?? [], shipment));
       setNotesByShipmentId((current) => ({ ...current, [id]: "" }));
-      setAvailable(await repository.listAvailable());
+      try { setAvailable(await repository.listAvailable()); } catch { setLoadError("Delivery step saved. Refresh to update offers."); }
       setStatusRevision((v) => v + 1);
     } catch (error) {
       setActionError(toErrorMessage(error));
+      if (error instanceof ApiError && error.status === 0) {
+        try { setShipments(await repository.listShipments()); setActionError("Request result was uncertain. Current delivery refreshed; review its step before retrying."); }
+        catch { setLoadError("Could not check the delivery. Refresh before retrying this step."); }
+      }
     } finally {
+      actionLock.current = false;
       setPendingShipmentId(null);
     }
   }
@@ -181,7 +212,7 @@ export default function ShipmentScreen({
           {activeTab === "mine" ? (
             <div
               className="marketplace-search"
-              style={{ margin: 0, width: "320px" }}
+              style={{ margin: 0, width: "min(320px, 100%)" }}
             >
               <input
                 aria-label={t("tship.searchPlaceholder")}
@@ -219,7 +250,7 @@ export default function ShipmentScreen({
         </button>
       </div>
 
-      {loadError ? <p role="alert">{loadError}</p> : null}
+      {loadError ? <div role="alert">{loadError}<button className="btn btn-outline" onClick={() => void refresh().catch(e => setLoadError(toErrorMessage(e)))}>Retry refresh</button></div> : null}
       {actionError ? <p role="alert">{actionError}</p> : null}
       {isLoading && !loadError ? <p>{t("tship.loading")}</p> : null}
 
@@ -234,6 +265,10 @@ export default function ShipmentScreen({
       ) : null}
       {activeTab === "mine" && shipments ? (
         <OwnedShipments
+          handoverRepository={handoverRepository}
+          requestLock={actionLock}
+          onBusy={(id, busy) => { listEpoch.current++; setPendingShipmentId(busy ? id : null); }}
+          onUpdated={shipment => { setShipments(current => replaceShipment(current ?? [], shipment)); setStatusRevision(v => v + 1); if (shipment.status === "delivered" || shipment.status === "failed") void refresh().catch(() => setLoadError("Delivery saved. Refresh to update available offers.")); }}
           notesByShipmentId={notesByShipmentId}
           onNoteChange={(id, note) =>
             setNotesByShipmentId((current) => ({ ...current, [id]: note }))
@@ -286,6 +321,7 @@ function AvailableDeliveries({
             {formatRedactedRoute(delivery)}
           </p>
           <p className="order-card-date">{t("tship.addressPrivate")}</p>
+          <OfferCargo delivery={delivery} />
           {delivery.deliveryFee !== undefined ? (
             <p>
               {t("dispatch.earning")}: Rs{" "}
@@ -327,6 +363,9 @@ function AvailableDeliveries({
 }
 
 function OwnedShipments({
+  handoverRepository,
+  requestLock, onBusy,
+  onUpdated,
   notesByShipmentId,
   onNoteChange,
   onUpdateStatus,
@@ -334,6 +373,10 @@ function OwnedShipments({
   shipments,
   t,
 }: {
+  handoverRepository?: DeliveryRepository;
+  requestLock: { current: boolean };
+  onBusy: (id: string, busy: boolean) => void;
+  onUpdated: (shipment: ApiShipment) => void;
   notesByShipmentId: Record<string, string>;
   onNoteChange: (id: string, note: string) => void;
   onUpdateStatus: (id: string, status: ShipmentStatus) => void;
@@ -341,12 +384,13 @@ function OwnedShipments({
   shipments: ApiShipment[];
   t: (key: string) => string;
 }) {
+  const { language } = useLanguage(); const ur = language === "ur";
   if (shipments.length === 0)
     return <EmptyState text={t("tship.noFoundDesc")} />;
 
   return (
     <section aria-label={t("tship.myShipmentsTab")} className="orders-grid">
-      {shipments.map((shipment) => (
+      {[...shipments].sort((a,b) => Number(["assigned","picked_up","in_transit"].includes(b.status)) - Number(["assigned","picked_up","in_transit"].includes(a.status))).map((shipment) => (
         <article className="order-card" key={shipment.id}>
           <div className="order-card-header">
             <div>
@@ -377,6 +421,9 @@ function OwnedShipments({
               {shipment.deliveryFee.toLocaleString("en-PK")}
             </p>
           ) : null}
+          {["assigned", "picked_up", "in_transit"].includes(shipment.status) && <p><strong>{ur ? "موجودہ ڈیلیوری" : "Active delivery"}</strong> · <a target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(formatAddress(shipment.status === "assigned" ? shipment.pickupAddress : shipment.deliveryAddress))}`}>{ur ? "راستہ کھولیں" : "Open directions"}</a><span> · {ur ? "نقشہ دستیاب نہ ہو تو اوپر دیا گیا پتہ استعمال کریں۔" : "If maps is unavailable, use the address above."}</span></p>}
+          <ShipmentContacts shipment={shipment} />
+          <DriverHandover repository={handoverRepository} shipment={shipment} onUpdated={onUpdated} requestLock={requestLock} onBusy={busy => onBusy(shipment.id, busy)} />
           <ShipmentActions
             note={notesByShipmentId[shipment.id] ?? ""}
             onNoteChange={(note) => onNoteChange(shipment.id, note)}
@@ -418,7 +465,6 @@ function ShipmentActions({
   t: (key: string) => string;
 }) {
   const nextStatus = NEXT_NORMAL_STATUS[shipment.status];
-  const [showFailedConfirm, setShowFailedConfirm] = useState(false);
   if (!nextStatus) return null;
 
   const noteId = `shipment-note-${shipment.id}`;
@@ -444,56 +490,7 @@ function ShipmentActions({
         >
           {pending ? t("tship.updating") : normalActionLabel(t, nextStatus)}
         </button>
-        <button
-          className="btn btn-outline"
-          disabled={disabled}
-          onClick={() => setShowFailedConfirm(true)}
-          type="button"
-        >
-          {t("tship.markFailed")}
-        </button>
-        {showFailedConfirm ? (
-          <div
-            className="modal-overlay"
-            onClick={() => setShowFailedConfirm(false)}
-          >
-            <div className="modal" onClick={(event) => event.stopPropagation()}>
-              <div className="modal-header">
-                <h2>{t("tship.confirmFailedTitle")}</h2>
-                <button
-                  className="modal-close"
-                  onClick={() => setShowFailedConfirm(false)}
-                  type="button"
-                >
-                  ✕
-                </button>
-              </div>
-              <p style={{ color: "var(--text-muted)" }}>
-                {t("tship.confirmFailedBody")}
-              </p>
-              <div className="modal-actions">
-                <button
-                  className="btn btn-secondary"
-                  onClick={() => setShowFailedConfirm(false)}
-                  type="button"
-                >
-                  {t("tship.cancel")}
-                </button>
-                <button
-                  className="btn btn-primary"
-                  style={{ backgroundColor: "var(--error-red)" }}
-                  onClick={() => {
-                    setShowFailedConfirm(false);
-                    onUpdateStatus("failed");
-                  }}
-                  type="button"
-                >
-                  {t("tship.confirmFailedAction")}
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
+
       </div>
     </div>
   );
@@ -544,4 +541,17 @@ function toErrorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "Something went wrong. Please try again.";
+}
+
+function ShipmentContacts({ shipment }: { shipment: ApiShipment }) {
+ const { language } = useLanguage(); const ur = language === 'ur';
+ const scoped = shipment as ApiShipment & { pickupContact?: {name?:string;phone?:string}; deliveryContact?:{name?:string;phone?:string} };
+ if (!['assigned','picked_up','in_transit'].includes(shipment.status)) return null;
+ return <>{([['pickup',scoped.pickupContact],['delivery',scoped.deliveryContact]] as const).map(([kind,contact]) => contact && (contact.name || contact.phone) ? <p key={kind}>{kind === 'pickup' ? (ur ? 'پک اپ رابطہ' : 'Pickup contact') : (ur ? 'وصول کنندہ' : 'Delivery contact')}: {contact.name} {contact.phone && <a href={`tel:${contact.phone.replace(/[^+0-9]/g,'')}`}>{contact.phone}</a>}</p> : null)}</>;
+}
+
+function OfferCargo({delivery}: {delivery: ApiAvailableDelivery}) {
+ const items = (delivery as ApiAvailableDelivery & {items?: {productName?:string; name?:string; quantity?:number; unit?:string}[]}).items;
+ if (!items?.length) return null;
+ return <ul>{items.map((item,index) => <li key={index}>{item.productName}{item.quantity !== undefined ? ` · ${item.quantity}` : ''}{item.unit ? ` ${item.unit}` : ''}</li>)}</ul>;
 }

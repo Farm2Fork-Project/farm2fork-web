@@ -182,7 +182,7 @@ test("ShipmentScreen refreshes availability after a claim conflict without addin
   ).not.toBeInTheDocument();
 });
 
-test("ShipmentScreen preserves note and status after a rejected delivery update", async () => {
+test("ShipmentScreen preserves note and status after a rejected pickup update", async () => {
   render(
     <LanguageProvider>
       <ShipmentScreen
@@ -200,7 +200,7 @@ test("ShipmentScreen preserves note and status after a rejected delivery update"
           listAvailable: vi.fn().mockResolvedValue([]),
           listShipments: vi
             .fn()
-            .mockResolvedValue([{ ...claimedShipment, status: "in_transit" }]),
+            .mockResolvedValue([{ ...claimedShipment, status: "assigned" }]),
           claim: vi.fn(),
           updateStatus: vi
             .fn()
@@ -217,13 +217,13 @@ test("ShipmentScreen preserves note and status after a rejected delivery update"
     await screen.findByLabelText("Delivery note"),
     "Reached customer address",
   );
-  await userEvent.click(screen.getByRole("button", { name: "Mark Delivered" }));
+  await userEvent.click(screen.getByRole("button", { name: "Confirm Pick Up" }));
 
   expect(await screen.findByRole("alert")).toHaveTextContent(
     "Invalid status transition",
   );
   expect(screen.getByDisplayValue("Reached customer address")).toBeVisible();
-  expect(screen.getByText("In transit")).toBeVisible();
+  expect(screen.getByText("Assigned")).toBeVisible();
 });
 
 test("declining an offer refreshes its list and shows server earnings", async () => {

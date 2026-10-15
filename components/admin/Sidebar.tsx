@@ -1,17 +1,18 @@
 'use client'
 
 import { IcClose as X, IcLeaf as Leaf, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
-import { BookOpen, HelpCircle, LayoutDashboard, LogOut, Settings, SlidersHorizontal, Store, TrendingUp } from "lucide-react";
-import React, { useState } from 'react'
+import { BookOpen, LayoutDashboard, LogOut, Settings, SlidersHorizontal, Store, TrendingUp } from "lucide-react";
+import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import GenerateReportModal from './GenerateReportModal'
+
 
 const navItems = [
   { id: 'dashboard', href: '/admin/dashboard', title: 'Dashboard', icon: LayoutDashboard },
   { id: 'users', href: '/admin/users', title: 'User Management', icon: Settings },
   { id: 'products', href: '/admin/products', title: 'Products', icon: Store },
   { id: 'orders', href: '/admin/orders', title: 'Orders', icon: BookOpen },
+  { id: 'payouts', href: '/admin/payouts', title: 'Transporter Payouts', icon: BookOpen },
   { id: 'loans', href: '/admin/loans', title: 'Loan Applications', icon: Wheat },
   { id: 'moderation', href: '/admin/moderation', title: 'Moderation', icon: MessageSquare },
   { id: 'audit', href: '/admin/audit-logs', title: 'Audit Logs', icon: TrendingUp },
@@ -21,8 +22,21 @@ const navItems = [
 export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const pathname = usePathname() || '/'
   const router = useRouter()
-  const [showReport, setShowReport] = useState(false)
   const [showLogout, setShowLogout] = useState(false)
+  const [narrow, setNarrow] = useState(false)
+  const panel = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 768px)')
+    const update = () => { setNarrow(media.matches); if (!media.matches) onClose() }
+    update(); media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [onClose])
+  useEffect(() => {
+    if (!narrow || !isOpen) return
+    const opener = document.activeElement as HTMLElement | null
+    panel.current?.querySelector<HTMLButtonElement>('button')?.focus()
+    return () => opener?.focus()
+  }, [narrow, isOpen])
 
   const handleLogout = () => {
     router.push('/admin/logout')
@@ -30,7 +44,15 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   return (
     <>
-      <aside className={`sidebar${isOpen ? ' open' : ''}`}>
+      <aside ref={panel} id="admin-navigation" inert={narrow && !isOpen} aria-hidden={narrow && !isOpen ? true : undefined} className={`sidebar${isOpen ? ' open' : ''}`} onKeyDown={event => {
+        if (!narrow || !isOpen) return
+        if (event.key === 'Escape') { event.preventDefault(); onClose(); return }
+        if (event.key !== 'Tab') return
+        const items = panel.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')
+        const first = items?.[0], last = items?.[items.length - 1]
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus() }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus() }
+      }}>
         {/* Logo */}
         <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div>
@@ -69,6 +91,8 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
               <Link
                 key={item.id}
                 href={item.href}
+                onClick={onClose}
+                aria-current={isActive ? 'page' : undefined}
                 className={`sidebar-link${isActive ? ' active' : ''}`}
               >
                 <span className="icon"><Icon size={18} /></span>
@@ -81,12 +105,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         {/* Bottom */}
         <div className="sidebar-bottom">
           <button
-            className={`sidebar-report-btn${showReport ? ' active' : ''}`}
-            onClick={() => setShowReport(true)}
-          >
-            Generate Report
-          </button>
-          <div
+            type="button"
             onClick={() => setShowLogout(true)}
             className="sidebar-link hover:-translate-y-[1px] hover:brightness-110 transition-all duration-200"
             style={{
@@ -100,35 +119,17 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
           >
             <span className="icon" style={{ color: '#ffffff' }}><LogOut size={18} /></span>
             Logout
-          </div>
+          </button>
         </div>
       </aside>
 
-      {showReport && (
-        <GenerateReportModal onClose={() => setShowReport(false)} />
-      )}
-
-      {showLogout && (
-        <div className="modal-overlay" onClick={() => setShowLogout(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Confirm Logout</h2>
-              <button className="modal-close" onClick={() => setShowLogout(false)}>
-                ✕
-              </button>
-            </div>
-            <p style={{ color: 'var(--text-muted)' }}>Are you sure you want to log out?</p>
-            <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowLogout(false)}>
-                Cancel
-              </button>
-              <button className="btn btn-primary" style={{ backgroundColor: 'var(--error-red)' }} onClick={handleLogout}>
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {showLogout && <LogoutConfirmation onClose={() => setShowLogout(false)} onConfirm={handleLogout}/>}
     </>
   )
+}
+
+function LogoutConfirmation({ onClose, onConfirm }: { onClose: () => void; onConfirm: () => void }) {
+  const dialog = React.useRef<HTMLDialogElement>(null);
+  React.useEffect(() => { const node = dialog.current; const opener = document.activeElement as HTMLElement | null; node?.showModal(); return () => { opener?.focus(); }; }, []);
+  return <dialog ref={dialog} className="modal" aria-labelledby="admin-signout-title" onCancel={event => { event.preventDefault(); onClose(); }}><h2 id="admin-signout-title">Sign out of administration?</h2><p>You can sign in again to continue managing the platform.</p><div className="modal-actions"><button className="btn btn-secondary" onClick={onClose}>Stay signed in</button><button className="btn btn-primary" onClick={onConfirm}>Sign out</button></div></dialog>;
 }

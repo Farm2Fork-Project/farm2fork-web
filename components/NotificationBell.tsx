@@ -19,8 +19,10 @@ const POLL_MS = 60_000;
 
 export default function NotificationBell({
   repository,
+  role,
 }: {
   repository?: NotificationRepository;
+  role?: "transporter" | "admin";
 }) {
   const { t, language } = useLanguage();
   const repo = useMemo(
@@ -124,7 +126,7 @@ export default function NotificationBell({
               </button>
             </header>
             <div className="notif-dialog-body">
-              <NotificationInbox repository={repo} />
+              <NotificationInbox repository={repo} role={role} onNavigate={close} />
             </div>
             <footer className="notif-dialog-foot">
               <Link href="/account#notifications" onClick={close}>

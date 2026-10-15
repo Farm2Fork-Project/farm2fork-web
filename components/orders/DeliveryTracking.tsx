@@ -1,4 +1,5 @@
 "use client";
+import { BuyerDeliveryCode } from "@/components/delivery/BuyerDeliveryCode";
 import type { ApiOrderAddress, ApiShipment } from "@/lib/api/contracts";
 import { useLanguage } from "@/components/LanguageContext";
 
@@ -8,6 +9,7 @@ export function DeliveryTracking({
   unavailable = false,
   address,
   showHistory = true,
+  showDeliveryCode = false,
 }: {
   shipment?: ApiShipment;
   orderStatus: string;
@@ -15,6 +17,7 @@ export function DeliveryTracking({
   address?: ApiOrderAddress;
   /** Set false when the caller already draws the shipment's steps. */
   showHistory?: boolean;
+  showDeliveryCode?: boolean;
 }) {
   const { language } = useLanguage();
   const ur = language === "ur";
@@ -71,6 +74,7 @@ export function DeliveryTracking({
             {ur ? "ڈیلیوری: " : "Shipment: "}
             {states[shipment.status] ?? shipment.status}
           </p>
+          {showDeliveryCode && ["assigned", "picked_up", "in_transit"].includes(shipment.status) && <BuyerDeliveryCode key={`${shipment.id}:${shipment.transporterId}`} shipmentId={shipment.id} />}
           {showHistory && shipment.statusHistory.length > 0 ? (
             <ol className="shipment-timeline">
               {shipment.statusHistory.map((entry) => (

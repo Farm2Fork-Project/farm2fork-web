@@ -451,6 +451,7 @@ function OrderCard({
         <p role="alert">{cancelErrors[order.id]}</p>
       ) : null}
       <DeliveryTracking
+        showDeliveryCode
         unavailable={shipmentsUnavailable}
         shipment={shipment}
         orderStatus={order.status}

@@ -1,112 +1,108 @@
 "use client";
-import { useEffect, useState } from "react";
-import { ApiClient } from "@/lib/api/client";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { NotificationRepository } from "@/lib/notifications/notification-repository";
 import {
   pushOptInKey,
   createBrowserPushSession,
 } from "@/lib/notifications/firebase-push";
 import { useLanguage } from "./LanguageContext";
+import NotificationInbox from "./NotificationInbox";
+import { IcBell } from "@/components/icons";
 
-type Notice = { id: string; title: string; message: string; isRead: boolean };
-const client = new ApiClient();
 export default function NotificationSettings() {
   const { t } = useLanguage();
-  const [items, setItems] = useState<Notice[]>([]);
+  const repository = useMemo(() => new NotificationRepository(), []);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [denied, setDenied] = useState(false);
-  async function refresh() {
-    setError(false);
-    try {
-      const page = await client.request<{ data: Notice[] }>(
-        "/notifications?limit=50",
-      );
-      setItems(page.data);
-    } catch {
-      setError(true);
-    }
-  }
+  const [ready, setReady] = useState(false);
+  const lock = useRef(false);
   useEffect(() => {
-    void refresh();
-    const key = pushOptInKey();
-    setEnabled(
-      Boolean(
-        key &&
-        localStorage.getItem(key) === "true" &&
-        typeof Notification !== "undefined" &&
-        Notification.permission === "granted",
-      ),
-    );
+    try {
+      const key = pushOptInKey();
+      setEnabled(
+        Boolean(
+          key &&
+          localStorage.getItem(key) === "true" &&
+          typeof Notification !== "undefined" &&
+          Notification.permission === "granted",
+        ),
+      );
+    } catch {
+      /* Browser storage is optional. */
+    }
+    setReady(true);
   }, []);
   async function toggle() {
+    if (lock.current) return;
+    lock.current = true;
     setBusy(true);
     setError(false);
     setDenied(false);
     try {
       const session = createBrowserPushSession();
-      if (enabled) {
-        await session.disable();
-        setEnabled(false);
+      const next = enabled
+        ? (await session.disable(), false)
+        : await session.enable();
+      setEnabled(next);
+      setDenied(!enabled && !next);
+      try {
         const key = pushOptInKey();
-        if (key) localStorage.removeItem(key);
-      } else {
-        const ok = await session.enable();
-        setEnabled(ok);
-        setDenied(!ok);
-        const key = pushOptInKey();
-        if (ok && key) localStorage.setItem(key, "true");
+        if (key) {
+          if (next) localStorage.setItem(key, "true");
+          else localStorage.removeItem(key);
+        }
+      } catch {
+        /* Do not misreport a successful push update as a failure. */
       }
     } catch {
       setError(true);
     } finally {
-      setBusy(false);
-    }
-  }
-  async function readAll() {
-    setBusy(true);
-    setError(false);
-    try {
-      await client.request("/notifications/read-all", { method: "POST" });
-      await refresh();
-    } catch {
-      setError(true);
-    } finally {
+      lock.current = false;
       setBusy(false);
     }
   }
   return (
-    <div className="settings-list">
-      <p>{t("push.description")}</p>
-      <button
-        type="button"
-        className="settings-save-btn"
-        disabled={busy}
-        onClick={toggle}
-      >
-        {t(enabled ? "push.disable" : "push.enable")}
-      </button>
-      {denied && <p role="status">{t("push.denied")}</p>}
-      {error && <p role="alert">{t("push.error")}</p>}
-      <h3>{t("push.inbox")}</h3>
-      <button type="button" disabled={busy} onClick={() => void refresh()}>
-        {t("push.refresh")}
-      </button>
-      <button
-        type="button"
-        disabled={busy || !items.some((item) => !item.isRead)}
-        onClick={readAll}
-      >
-        {t("push.readAll")}
-      </button>
-      {items.map((item) => (
-        <article key={item.id} className="notification-row">
-          <strong>{item.title}</strong>
-          <p>{item.message}</p>
-          {!item.isRead && <span>{t("push.unread")}</span>}
-        </article>
-      ))}
-      {!items.length && !error && <p>{t("push.empty")}</p>}
+    <div className="notification-settings">
+      <div className="notification-preference">
+        <span className="notification-preference-icon">
+          <IcBell size={23} />
+        </span>
+        <div>
+          <h3>{t("notifications.browserAlerts")}</h3>
+          <p className="ac-sub">{t("push.description")}</p>
+          <span className="notification-preference-state">
+            {t(enabled ? "notifications.enabled" : "notifications.disabled")}
+          </span>
+        </div>
+        <button
+          type="button"
+          className="btn btn-outline"
+          disabled={busy || !ready}
+          onClick={() => void toggle()}
+        >
+          {t(
+            busy
+              ? "notifications.updating"
+              : enabled
+                ? "push.disable"
+                : "push.enable",
+          )}
+        </button>
+      </div>
+      {denied && (
+        <p className="flow-notice" role="status">
+          {t("push.denied")}
+        </p>
+      )}
+      {error && (
+        <p className="notif-error" role="alert">
+          {t("push.error")}
+        </p>
+      )}
+      <h3 className="notification-inbox-title">{t("push.inbox")}</h3>
+      <NotificationInbox repository={repository} />
     </div>
   );
 }

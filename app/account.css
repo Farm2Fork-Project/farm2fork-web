@@ -205,3 +205,28 @@
 .checkout-receipt-row .btn { align-self: stretch; text-align: center; justify-content: center; }
 .checkout-receipt-amount { color: var(--text-muted); }
 .checkout-receipt-note { color: var(--text-muted); font-size: 14px; }
+
+/* Account overview keeps long inboxes within the reading column. */
+.ac-main:has(.ac-account-layout) { max-width: 1120px; padding-bottom: 64px; }
+.ac-account-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 32px; align-items: start; }
+.ac-account-content { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.ac-section-nav { position: sticky; top: 88px; display: flex; flex-direction: column; gap: 4px; padding-block: 8px; }
+.ac-section-nav a { min-height: 44px; display: flex; align-items: center; padding: 10px 16px; border-radius: var(--radius-md); color: var(--text-muted); font-weight: 600; text-decoration: none; }
+.ac-section-nav a:hover, .ac-section-nav a:focus-visible { color: var(--primary-green-dark); background: var(--primary-green-soft); }
+.ac-section-nav a:focus-visible { outline: 2px solid var(--primary-green); outline-offset: 2px; }
+.ac-account-content section, .ac-hero { scroll-margin-top: 88px; }
+.ac-hero-text { min-width: 0; overflow-wrap: anywhere; }
+.ac-hero-description { font-size: 15px; color: var(--text-muted); margin-top: 8px; line-height: 1.6; }
+.ac-email { overflow-wrap: anywhere; }
+.ac-page .notification-settings h3 { font-family: var(--font-primary); font-size: 16px; font-weight: 600; }
+.ac-page .notif-list { max-height: 560px; overflow-y: auto; overscroll-behavior: contain; }
+.ac-page .notif-state { min-height: 180px; }
+@media (max-width: 760px) {
+  .ac-account-layout { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .ac-section-nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--surface-medium); padding: 0 0 12px; }
+  .ac-section-nav a { padding: 8px 12px; font-size: 14px; }
+  .ac-hero { padding: 20px; gap: 16px; align-items: flex-start; }
+  .ac-hero-text { flex-basis: calc(100% - 104px); }
+  .ac-hero .ac-edit { margin-inline-start: 104px; }
+  .ac-card { padding: 20px; }
+}

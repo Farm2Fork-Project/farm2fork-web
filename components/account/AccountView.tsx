@@ -7,7 +7,11 @@ import { AccountFrame } from "@/components/account/AccountFrame";
 import { Avatar } from "@/components/account/Avatar";
 import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import NotificationSettings from "@/components/NotificationSettings";
-import { useLanguage, type FontSize, type Language } from "@/components/LanguageContext";
+import {
+  useLanguage,
+  type FontSize,
+  type Language,
+} from "@/components/LanguageContext";
 import { IcBadgeCheck, IcAlert, IcEdit, IcLogOut } from "@/components/icons";
 import type { ApiProfile } from "@/lib/api/contracts.ts";
 import { displayPhone } from "@/lib/auth/validation.ts";
@@ -42,7 +46,9 @@ function RoleDetails({ profile }: { profile: ApiProfile }) {
         <h2 id="ac-business">{t("account.business")}</h2>
         <dl className="ac-list">
           <Row label={t("signup.businessName")}>{d.businessName || dash}</Row>
-          <Row label={t("account.businessType")}>{d.businessType ? t(`signup.businessType.${d.businessType}`) : dash}</Row>
+          <Row label={t("account.businessType")}>
+            {d.businessType ? t(`signup.businessType.${d.businessType}`) : dash}
+          </Row>
         </dl>
       </section>
     );
@@ -53,14 +59,23 @@ function RoleDetails({ profile }: { profile: ApiProfile }) {
         <h2 id="ac-farm">{t("account.farm")}</h2>
         <dl className="ac-list">
           <Row label={t("signup.farmName")}>{d.farmName || dash}</Row>
-          <Row label={t("signup.landSize")}>{d.landSizeAcres === undefined ? dash : d.landSizeAcres}</Row>
-          <Row label={t("account.crops")}>{crops.length ? crops.join(", ") : dash}</Row>
+          <Row label={t("signup.landSize")}>
+            {d.landSizeAcres === undefined ? dash : d.landSizeAcres}
+          </Row>
+          <Row label={t("account.crops")}>
+            {crops.length ? crops.join(", ") : dash}
+          </Row>
           <Row label={t("account.pickup")}>
             {place?.complete ? (
-              [place.address, place.city, place.province].filter(Boolean).join(", ")
+              [place.address, place.city, place.province]
+                .filter(Boolean)
+                .join(", ")
             ) : (
-              <span className="ac-warn"><IcAlert size={16} /> {t("account.pickupMissing")}{" "}
-                <Link className="ac-link" href="/account/edit">{t("account.addPickup")}</Link>
+              <span className="ac-warn">
+                <IcAlert size={16} /> {t("account.pickupMissing")}{" "}
+                <Link className="ac-link" href="/account/edit">
+                  {t("account.addPickup")}
+                </Link>
               </span>
             )}
           </Row>
@@ -74,8 +89,12 @@ function RoleDetails({ profile }: { profile: ApiProfile }) {
         <h2 id="ac-vehicle">{t("account.vehicle")}</h2>
         <dl className="ac-list">
           <Row label={t("account.vehicleType")}>{d.vehicleType || dash}</Row>
-          <Row label={t("account.vehicleNumber")}>{d.vehicleNumber || dash}</Row>
-          <Row label={t("account.serviceAreas")}>{d.serviceAreas?.length ? d.serviceAreas.join(", ") : dash}</Row>
+          <Row label={t("account.vehicleNumber")}>
+            {d.vehicleNumber || dash}
+          </Row>
+          <Row label={t("account.serviceAreas")}>
+            {d.serviceAreas?.length ? d.serviceAreas.join(", ") : dash}
+          </Row>
         </dl>
       </section>
     );
@@ -85,8 +104,12 @@ function RoleDetails({ profile }: { profile: ApiProfile }) {
       <section className="ac-card" aria-labelledby="ac-institution">
         <h2 id="ac-institution">{t("account.institution")}</h2>
         <dl className="ac-list">
-          <Row label={t("account.institutionName")}>{d.institutionName || dash}</Row>
-          <Row label={t("account.institutionType")}>{d.institutionType || dash}</Row>
+          <Row label={t("account.institutionName")}>
+            {d.institutionName || dash}
+          </Row>
+          <Row label={t("account.institutionType")}>
+            {d.institutionType || dash}
+          </Row>
         </dl>
       </section>
     );
@@ -118,7 +141,9 @@ export function AccountView() {
       <div className="app-boundary" role="alert">
         <h1>{t("account.errorTitle")}</h1>
         <p>{t("portal.errorBody")}</p>
-        <button type="button" className="btn btn-primary" onClick={reload}>{t("portal.retry")}</button>
+        <button type="button" className="btn btn-primary" onClick={reload}>
+          {t("portal.retry")}
+        </button>
       </div>
     );
   }
@@ -134,19 +159,33 @@ export function AccountView() {
 
   return (
     <AccountFrame role={role}>
-      {saved ? <p className="ac-toast" role="status">{t("account.saved")}</p> : null}
+      {saved ? (
+        <p className="ac-toast" role="status">
+          {t("account.saved")}
+        </p>
+      ) : null}
 
-      <header className="ac-hero">
-        <Avatar user={{ ...user, fullName: user.fullName || profile.displayName }} size={88} />
+      <header className="ac-hero" id="overview">
+        <Avatar
+          user={{ ...user, fullName: user.fullName || profile.displayName }}
+          size={88}
+        />
         <div className="ac-hero-text">
           <h1>{profile.displayName}</h1>
+          <p className="ac-hero-description">{t("account.subtitle")}</p>
           <p className="ac-hero-meta">
             <span className="ac-role">{t(`account.role.${role}`)}</span>
-            <span className="ac-email" dir="ltr">{user.email}</span>
+            <span className="ac-email" dir="ltr">
+              {user.email}
+            </span>
             {user.isVerified ? (
-              <span className="ac-verified"><IcBadgeCheck size={16} /> {t("account.verified")}</span>
+              <span className="ac-verified">
+                <IcBadgeCheck size={16} /> {t("account.verified")}
+              </span>
             ) : (
-              <span className="ac-unverified"><IcAlert size={16} /> {t("account.unverified")}</span>
+              <span className="ac-unverified">
+                <IcAlert size={16} /> {t("account.unverified")}
+              </span>
             )}
           </p>
         </div>
@@ -155,73 +194,128 @@ export function AccountView() {
         </Link>
       </header>
 
-      <section className="ac-card" aria-labelledby="ac-personal">
-        <h2 id="ac-personal">{t("account.personal")}</h2>
-        <dl className="ac-list">
-          <Row label={t("signup.fullName")}>{user.fullName || dash}</Row>
-          <Row label={t("signup.phone")}>{user.phone ? <span dir="ltr">{displayPhone(user.phone)}</span> : dash}</Row>
-          <Row label={t("login.emailLabel")}><span dir="ltr">{user.email}</span></Row>
-          {profile.profile.cnicMasked ? (
-            <Row label={t("signup.cnic")}><span dir="ltr">{profile.profile.cnicMasked}</span></Row>
-          ) : null}
-        </dl>
-      </section>
+      <div className="ac-account-layout">
+        <nav className="ac-section-nav" aria-label={t("account.navigation")}>
+          <a href="#overview">{t("account.overview")}</a>
+          <a href="#personal">{t("account.details")}</a>
+          <a href="#preferences">{t("account.preferences")}</a>
+          <a href="#notifications">{t("notifications.title")}</a>
+          <a href="#help">{t("settings.sidebar.help")}</a>
+        </nav>
+        <div className="ac-account-content">
+          <section
+            id="personal"
+            className="ac-card"
+            aria-labelledby="ac-personal"
+          >
+            <h2 id="ac-personal">{t("account.personal")}</h2>
+            <dl className="ac-list">
+              <Row label={t("signup.fullName")}>{user.fullName || dash}</Row>
+              <Row label={t("signup.phone")}>
+                {user.phone ? (
+                  <span dir="ltr">{displayPhone(user.phone)}</span>
+                ) : (
+                  dash
+                )}
+              </Row>
+              <Row label={t("login.emailLabel")}>
+                <span dir="ltr">{user.email}</span>
+              </Row>
+              {profile.profile.cnicMasked ? (
+                <Row label={t("signup.cnic")}>
+                  <span dir="ltr">{profile.profile.cnicMasked}</span>
+                </Row>
+              ) : null}
+            </dl>
+          </section>
 
-      <RoleDetails profile={profile} />
+          <RoleDetails profile={profile} />
 
-      <section className="ac-card" aria-labelledby="ac-prefs">
-        <h2 id="ac-prefs">{t("account.preferences")}</h2>
-        <fieldset className="ac-pref">
-          <legend>{t("settings.lang.language")}</legend>
-          <div className="ac-segment">
-            {LANGUAGES.map((option) => (
-              <label key={option.value}>
-                <input type="radio" name="ac-language" checked={language === option.value} onChange={() => setLanguage(option.value)} />
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <fieldset className="ac-pref">
-          <legend>{t("settings.lang.fontsize")}</legend>
-          <div className="ac-segment">
-            {sizes.map((option) => (
-              <label key={option.value}>
-                <input type="radio" name="ac-fontsize" checked={fontSize === option.value} onChange={() => setFontSize(option.value)} />
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </section>
+          <section
+            id="preferences"
+            className="ac-card"
+            aria-labelledby="ac-prefs"
+          >
+            <h2 id="ac-prefs">{t("account.preferences")}</h2>
+            <fieldset className="ac-pref">
+              <legend>{t("settings.lang.language")}</legend>
+              <div className="ac-segment">
+                {LANGUAGES.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      type="radio"
+                      name="ac-language"
+                      checked={language === option.value}
+                      onChange={() => setLanguage(option.value)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <fieldset className="ac-pref">
+              <legend>{t("settings.lang.fontsize")}</legend>
+              <div className="ac-segment">
+                {sizes.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      type="radio"
+                      name="ac-fontsize"
+                      checked={fontSize === option.value}
+                      onChange={() => setFontSize(option.value)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          </section>
 
-      <section className="ac-card" aria-labelledby="ac-notifs">
-        <h2 id="ac-notifs">{t("settings.notif.title")}</h2>
-        <p className="ac-sub">{t("settings.notif.subtitle")}</p>
-        <NotificationSettings />
-      </section>
+          <section
+            id="notifications"
+            className="ac-card"
+            aria-labelledby="ac-notifs"
+          >
+            <h2 id="ac-notifs">{t("settings.notif.title")}</h2>
+            <p className="ac-sub">{t("settings.notif.subtitle")}</p>
+            <NotificationSettings />
+          </section>
 
-      <section className="ac-card" aria-labelledby="ac-help">
-        <h2 id="ac-help">{t("settings.sidebar.help")}</h2>
-        <ul className="ac-links">
-          <li><Link href="/faq">{t("settings.sidebar.faqs")}</Link></li>
-          <li><Link href="/about">{t("settings.sidebar.about")}</Link></li>
-          <li><Link href="/privacy">{t("settings.sidebar.privacy")}</Link></li>
-          <li><Link href="/terms">{t("settings.sidebar.terms")}</Link></li>
-          {HAS_CONTACT ? <li><Link href="/contact">{t("settings.sidebar.contact")}</Link></li> : null}
-        </ul>
-      </section>
+          <section id="help" className="ac-card" aria-labelledby="ac-help">
+            <h2 id="ac-help">{t("settings.sidebar.help")}</h2>
+            <ul className="ac-links">
+              <li>
+                <Link href="/faq">{t("settings.sidebar.faqs")}</Link>
+              </li>
+              <li>
+                <Link href="/about">{t("settings.sidebar.about")}</Link>
+              </li>
+              <li>
+                <Link href="/privacy">{t("settings.sidebar.privacy")}</Link>
+              </li>
+              <li>
+                <Link href="/terms">{t("settings.sidebar.terms")}</Link>
+              </li>
+              {HAS_CONTACT ? (
+                <li>
+                  <Link href="/contact">{t("settings.sidebar.contact")}</Link>
+                </li>
+              ) : null}
+            </ul>
+          </section>
 
-      <section className="ac-signout">
-        <InlineConfirm
-          label={t("account.signOut")}
-          prompt={t("account.signOutPrompt")}
-          confirmLabel={t("account.signOutConfirm")}
-          onConfirm={signOut}
-          icon={<IcLogOut size={16} />}
-          tone="danger"
-        />
-      </section>
+          <section className="ac-signout">
+            <InlineConfirm
+              label={t("account.signOut")}
+              prompt={t("account.signOutPrompt")}
+              confirmLabel={t("account.signOutConfirm")}
+              onConfirm={signOut}
+              icon={<IcLogOut size={16} />}
+              tone="danger"
+            />
+          </section>
+        </div>
+      </div>
     </AccountFrame>
   );
 }

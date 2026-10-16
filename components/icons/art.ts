@@ -41,6 +41,8 @@ const eyeOutline =
 const bellBody = "M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.8 2H4.7Z";
 const sheetBody =
   "M7.5 3.5h6L19 9v10a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7.5 3.5Z";
+const receiptBody =
+  "M6.500 3.500h11v17l-2.200-1.500-1.800 1.500-1.500-1.500-1.500 1.500-1.800-1.500-2.200 1.500Z";
 const shieldBody = "M12 3 19.5 6v5.5c0 4.6-3.1 8-7.5 9.5-4.4-1.5-7.5-4.9-7.5-9.5V6Z";
 
 export const iconArt = {
@@ -278,6 +280,19 @@ export const iconArt = {
     tint: [circle(12, 12, 9)],
   },
   plus: { line: ["M12 5v14", "M5 12h14"] },
+  minus: { line: ["M5 12h14"] },
+  clock: {
+    line: [circle(12, 12, 9), "M12 7v5l3.500 2"],
+    tint: [circle(12, 12, 9)],
+  },
+  calendar: {
+    line: ["M4.500 6.500h15v13h-15Z", "M4.500 10.500h15", "M8.500 4v4", "M15.500 4v4"],
+    tint: ["M4.500 6.500h15v13h-15Z"],
+  },
+  hourglass: {
+    line: ["M7 4h10", "M7 20h10", "M8 4c0 4 4 5 4 8s-4 4-4 8", "M16 4c0 4-4 5-4 8s4 4 4 8"],
+    tint: ["M8.500 18.500c.8-2 3.500-3 3.500-4.500 0 1.500 2.700 2.500 3.500 4.500Z"],
+  },
   plusCircle: {
     line: [circle(12, 12, 9), "M12 8v8", "M8 12h8"],
     tint: [circle(12, 12, 9)],
@@ -379,6 +394,21 @@ export const iconArt = {
   grid: {
     line: ["M4.500 4.500h6v6h-6Z", "M13.500 4.500h6v6h-6Z", "M4.500 13.500h6v6h-6Z", "M13.500 13.500h6v6h-6Z"],
     tint: ["M4.500 4.500h6v6h-6Z", "M13.500 13.500h6v6h-6Z"],
+  },
+  sliders: {
+    line: [
+      "M4 7h6", "M14 7h6", circle(12, 7, 2),
+      "M4 12h2", "M10 12h10", circle(8, 12, 2),
+      "M4 17h8", "M16 17h4", circle(14, 17, 2),
+    ],
+    tint: [circle(12, 7, 2), circle(8, 12, 2), circle(14, 17, 2)],
+  },
+  receipt: {
+    line: [receiptBody, "M9.500 8.500h5", "M9.500 12h5"],
+    tint: [receiptBody],
+  },
+  refresh: {
+    line: ["M19.500 8.500A8 8 0 0 0 5 9.500", "M19.500 4v4.500H15", "M4.500 15.500A8 8 0 0 0 19 14.500", "M4.500 20v-4.500H9"],
   },
 } satisfies Record<string, IconArt>;
 

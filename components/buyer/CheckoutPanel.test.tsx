@@ -55,12 +55,16 @@ function stubGeolocation() {
     ...navigator,
     geolocation: {
       getCurrentPosition: (ok: PositionCallback) =>
-        ok({ coords: { latitude: LAHORE.lat, longitude: LAHORE.lng } } as GeolocationPosition),
+        ok({
+          coords: { latitude: LAHORE.lat, longitude: LAHORE.lng },
+        } as GeolocationPosition),
     },
   });
 }
 
-function renderPanel(repository: Parameters<typeof CheckoutPanel>[0]["repository"]) {
+function renderPanel(
+  repository: Parameters<typeof CheckoutPanel>[0]["repository"],
+) {
   const onConfirmedFarmers = vi.fn();
   const onViewOrders = vi.fn();
   render(
@@ -103,8 +107,16 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
     .mockResolvedValueOnce({ id: "order-2" });
   const initiatePayment = vi
     .fn()
-    .mockResolvedValueOnce({ payment: { id: "payment-1", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=one" })
-    .mockResolvedValueOnce({ payment: { id: "payment-2", status: "pending", gateway: "safepay" }, checkoutUrl: "https://sandbox.api.getsafepay.com/checkout/pay?tracker=two" });
+    .mockResolvedValueOnce({
+      payment: { id: "payment-1", status: "pending", gateway: "safepay" },
+      checkoutUrl:
+        "https://sandbox.api.getsafepay.com/checkout/pay?tracker=one",
+    })
+    .mockResolvedValueOnce({
+      payment: { id: "payment-2", status: "pending", gateway: "safepay" },
+      checkoutUrl:
+        "https://sandbox.api.getsafepay.com/checkout/pay?tracker=two",
+    });
   const { onConfirmedFarmers, onViewOrders, user } = renderPanel({
     createOrder,
     initiatePayment,
@@ -112,16 +124,24 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
   });
 
   await fillAddress(user);
-  expect(screen.getAllByText("Pin the drop-off to see the delivery fee")).toHaveLength(2);
+  expect(
+    screen.getAllByText("Pin the drop-off to see the delivery fee"),
+  ).toHaveLength(2);
 
-  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
+  await user.click(
+    screen.getByRole("button", { name: /Use my current location/ }),
+  );
   expect(await screen.findAllByText("Rs 1,402")).toHaveLength(2);
   expect(quoteOrder).toHaveBeenCalledTimes(2);
   expect(screen.getByText("Total for all 2 orders")).toBeVisible();
-  expect(screen.getByRole("button", { name: "Place 2 orders · Rs 2,804" })).toBeEnabled();
+  expect(
+    screen.getByRole("button", { name: "Place 2 orders · Rs 2,804" }),
+  ).toBeEnabled();
   expect(quoteOrder.mock.calls[0][0].shippingAddress).toMatchObject(LAHORE);
 
-  await user.click(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }));
+  await user.click(
+    screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }),
+  );
 
   const shippingAddress = {
     street: "12 Mall Road",
@@ -143,7 +163,9 @@ test("CheckoutPanel prices each farmer group once the drop-off is pinned, then o
   expect(screen.getByText("2 orders placed")).toBeVisible();
   expect(screen.getAllByText("Awaiting payment")).toHaveLength(2);
   expect(screen.queryByText(/farmer group/i)).not.toBeInTheDocument();
-  expect(screen.getAllByRole("link", { name: /^Pay Rs 1,402 to / })).toHaveLength(2);
+  expect(
+    screen.getAllByRole("link", { name: /^Pay Rs 1,402 to / }),
+  ).toHaveLength(2);
 
   await user.click(screen.getByRole("button", { name: "View orders" }));
   expect(onViewOrders).toHaveBeenCalled();
@@ -157,18 +179,26 @@ test("CheckoutPanel refuses to order without a drop-off pin", async () => {
     quoteOrder: vi.fn(),
   });
   await fillAddress(user);
-  await user.click(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }));
-  expect(screen.getByRole("button", { name: /^Place (\d+ )?orders?/ })).toBeDisabled();
+  await user.click(
+    screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }),
+  );
+  expect(
+    screen.getByRole("button", { name: /^Place (\d+ )?orders?/ }),
+  ).toBeDisabled();
   expect(createOrder).not.toHaveBeenCalled();
 });
 
-test("CheckoutPanel explains when a farm can't be priced yet", async () => {
+test("CheckoutPanel provides recovery when a delivery quote fails", async () => {
   stubGeolocation();
   const { user } = renderPanel({
     createOrder: vi.fn(),
     initiatePayment: vi.fn(),
     quoteOrder: vi.fn().mockRejectedValue(new Error("400")),
   });
-  await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-  expect(await screen.findAllByText(/hasn.t pinned its pickup location/)).toHaveLength(2);
+  await user.click(
+    screen.getByRole("button", { name: /Use my current location/ }),
+  );
+  expect(
+    await screen.findAllByText(/Could not calculate this order/),
+  ).toHaveLength(2);
 });

@@ -216,6 +216,11 @@ export interface CreateFarmerProductRequest {
 }
 
 export interface BuyerProduct {
+  description?: string;
+  category?: string;
+  createdAt?: string;
+  /** Ledger state of the listing's origin record; absent on saved carts. */
+  originLedgerStatus?: OriginLedgerStatus;
   id: string;
   farmerId: string;
   name: string;
@@ -271,6 +276,7 @@ export interface CreateOrderRequest {
 }
 
 export interface ApiOrderItem {
+  unit?: string;
   productId: string;
   farmerId: string;
   productName: string;
@@ -280,6 +286,7 @@ export interface ApiOrderItem {
 }
 
 export interface ApiOrder {
+  canCancel?: boolean;
   id: string;
   buyerId: string;
   farmerId: string;
@@ -344,6 +351,10 @@ export interface ApiShipmentStatusHistory {
 }
 
 export interface ApiShipment {
+  pickupContact?: { name?: string; phone?: string };
+  deliveryContact?: { name?: string; phone?: string };
+  issue?: { reason: string; note?: string; stage: string; reportedAt: string; resolvedAt?: string; resolution?: string };
+  assignmentHistory?: { fromTransporterId?: string; transporterId: string; assignedBy: string; reason: string; timestamp: string }[];
   deliveryFee?: number;
   deliveryDistanceKm?: number;
   id: string;
@@ -360,6 +371,10 @@ export interface ApiShipment {
 }
 
 export interface ApiAvailableDelivery {
+  farmName?: string;
+  items?: Array<{productName: string; quantity: number; unit?: string}>;
+  pickup?: {lat: number; lng: number; city: string; province: string};
+  dropoffArea?: {lat: number; lng: number; city: string; province: string};
   deliveryFee?: number;
   deliveryDistanceKm?: number;
   distanceToPickupKm?: number;
@@ -399,6 +414,10 @@ export function toBuyerProduct(product: ApiProduct): BuyerProduct {
     id: product.id,
     farmerId: product.farmerId,
     name: product.name,
+    description: product.description,
+    category: product.category,
+    createdAt: product.createdAt,
+    originLedgerStatus: product.originLedgerStatus,
     price: product.price,
     quantity: product.quantity,
     unit: product.unit,

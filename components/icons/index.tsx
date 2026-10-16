@@ -86,6 +86,10 @@ export const IcCheck = build("check");
 export const IcCheckCircle = build("checkCircle");
 export const IcPlus = build("plus");
 export const IcPlusCircle = build("plusCircle");
+export const IcMinus = build("minus");
+export const IcClock = build("clock");
+export const IcCalendar = build("calendar");
+export const IcHourglass = build("hourglass");
 export const IcClose = build("close");
 export const IcMenu = build("menu");
 export const IcSearch = build("search");
@@ -112,6 +116,9 @@ export const IcTrash = build("trash");
 export const IcGrid = build("grid");
 export const IcCamera = build("camera");
 export const IcMail = build("mail");
+export const IcSliders = build("sliders");
+export const IcReceipt = build("receipt");
+export const IcRefresh = build("refresh");
 
 const icons = {
   leaf: IcLeaf, sprout: IcSprout, wheat: IcWheat, rice: IcRice, mango: IcMango, maize: IcMaize,
@@ -120,9 +127,10 @@ const icons = {
   qr: IcQr, scan: IcScan, globe: IcGlobe, store: IcStore, cart: IcCart, crate: IcCrate, bag: IcBag,
   card: IcCard, coin: IcCoin, tag: IcTag, arrowLeft: IcArrowLeft, arrowRight: IcArrowRight,
   chevronRight: IcChevronRight, check: IcCheck, checkCircle: IcCheckCircle, plus: IcPlus,
-  plusCircle: IcPlusCircle, close: IcClose, menu: IcMenu, search: IcSearch, info: IcInfo,
+  plusCircle: IcPlusCircle, minus: IcMinus, clock: IcClock, calendar: IcCalendar, hourglass: IcHourglass, close: IcClose, menu: IcMenu, search: IcSearch, info: IcInfo,
   help: IcHelp, alert: IcAlert, lock: IcLock, eye: IcEye, eyeOff: IcEyeOff, bell: IcBell,
   user: IcUser, users: IcUsers, logOut: IcLogOut, message: IcMessage, clipboard: IcClipboard,
   file: IcFile, heart: IcHeart, star: IcStar, sparkles: IcSparkles, send: IcSend, feed: IcFeed,
   edit: IcEdit, trash: IcTrash, grid: IcGrid, camera: IcCamera, mail: IcMail,
+  sliders: IcSliders, receipt: IcReceipt, refresh: IcRefresh,
 } satisfies Record<IconName, ReturnType<typeof createIcon>>;

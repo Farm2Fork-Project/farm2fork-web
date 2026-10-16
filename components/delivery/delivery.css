@@ -1,0 +1,17 @@
+.delivery-panel { display: grid; gap: 20px; min-width: 0; }
+.delivery-panel h1, .delivery-panel h2, .delivery-panel h3, .delivery-panel p { margin: 0; }
+.delivery-panel form, .delivery-panel label { display: grid; gap: 10px; }
+.delivery-panel form { gap: 18px; max-width: 680px; }
+.delivery-panel input:not([type="checkbox"]), .delivery-panel select, .delivery-panel textarea { width: 100%; min-width: 0; padding: 12px; color: var(--text-main); background: var(--white); border: 1px solid var(--border-color); border-radius: 8px; font: inherit; }
+.delivery-panel .btn { justify-self: start; }
+.delivery-panel table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.delivery-panel th, .delivery-panel td { padding: 12px; text-align: start; overflow-wrap: anywhere; border-bottom: 1px solid var(--border-color); }
+.delivery-panel dl { display: flex; flex-wrap: wrap; gap: 24px; margin: 0; }
+.delivery-panel dd { margin: 4px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.delivery-panel :focus-visible { outline: 2px solid var(--primary-green); outline-offset: 3px; }
+.delivery-panel [role="alert"] { color: var(--error-red); overflow-wrap: anywhere; }
+.delivery-panel button { min-height: 44px; }
+.delivery-panel > h1 { font-size: clamp(26px, 3vw, 32px); line-height: 1.2; margin-bottom: 20px; }
+.delivery-panel > h2 { font-size: 22px; line-height: 1.3; margin: 24px 0 12px; }
+.delivery-panel .data-table { min-width: 620px; }
+.delivery-panel .data-table td:not(:first-child) { white-space: nowrap; word-break: normal; overflow-wrap: normal; }

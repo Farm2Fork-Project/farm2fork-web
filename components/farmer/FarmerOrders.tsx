@@ -1,13 +1,26 @@
 "use client";
 
 import { useState } from "react";
-import type { ApiOrder } from "@/lib/api/contracts.ts";
+import { DeliveryTracking } from "@/components/orders/DeliveryTracking";
+import type { ApiOrder, ApiShipment } from "@/lib/api/contracts.ts";
 import { orderStatusClass } from "@/lib/status.ts";
 import { useLanguage } from "./LanguageContext";
 
 type OrderTab = "active" | "completed";
 
-export default function FarmerOrders({ orders }: { orders: ApiOrder[] }) {
+export default function FarmerOrders({
+  orders,
+  onRefresh,
+  shipments = [],
+  shipmentError = false,
+  loading = false,
+}: {
+  orders: ApiOrder[];
+  onRefresh?: () => void;
+  shipments?: ApiShipment[];
+  shipmentError?: boolean;
+  loading?: boolean;
+}) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<OrderTab>("active");
   const visibleOrders = orders.filter((order) =>
@@ -23,20 +36,42 @@ export default function FarmerOrders({ orders }: { orders: ApiOrder[] }) {
         <p>{t("farmer.orders.subtitle")}</p>
       </div>
 
+      {onRefresh ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={onRefresh}
+          disabled={loading}
+        >
+          {loading ? t("flow.loadingOrders") : t("orders.refresh")}
+        </button>
+      ) : null}
       <div className="orders-tabs">
         <button
           className={`orders-tab ${activeTab === "active" ? "active" : ""}`}
           onClick={() => setActiveTab("active")}
           type="button"
         >
-          {t("farmer.orders.tab.active")} ({orders.filter((order) => !["delivered", "cancelled"].includes(order.status)).length})
+          {t("farmer.orders.tab.active")} (
+          {
+            orders.filter(
+              (order) => !["delivered", "cancelled"].includes(order.status),
+            ).length
+          }
+          )
         </button>
         <button
           className={`orders-tab ${activeTab === "completed" ? "active" : ""}`}
           onClick={() => setActiveTab("completed")}
           type="button"
         >
-          {t("farmer.orders.tab.completed")} ({orders.filter((order) => ["delivered", "cancelled"].includes(order.status)).length})
+          {t("farmer.orders.tab.completed")} (
+          {
+            orders.filter((order) =>
+              ["delivered", "cancelled"].includes(order.status),
+            ).length
+          }
+          )
         </button>
       </div>
 
@@ -56,14 +91,31 @@ export default function FarmerOrders({ orders }: { orders: ApiOrder[] }) {
             </p>
           </div>
         ) : (
-          visibleOrders.map((order) => <FarmerOrderCard key={order.id} order={order} />)
+          visibleOrders.map((order) => (
+            <FarmerOrderCard
+              key={order.id}
+              order={order}
+              shipment={shipments.find(
+                (shipment) => shipment.orderId === order.id,
+              )}
+              shipmentError={shipmentError}
+            />
+          ))
         )}
       </div>
     </div>
   );
 }
 
-function FarmerOrderCard({ order }: { order: ApiOrder }) {
+function FarmerOrderCard({
+  order,
+  shipment,
+  shipmentError,
+}: {
+  order: ApiOrder;
+  shipment?: ApiShipment;
+  shipmentError: boolean;
+}) {
   const { t } = useLanguage();
 
   return (
@@ -80,7 +132,9 @@ function FarmerOrderCard({ order }: { order: ApiOrder }) {
             )}
           </div>
         </div>
-        <span className={`order-status ${orderStatusClass(order.status)}`}>{order.status}</span>
+        <span className={`order-status ${orderStatusClass(order.status)}`}>
+          {order.status}
+        </span>
       </div>
 
       <div className="order-items">
@@ -104,11 +158,23 @@ function FarmerOrderCard({ order }: { order: ApiOrder }) {
           <span>{t("farmer.orders.platformFee")}</span>
           <span>Rs {order.platformFeeAmount}</span>
         </div>
+        {typeof order.deliveryFee === "number" ? (
+          <div className="order-total-row">
+            <span>{t("orders.deliveryFee")}</span>
+            <span>Rs {order.deliveryFee}</span>
+          </div>
+        ) : null}
         <div className="order-total-row grand">
           <span>{t("farmer.orders.grandTotal")}</span>
           <span>Rs {order.grandTotal}</span>
         </div>
       </div>
+      <DeliveryTracking
+        shipment={shipment}
+        unavailable={shipmentError}
+        address={order.shippingAddress}
+        orderStatus={order.status}
+      />
     </article>
   );
 }

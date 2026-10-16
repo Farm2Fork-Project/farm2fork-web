@@ -1,9 +1,10 @@
 /* ───────── Shared Types ───────── */
 export type AuthScreen = "login" | "signup-role" | "signup-form";
-export type AppTab = "shipments" | "scan" | "profile";
+export type AppTab = "shipments" | "scan" | "profile" | "earnings";
 
 export const TAB_TITLES: Record<AppTab, string> = {
   shipments: "Shipments",
+  earnings: "Earnings",
   scan: "Trace",
   profile: "Profile",
 };

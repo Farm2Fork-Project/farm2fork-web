@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { LuLeaf, LuScanLine } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
@@ -59,7 +59,7 @@ export default function LandingProducts({ onSignIn }: { onSignIn: () => void }) 
 
   return (
     <section id="fresh" className="market-fresh market-section" aria-busy={state.kind === "loading"}>
-      <div className="market-section-heading">
+      <div className="market-section-heading" data-reveal>
         <p>{t("landing.fresh.pretitle")}</p>
         <h2>
           {t("landing.fresh.title1")} <em>{t("landing.fresh.title2")}</em>
@@ -71,8 +71,13 @@ export default function LandingProducts({ onSignIn }: { onSignIn: () => void }) 
           ? Array.from({ length: PREVIEW_SIZE }, (_, index) => (
               <div key={index} className="mp-card market-fresh-skeleton" aria-hidden="true" />
             ))
-          : state.products.map((product) => (
-              <article className="mp-card market-fresh-card" key={product.id}>
+          : state.products.map((product, index) => (
+              <article
+                className="mp-card market-fresh-card"
+                key={product.id}
+                data-reveal
+                style={{ "--i": index } as CSSProperties}
+              >
                 <div className="mp-card-img">
                   {product.images[0] ? (
                     // Listing images are arbitrary external URLs.

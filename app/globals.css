@@ -7053,3 +7053,32 @@ ol.scan-timeline {
 .cart-empty svg { color: var(--primary-green); width: 56px; height: 56px; margin-bottom: var(--sp-md); }
 .cart-empty h2 { font-family: var(--font-display); font-weight: 400; }
 .cart-empty p { margin-bottom: 0; font-size: calc(16px * var(--font-scale, 1)); }
+
+/* Farmer and buyer task states and cart controls. */
+.flow-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.flow-state { padding: var(--sp-xxl); background: var(--surface-light); border-radius: var(--radius-lg); }
+.flow-notice, .flow-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: var(--sp-md); margin-block: var(--sp-lg); }
+.flow-notice { background: var(--primary-green-soft); padding: var(--sp-lg); border-radius: var(--radius-lg); }
+.flow-notice > span { flex: 1; min-width: 180px; }
+.cart-item-info { display: grid; gap: var(--sp-xs); min-width: 0; overflow-wrap: anywhere; }
+.cart-item-info > span { color: var(--text-muted); font-size: 14px; }
+.cart-item-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-md); }
+.cart-group .order-item-row { gap: var(--sp-lg); flex-wrap: wrap; }
+.quantity-control { display: flex; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; }
+.quantity-control button, .quantity-control input { width: 44px; min-height: 44px; border: 0; background: var(--white); color: var(--text-dark); font: inherit; text-align: center; }
+.quantity-control input { width: 64px; font-variant-numeric: tabular-nums; }
+.quantity-control button { cursor: pointer; }
+.quantity-control button:disabled { opacity: .45; cursor: default; }
+.quantity-control button:hover:not(:disabled) { background: var(--primary-green-soft); }
+.photo-cover-btn { position: absolute; inset-inline: 0; bottom: 0; border: 0; padding: 4px; color: var(--white); background: var(--primary-green-dark); font: inherit; font-size: 12px; cursor: pointer; }
+@media (max-width: 640px) { .cart-item-actions { width: 100%; justify-content: space-between; } }
+
+.loan-application-form { margin-block: var(--sp-xxl); }
+.loan-purpose { grid-column: 1 / -1; }
+.loan-schedule { list-style: none; padding: 0; }
+.loan-schedule li { display: flex; flex-wrap: wrap; gap: var(--sp-md); justify-content: space-between; padding-block: var(--sp-md); border-bottom: 1px solid var(--border-light); }
+
+.listing-visibility { display: flex; align-items: center; gap: var(--sp-md); padding: var(--sp-lg); color: var(--text-dark); font-size: 16px; }
+.listing-visibility input { width: 20px; height: 20px; accent-color: var(--primary-green); }
+.lc-photo-add:focus-within { outline: 2px solid var(--primary-green); outline-offset: 3px; }
+.order-delivery-address p, .order-card-id { overflow-wrap: anywhere; }

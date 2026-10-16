@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ApiTransporterStatus } from "@/lib/api/contracts.ts";
 import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 import { useLanguage } from "./LanguageContext";
@@ -15,12 +15,64 @@ export function TransporterAvailability({
   onRefresh: () => Promise<void>;
   revision: number;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const ur = language === "ur";
   const [status, setStatus] = useState<ApiTransporterStatus | null>(null);
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [gpsEnabled, setGpsEnabled] = useState(false);
+  const visibilityEpoch = useRef(0);
+  const [gpsError, setGpsError] = useState("");
+  const lock = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  async function locate() {
+    if (lock.current) return;
+    lock.current = true; const epoch = visibilityEpoch.current; setBusy(true); setGpsError("");
+    try {
+      if (!navigator.geolocation) throw new Error(ur ? "براؤزر میں مقام دستیاب نہیں۔ نیچے دستی نقاط درج کریں۔" : "Browser location is unavailable. Enter a manual pin below.");
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }));
+      if (!alive.current || epoch !== visibilityEpoch.current || document.visibilityState === "hidden") return;
+      const location = { lat: position.coords.latitude, lng: position.coords.longitude };
+      if (Date.now() - position.timestamp > 60000) throw new Error(ur ? "مقام پرانا ہے۔ GPS دوبارہ آزمائیں۔" : "Location is stale. Try GPS again.");
+      setGpsEnabled(true);
+      if (status?.online) { await repository.updateLocation(location); const next = await repository.getTransporterStatus(); if (alive.current) setStatus(next); }
+      else { const next = await repository.setAvailability(true, location); if (alive.current) setStatus(next); }
+      if (!alive.current) return;
+      try { await onRefresh(); } catch { setGpsError(ur ? "مقام محفوظ ہے۔ پیشکشیں تازہ کریں۔" : "Location saved. Refresh to load current offers."); }
+    } catch (e) { if (alive.current) setGpsError(e instanceof Error ? e.message : "Location permission denied or GPS unavailable. Allow location in browser settings and retry, or enter a manual pin."); }
+    finally { lock.current = false; if (alive.current) setBusy(false); }
+  }
+  useEffect(() => {
+    const changed = () => { visibilityEpoch.current++; };
+    document.addEventListener('visibilitychange', changed);
+    return () => document.removeEventListener('visibilitychange', changed);
+  }, []);
+  useEffect(() => {
+    if (!status?.online || !gpsEnabled) return;
+    let cancelled = false;
+    let running = false;
+    const measure = async () => {
+      if (cancelled || running || lock.current || document.visibilityState === 'hidden') return;
+      running = true; const epoch = visibilityEpoch.current;
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve,reject) => navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,maximumAge:0,timeout:15000}));
+        if (cancelled || !alive.current || epoch !== visibilityEpoch.current || document.hidden) return;
+        if (Date.now() - position.timestamp > 60000) throw new Error('Location is stale. Retry current GPS location.');
+        await repository.updateLocation({lat:position.coords.latitude,lng:position.coords.longitude});
+        if (cancelled) return;
+        const next = await repository.getTransporterStatus(); if (!cancelled) setStatus(next);
+        try { await onRefresh(); } catch { setGpsError(ur ? "تبدیلی محفوظ ہے۔ فہرست تازہ کریں۔" : "Change saved. Refresh to update delivery offers."); }
+      } catch { if (!cancelled) setGpsError(ur ? 'مقام تازہ نہیں ہو سکا۔ GPS دوبارہ آزمائیں۔' : 'Current GPS could not be refreshed. Retry location before accepting work.'); }
+      finally { running = false; }
+    };
+    const resume = () => { if (document.visibilityState !== 'hidden') void measure(); };
+    const timer = setInterval(() => void measure(),45000);
+    document.addEventListener('visibilitychange', resume);
+    return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange',resume); };
+  }, [status?.online, gpsEnabled, repository, onRefresh, ur]);
   useEffect(() => {
     let active = true;
     repository
@@ -36,34 +88,40 @@ export function TransporterAvailability({
     };
   }, [repository, revision]);
   async function refresh() {
-    if (busy) return;
+    if (lock.current) return;
+    lock.current = true;
     setBusy(true);
     setError(false);
     try {
       setStatus(await repository.getTransporterStatus());
-      await onRefresh();
+      try { await onRefresh(); } catch { setGpsError(ur ? "تبدیلی محفوظ ہے۔ فہرست تازہ کریں۔" : "Change saved. Refresh to update delivery offers."); }
     } catch {
       setError(true);
     } finally {
+      lock.current = false;
       setBusy(false);
     }
   }
   async function offline() {
-    if (busy) return;
+    if (lock.current) return;
+    lock.current = true;
     setBusy(true);
     setError(false);
     try {
       setStatus(await repository.setAvailability(false));
-      await onRefresh();
+      setGpsEnabled(false);
+      try { await onRefresh(); } catch { setGpsError(ur ? "تبدیلی محفوظ ہے۔ فہرست تازہ کریں۔" : "Change saved. Refresh to update delivery offers."); }
     } catch {
       setError(true);
     } finally {
+      lock.current = false;
       setBusy(false);
     }
   }
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (busy || !status) return;
+    if (lock.current || !status) return;
+    setGpsEnabled(false);
     const location = { lat: Number(lat), lng: Number(lng) };
     if (
       !lat.trim() ||
@@ -76,6 +134,7 @@ export function TransporterAvailability({
       location.lng > 77.9
     )
       return;
+    lock.current = true;
     setBusy(true);
     setError(false);
     try {
@@ -83,10 +142,11 @@ export function TransporterAvailability({
         await repository.updateLocation(location);
         setStatus(await repository.getTransporterStatus());
       } else setStatus(await repository.setAvailability(true, location));
-      await onRefresh();
+      try { await onRefresh(); } catch { setGpsError(ur ? "تبدیلی محفوظ ہے۔ فہرست تازہ کریں۔" : "Change saved. Refresh to update delivery offers."); }
     } catch {
       setError(true);
     } finally {
+      lock.current = false;
       setBusy(false);
     }
   }
@@ -122,6 +182,10 @@ export function TransporterAvailability({
           ) : null}
         </ul>
       ) : null}
+      <button type="button" className="btn btn-primary" disabled={busy || !status} onClick={() => void locate()}>{busy ? (ur ? "مقام تلاش ہو رہا ہے…" : "Checking location…") : (ur ? "موجودہ GPS مقام استعمال کریں" : "Use current GPS location")}</button>
+      {gpsError && <p role="alert">{gpsError}</p>}
+      <p>{ur ? "مقام صرف کھلے اور نظر آنے والے صفحے پر بھیجا جاتا ہے۔ واپس آنے پر GPS تازہ کریں۔" : "Location is shared only while this page is open and visible. Refresh GPS after returning to this page."}</p>
+      <h3>{ur ? "دستی مقام" : "Manual pin fallback"}</h3><p>{ur ? "درج کیے گئے نقاط دستی مقام ہیں، براہ راست GPS نہیں۔" : "Coordinates entered below are a manual location, not live GPS."}</p>
       <p className="dispatch-help">{t("dispatch.help")}</p>
       <fieldset disabled={busy || !status} style={{ border: 0, padding: 0 }}>
         <div className="checkout-address-grid">

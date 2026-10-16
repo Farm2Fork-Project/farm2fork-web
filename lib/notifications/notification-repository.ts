@@ -7,7 +7,8 @@ export type NotificationType =
   | "delivery_update"
   | "loan_update"
   | "admin_action"
-  | "delivery_offer";
+  | "delivery_offer"
+  | "payout_recorded";
 
 export interface AppNotification {
   id: string;
@@ -27,19 +28,39 @@ export class NotificationRepository {
     this.client = client ?? new ApiClient();
   }
 
-  async list(limit = 15): Promise<AppNotification[]> {
-    const page = await this.client.request<{ data: AppNotification[] }>(
-      `/notifications?limit=${limit}`,
-    );
-    return page.data;
+  async list(limit = 50): Promise<AppNotification[]> {
+    const items: AppNotification[] = [];
+    let page = 1;
+    let totalPages = 1;
+    do {
+      const result = await this.client.request<{
+        data: AppNotification[];
+        total?: number;
+        limit?: number;
+        totalPages?: number;
+      }>(`/notifications?limit=${limit}&page=${page}`);
+      items.push(...result.data);
+      totalPages =
+        result.totalPages ??
+        Math.ceil((result.total ?? items.length) / (result.limit || limit));
+      page++;
+    } while (page <= totalPages);
+    return items;
   }
 
   async unreadCount(): Promise<number> {
-    return (await this.client.request<{ unread: number }>("/notifications/unread-count")).unread;
+    return (
+      await this.client.request<{ unread: number }>(
+        "/notifications/unread-count",
+      )
+    ).unread;
   }
 
   markRead(id: string): Promise<unknown> {
-    return this.client.request(`/notifications/${encodeURIComponent(id)}/read`, { method: "PATCH" });
+    return this.client.request(
+      `/notifications/${encodeURIComponent(id)}/read`,
+      { method: "PATCH" },
+    );
   }
 
   markAllRead(): Promise<unknown> {

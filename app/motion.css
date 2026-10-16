@@ -1,0 +1,291 @@
+/*
+ * Motion for the public landing page and the buyer product page.
+ *
+ * Rules of the house:
+ *  - Everything here is wrapped in prefers-reduced-motion: no-preference, and
+ *    the hidden starting state of scroll reveals only exists after the client
+ *    adds `.motion-ready` (see lib/react/use-reveal.ts). Server HTML, crawlers
+ *    and reduced-motion visitors always get the finished page.
+ *  - Only opacity and the individual transform properties (translate, scale,
+ *    rotate) animate, so reveals compose with the existing hover transforms.
+ *  - One ease family: fast out, long settle (ease-out-quart). No bounce.
+ *  - Motion runs once, on arrival. The two loops (CTA light, final route seal)
+ *    are slow and low contrast.
+ */
+
+/* Arrows point along the reading direction, whatever the motion setting. */
+[dir="rtl"] .market-arrow {
+  scale: -1 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --lm-ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+    --lm-settle: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  /* ---- Scroll reveal (shared) ---------------------------------------- */
+
+  .motion-ready [data-reveal] {
+    opacity: 0;
+    translate: 0 20px;
+    transition:
+      opacity 0.7s var(--lm-ease) calc(var(--i, 0) * 90ms),
+      translate 0.7s var(--lm-ease) calc(var(--i, 0) * 90ms),
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      border-color 0.3s ease;
+  }
+
+  .motion-ready [data-reveal].is-in {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  /* ---- Landing: hero arrival ----------------------------------------- */
+
+  @keyframes lm-rise {
+    from {
+      opacity: 0;
+      translate: 0 16px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
+
+  @keyframes lm-photo-in {
+    from {
+      opacity: 0;
+      scale: 0.97;
+    }
+    to {
+      opacity: 1;
+      scale: 1;
+    }
+  }
+
+  @keyframes lm-photo-settle {
+    from {
+      scale: 1.07;
+    }
+    to {
+      scale: 1;
+    }
+  }
+
+  .market-hero-copy h1 {
+    animation: lm-rise 0.9s var(--lm-ease) 0.05s both;
+  }
+
+  .market-hero-copy h1 em {
+    display: inline-block;
+    animation: lm-rise 0.9s var(--lm-ease) 0.2s both;
+  }
+
+  .market-hero-copy > p {
+    animation: lm-rise 0.9s var(--lm-ease) 0.32s both;
+  }
+
+  .market-hero-actions {
+    animation: lm-rise 0.9s var(--lm-ease) 0.44s both;
+  }
+
+  .market-audience-strip {
+    animation: lm-rise 0.9s var(--lm-ease) 0.56s both;
+  }
+
+  .market-hero-image {
+    animation: lm-photo-in 1.1s var(--lm-ease) 0.12s both;
+  }
+
+  .market-hero-photo {
+    animation: lm-photo-settle 2s var(--lm-ease) 0.12s both;
+  }
+
+  /* The photo drifts a little slower than the page as the hero scrolls away. */
+  @keyframes lm-parallax {
+    from {
+      translate: 0 0;
+    }
+    to {
+      translate: 0 28px;
+    }
+  }
+
+  @keyframes lm-header-edge {
+    from {
+      box-shadow:
+        0 1px 0 rgba(23, 33, 27, 0),
+        0 10px 30px rgba(23, 33, 27, 0);
+    }
+    to {
+      box-shadow:
+        0 1px 0 rgba(23, 33, 27, 0.1),
+        0 10px 30px rgba(23, 33, 27, 0.05);
+    }
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .market-hero-photo {
+      inset: -6% 0 auto 0 !important;
+      height: 112% !important;
+      animation:
+        lm-photo-settle 2s var(--lm-ease) 0.12s both,
+        lm-parallax linear both;
+      animation-timeline: auto, scroll(root block);
+      animation-range: normal, 0 640px;
+    }
+
+    .market-landing .market-header {
+      animation: lm-header-edge linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 140px;
+    }
+  }
+
+  /* ---- Landing: section details -------------------------------------- */
+
+  .market-arrow {
+    transition: translate 0.25s var(--lm-ease);
+  }
+
+  .market-primary:hover .market-arrow,
+  .market-text-link:hover .market-arrow {
+    translate: 4px 0;
+  }
+
+  [dir="rtl"] .market-primary:hover .market-arrow,
+  [dir="rtl"] .market-text-link:hover .market-arrow {
+    translate: -4px 0;
+  }
+
+  .market-brand-mark {
+    transition: rotate 0.35s var(--lm-settle);
+  }
+
+  .market-brand:hover .market-brand-mark {
+    rotate: -10deg;
+  }
+
+  /* Emphasised word in a section title lands a beat after the title. */
+  .market-section-heading[data-reveal] h2 em {
+    display: inline-block;
+    opacity: 0;
+    translate: 0 8px;
+    transition:
+      opacity 0.8s var(--lm-ease) 0.25s,
+      translate 0.8s var(--lm-ease) 0.25s;
+  }
+
+  .market-section-heading[data-reveal].is-in h2 em {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  .market-process-row article > svg,
+  .market-people-list article > svg {
+    transition:
+      translate 0.3s var(--lm-ease),
+      rotate 0.3s var(--lm-ease),
+      background-color 0.3s ease;
+  }
+
+  /* Trace route: the dotted line draws down, each stop settles in turn. */
+  .market-route li {
+    --stop: calc(var(--i, 0) * 150ms);
+  }
+
+  .motion-ready .market-route li > span {
+    position: relative;
+    opacity: 0;
+    scale: 0.7;
+    transition:
+      opacity 0.4s ease calc(var(--stop) + 120ms),
+      scale 0.55s var(--lm-settle) calc(var(--stop) + 120ms);
+  }
+
+  .motion-ready .market-route li.is-in > span {
+    opacity: 1;
+    scale: 1;
+  }
+
+  .motion-ready .market-route li:not(:last-child)::before {
+    transform-origin: top;
+    scale: 1 0;
+    transition: scale 0.6s var(--lm-ease) calc(var(--stop) + 300ms);
+  }
+
+  .motion-ready .market-route li.is-in:not(:last-child)::before {
+    scale: 1 1;
+  }
+
+  /* The last stop (verified) gets a slow, quiet ring once it has arrived. */
+  @keyframes lm-seal {
+    0% {
+      opacity: 0.45;
+      scale: 1;
+    }
+    70%,
+    100% {
+      opacity: 0;
+      scale: 1.55;
+    }
+  }
+
+  .motion-ready .market-route li:last-child.is-in > span::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border: 1px solid var(--market-green);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: lm-seal 4.8s ease-out 1.4s infinite;
+  }
+
+  /* Closing band: two soft lights drift behind the call to action. */
+  @keyframes lm-drift {
+    from {
+      translate: -3% -2%;
+    }
+    to {
+      translate: 4% 3%;
+    }
+  }
+
+  .market-final-cta {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .market-final-cta::before {
+    content: "";
+    position: absolute;
+    inset: -30% -10%;
+    z-index: -1;
+    background:
+      radial-gradient(38% 55% at 18% 40%, rgba(255, 255, 255, 0.09), transparent 70%),
+      radial-gradient(30% 50% at 82% 65%, rgba(165, 138, 80, 0.16), transparent 70%);
+    animation: lm-drift 26s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+
+  /* Skeletons from the landing product row settle instead of popping. */
+  .market-fresh .market-fresh-img {
+    transition: scale 0.7s var(--lm-ease);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .market-process-row article:hover > svg,
+  .market-people-list article:hover > svg {
+    translate: 0 -3px;
+    rotate: -4deg;
+  }
+
+  .market-fresh .mp-card:hover .market-fresh-img {
+    scale: 1.05;
+  }
+}

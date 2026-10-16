@@ -1,7 +1,13 @@
+import { DeliveryRepository } from '../lib/delivery/delivery-repository';
 // Runs only via backend scripts/test/web-checkout-e2e.ts.
 // The fixture uses test JWT identities and local Safepay API responses.
 import { createHmac } from "node:crypto";
-import { cleanup, render as testingRender, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render as testingRender,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import { ApiClient } from "../lib/api/client.ts";
@@ -16,8 +22,12 @@ import { BuyerApp } from "../components/buyer/BuyerApp";
 import type { BuyerSession } from "../lib/auth/web-session.ts";
 
 const baseUrl = process.env.CHECKOUT_TEST_API;
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
-const render = (ui: React.ReactNode) => testingRender(<LanguageProvider>{ui}</LanguageProvider>);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
+const render = (ui: React.ReactNode) =>
+  testingRender(<LanguageProvider>{ui}</LanguageProvider>);
 
 test.skipIf(!baseUrl)(
   "web checkout, cancel/resume and signed settlement persist through the real backend",
@@ -130,11 +140,21 @@ test.skipIf(!baseUrl)(
     await user.type(screen.getByLabelText("Street"), "12 Mall Road");
     await user.type(screen.getByLabelText("City"), "Lahore");
     await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
-    vi.stubGlobal("navigator", { ...navigator, geolocation: {
-      getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 31.5204, longitude: 74.3587 } } as GeolocationPosition),
-    } });
-    await user.click(screen.getByRole("button", { name: /Use my current location/ }));
-    const placeOrders = screen.getByRole("button", { name: /^Place \d+ orders/ });
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      geolocation: {
+        getCurrentPosition: (ok: PositionCallback) =>
+          ok({
+            coords: { latitude: 31.5204, longitude: 74.3587 },
+          } as GeolocationPosition),
+      },
+    });
+    await user.click(
+      screen.getByRole("button", { name: /Use my current location/ }),
+    );
+    const placeOrders = screen.getByRole("button", {
+      name: /^Place \d+ orders/,
+    });
     await waitFor(() => expect(placeOrders).toBeEnabled());
     await user.click(placeOrders);
     const [firstLink, secondLink] = await screen.findAllByRole("link", {
@@ -178,7 +198,10 @@ test.skipIf(!baseUrl)(
       listProducts: buyer.listProducts.bind(buyer),
       listOrders: buyer.listOrders.bind(buyer),
       listPayments: buyer.listPayments.bind(buyer),
-      listShipments: () => new ShipmentRepository({client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!)}).listShipments(),
+      listShipments: () =>
+        new ShipmentRepository({
+          client: client(process.env.CHECKOUT_TEST_BUYER_TOKEN!),
+        }).listShipments(),
       simulatePaymentSuccess: buyer.simulatePaymentSuccess.bind(buyer),
     };
     cleanup();
@@ -191,7 +214,7 @@ test.skipIf(!baseUrl)(
       />,
     );
     await screen.findByText(/Checkout was closed/);
-    expect(screen.getAllByText("Payment: pending")).toHaveLength(2);
+    expect(await screen.findAllByText("Awaiting payment")).toHaveLength(2);
     // Checkout URLs carry only the tracker; the gateway fixture maps it back to its order.
     const orderIdOf = async (url: URL) =>
       (
@@ -251,8 +274,8 @@ test.skipIf(!baseUrl)(
         onLogout={() => undefined}
       />,
     );
-    expect(await screen.findByText("Payment: success")).toBeVisible();
-    expect(screen.getByText("Payment: failed")).toBeVisible();
+    await waitFor(() => expect(document.querySelectorAll('.order-payment[data-status="success"]')).toHaveLength(1));
+    expect(await screen.findByText('Payment failed')).toBeVisible();
     // A failed payment can be retried against its existing order.
     await user.click(screen.getByRole("button", { name: "Continue payment" }));
     const retryUrl = new URL(
@@ -266,7 +289,7 @@ test.skipIf(!baseUrl)(
       screen.getByRole("button", { name: "Refresh payment status" }),
     );
     await waitFor(() =>
-      expect(screen.getAllByText("Payment: success")).toHaveLength(2),
+      expect(document.querySelectorAll('.order-payment[data-status="success"]')).toHaveLength(2),
     );
     payments = (await buyer.listPayments()).data;
     orders = (await buyer.listOrders()).data;
@@ -308,7 +331,7 @@ test.skipIf(!baseUrl)(
       cleanup();
       render(
         <LanguageProvider>
-          <ShipmentScreen repository={transport} />
+          <ShipmentScreen repository={transport} handoverRepository={new DeliveryRepository(client(process.env.CHECKOUT_TEST_TRANSPORTER_TOKEN!))} />
         </LanguageProvider>,
       );
       await screen.findByText("Offline");
@@ -364,7 +387,6 @@ test.skipIf(!baseUrl)(
         for (const action of [
           "Confirm Pick Up",
           "Start Transit",
-          "Mark Delivered",
         ]) {
           await waitFor(() =>
             expect(screen.getByLabelText("Delivery note")).not.toHaveAttribute(
@@ -383,8 +405,13 @@ test.skipIf(!baseUrl)(
             ).not.toBeInTheDocument(),
           );
         }
+        const { code } = await new DeliveryRepository(client(process.env.CHECKOUT_TEST_BUYER_TOKEN!)).code(active);
+        await user.type(await screen.findByLabelText('Buyer delivery code'), code);
+        await user.click(screen.getByRole('button', {name: 'Verify code and complete delivery'}));
         await waitFor(async () => {
-          expect((await transport.getTransporterStatus()).activeShipmentId).toBeUndefined();
+          expect(
+            (await transport.getTransporterStatus()).activeShipmentId,
+          ).toBeUndefined();
         });
       }
       await user.click(screen.getByRole("button", { name: "Go offline" }));
@@ -407,9 +434,17 @@ test.skipIf(!baseUrl)(
         (await buyer.listOrders()).data.every((o) => o.status === "delivered"),
       ).toBe(true);
       cleanup();
-      render(<BuyerApp paymentReturn="complete" session={session} repository={port} onLogout={() => undefined} />);
-      await waitFor(() => expect(screen.getAllByText("Shipment: delivered")).toHaveLength(2));
-
+      render(
+        <BuyerApp
+          paymentReturn="complete"
+          session={session}
+          repository={port}
+          onLogout={() => undefined}
+        />,
+      );
+      await waitFor(() =>
+        expect(screen.getAllByText("Shipment: Delivered")).toHaveLength(2),
+      );
     }
   },
   30_000,

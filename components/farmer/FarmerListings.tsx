@@ -4,7 +4,24 @@ import React, { useEffect, useRef, useState } from "react";
 import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import { useLanguage } from "./LanguageContext";
 import { resolveApiUrl } from "@/lib/loans/loan-repository.ts";
-import { IcCarrot as Carrot, IcCheck as Check, IcClose as X, IcEye as Eye, IcEyeOff as EyeOff, IcGrid as LayoutGrid, IcLeaf as Leaf, IcMango as Apple, IcMapPin as MapPin, IcMilk as Milk, IcPackage as Package, IcPlus as Plus, IcSearch as Search, IcTractor as Tractor, IcTrash as Trash2, IcWheat as Wheat } from "@/components/icons";
+import {
+  IcCarrot as Carrot,
+  IcCheck as Check,
+  IcClose as X,
+  IcEye as Eye,
+  IcEyeOff as EyeOff,
+  IcGrid as LayoutGrid,
+  IcLeaf as Leaf,
+  IcMango as Apple,
+  IcMapPin as MapPin,
+  IcMilk as Milk,
+  IcPackage as Package,
+  IcPlus as Plus,
+  IcSearch as Search,
+  IcTractor as Tractor,
+  IcTrash as Trash2,
+  IcWheat as Wheat,
+} from "@/components/icons";
 
 export interface Listing {
   id: string;
@@ -15,6 +32,7 @@ export interface Listing {
   unit: string;
   quantity: number;
   status: "Available" | "Out of Stock";
+  visibility?: "active" | "inactive" | "sold_out";
   description: string;
   /** Public photo URLs, first one is the cover. */
   images?: string[];
@@ -29,6 +47,8 @@ interface FarmerListingsProps {
   onDelete: (id: string) => void;
   onToggleStatus: (id: string) => void;
   onAddClick: () => void;
+  onEdit?: (listing: Listing) => void;
+  busyId?: string | null;
 }
 
 const CATEGORIES = [
@@ -45,6 +65,8 @@ export default function FarmerListings({
   onDelete,
   onToggleStatus,
   onAddClick,
+  onEdit,
+  busyId,
 }: FarmerListingsProps) {
   const { t } = useLanguage();
   const allListings = listings;
@@ -52,7 +74,11 @@ export default function FarmerListings({
   const farmPlace = [farm?.city, farm?.province].filter(Boolean).join(", ");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selectedListing =
+    listings.find((listing) => listing.id === selectedId) ?? null;
+  const setSelectedListing = (listing: Listing | null) =>
+    setSelectedId(listing?.id ?? null);
   const detailRef = useRef<HTMLElement>(null);
   const openedFromRef = useRef<HTMLElement | null>(null);
 
@@ -60,7 +86,10 @@ export default function FarmerListings({
   // hand it focus; closing returns focus to the card that opened it.
   useEffect(() => {
     if (selectedListing) {
-      detailRef.current?.scrollIntoView?.({ block: "nearest", behavior: "smooth" });
+      detailRef.current?.scrollIntoView?.({
+        block: "nearest",
+        behavior: "smooth",
+      });
       detailRef.current?.focus({ preventScroll: true });
     }
   }, [selectedListing]);
@@ -71,29 +100,47 @@ export default function FarmerListings({
   };
 
   const categoryLabel = (category: string) =>
-    category === "Vegetables" ? t("farmer.create.cat.veg") :
-    category === "Fruits" ? t("farmer.create.cat.fruit") :
-    category === "Grains" ? t("farmer.create.cat.grain") :
-    category === "Dairy" ? t("farmer.create.cat.dairy") : category;
+    category === "Vegetables"
+      ? t("farmer.create.cat.veg")
+      : category === "Fruits"
+        ? t("farmer.create.cat.fruit")
+        : category === "Grains"
+          ? t("farmer.create.cat.grain")
+          : category === "Dairy"
+            ? t("farmer.create.cat.dairy")
+            : category;
   const unitLabel = (unit: string) =>
-    unit === "kg" ? t("unit.kg") : unit === "dozen" ? t("unit.dozen") : unit === "litre" || unit === "liter" ? t("unit.litre") : unit;
+    unit === "kg"
+      ? t("unit.kg")
+      : unit === "dozen"
+        ? t("unit.dozen")
+        : unit === "litre" || unit === "liter"
+          ? t("unit.litre")
+          : unit;
 
   const filteredListings = listings.filter((listing) => {
-    const matchesCategory = selectedCategory === "All" || listing.category.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch = listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          listing.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" ||
+      listing.category.toLowerCase() === selectedCategory.toLowerCase();
+    const matchesSearch =
+      listing.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      listing.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
   return (
     <div className="animate-in w-full">
-
       {/* ── Page Header ── */}
       <div style={{ marginBottom: 24 }}>
-        <h1 className="page-title">
-          {t("farmer.listings.title")}
-        </h1>
-        <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 4, margin: 0 }}>
+        <h1 className="page-title">{t("farmer.listings.title")}</h1>
+        <p
+          style={{
+            fontSize: 14,
+            color: "var(--text-muted)",
+            marginTop: 4,
+            margin: 0,
+          }}
+        >
           {t("farmer.listings.subtitle")}
         </p>
       </div>
@@ -120,41 +167,119 @@ export default function FarmerListings({
           marginBottom: 32,
           boxShadow: "0 4px 20px rgba(23,75,49,0.12)",
           position: "relative",
-          overflow: "hidden"
+          overflow: "hidden",
         }}
       >
-        <div style={{ position: "absolute", right: -20, bottom: -40, opacity: 0.08, transform: "rotate(-15deg)" }}>
+        <div
+          style={{
+            position: "absolute",
+            right: -20,
+            bottom: -40,
+            opacity: 0.08,
+            transform: "rotate(-15deg)",
+          }}
+        >
           <Tractor size={200} />
         </div>
 
-        <div style={{ position: "relative", zIndex: 2, display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 24,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255, 255, 255, 0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                background: "rgba(255, 255, 255, 0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               <Tractor size={32} color="white" />
             </div>
             <div>
               {/* Real farm identity and counts only. This banner used to show a
                   hardcoded "Green Acres Farm / 4.8 / 1,204 sales" to every farmer. */}
-              <h2 style={{ fontSize: 24, fontWeight: 800, margin: 0, letterSpacing: "-0.5px" }}>
+              <h2
+                style={{
+                  fontSize: 24,
+                  fontWeight: 800,
+                  margin: 0,
+                  letterSpacing: "-0.5px",
+                }}
+              >
                 {farm?.farmName ?? t("farmer.listings.yourFarm")}
               </h2>
               {farmPlace ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, opacity: 0.85 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 6,
+                    opacity: 0.85,
+                  }}
+                >
                   <MapPin size={14} />
-                  <span style={{ fontSize: 14, fontWeight: 500 }}>{farmPlace}</span>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>
+                    {farmPlace}
+                  </span>
                 </div>
               ) : null}
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 40, borderInlineStart: "1px solid rgba(255,255,255,0.2)", paddingInlineStart: 40 }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 40,
+              borderInlineStart: "1px solid rgba(255,255,255,0.2)",
+              paddingInlineStart: 40,
+            }}
+          >
             <div>
-              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.active")}</p>
-              <span style={{ fontSize: 22, fontWeight: 800 }}>{activeCount}</span>
+              <p
+                style={{
+                  fontSize: 11,
+                  opacity: 0.7,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  marginBottom: 4,
+                }}
+              >
+                {t("farmer.listings.active")}
+              </p>
+              <span style={{ fontSize: 22, fontWeight: 800 }}>
+                {activeCount}
+              </span>
             </div>
             <div>
-              <p style={{ fontSize: 11, opacity: 0.7, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 4 }}>{t("farmer.listings.hidden")}</p>
-              <span style={{ fontSize: 22, fontWeight: 800 }}>{allListings.length - activeCount}</span>
+              <p
+                style={{
+                  fontSize: 11,
+                  opacity: 0.7,
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                  marginBottom: 4,
+                }}
+              >
+                {t("farmer.listings.hidden")}
+              </p>
+              <span style={{ fontSize: 22, fontWeight: 800 }}>
+                {allListings.length - activeCount}
+              </span>
             </div>
           </div>
         </div>
@@ -162,7 +287,14 @@ export default function FarmerListings({
 
       {/* ── Categories Section Slider ── */}
       <section style={{ marginBottom: 32 }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700, color: "var(--text-dark)", marginBottom: 16 }}>
+        <h2
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: "var(--text-dark)",
+            marginBottom: 16,
+          }}
+        >
           {t("farmer.listings.filterCategory")}
         </h2>
         <div className="category-row">
@@ -171,10 +303,14 @@ export default function FarmerListings({
             const isActive = selectedCategory === cat.id;
             let labelText = cat.label;
             if (cat.id === "All") labelText = t("marketplace.all");
-            else if (cat.id === "Vegetables") labelText = t("farmer.create.cat.veg");
-            else if (cat.id === "Fruits") labelText = t("farmer.create.cat.fruit");
-            else if (cat.id === "Grains") labelText = t("farmer.create.cat.grain");
-            else if (cat.id === "Dairy") labelText = t("farmer.create.cat.dairy");
+            else if (cat.id === "Vegetables")
+              labelText = t("farmer.create.cat.veg");
+            else if (cat.id === "Fruits")
+              labelText = t("farmer.create.cat.fruit");
+            else if (cat.id === "Grains")
+              labelText = t("farmer.create.cat.grain");
+            else if (cat.id === "Dairy")
+              labelText = t("farmer.create.cat.dairy");
 
             return (
               <button
@@ -185,9 +321,7 @@ export default function FarmerListings({
                 <div className="cat-icon-wrapper">
                   <Icon size={24} />
                 </div>
-                <span className="cat-name">
-                  {labelText}
-                </span>
+                <span className="cat-name">{labelText}</span>
               </button>
             );
           })}
@@ -195,10 +329,26 @@ export default function FarmerListings({
       </section>
 
       {/* ── Shelf Action Header ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--text-muted)", margin: 0 }}>
-          {t("farmer.listings.showingCount")
-            .replace("{count}", String(filteredListings.length))}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 16,
+        }}
+      >
+        <h2
+          style={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "var(--text-muted)",
+            margin: 0,
+          }}
+        >
+          {t("farmer.listings.showingCount").replace(
+            "{count}",
+            String(filteredListings.length),
+          )}
         </h2>
         <button
           type="button"
@@ -217,7 +367,8 @@ export default function FarmerListings({
             fontWeight: 700,
           }}
         >
-          <Plus size={16} strokeWidth={2.25} /> {t("farmer.listings.addProduct")}
+          <Plus size={16} strokeWidth={2.25} />{" "}
+          {t("farmer.listings.addProduct")}
         </button>
       </div>
 
@@ -236,68 +387,134 @@ export default function FarmerListings({
             {selectedListing.images?.[0] ? (
               // Photos come from Cloudinary or the API; not optimisable by next/image.
               // eslint-disable-next-line @next/next/no-img-element
-              <img className="fl-detail-photo" src={resolveApiUrl(selectedListing.images[0])} alt="" />
+              <img
+                className="fl-detail-photo"
+                src={resolveApiUrl(selectedListing.images[0])}
+                alt=""
+              />
             ) : (
-              <div className="fl-detail-icon"><Leaf size={24} /></div>
+              <div className="fl-detail-icon">
+                <Leaf size={24} />
+              </div>
             )}
             <div className="fl-detail-title">
               <h3 id="fl-detail-title">{selectedListing.name}</h3>
               <p>{categoryLabel(selectedListing.category)}</p>
             </div>
-            <button type="button" className="fl-detail-close" onClick={closeDetail} aria-label={t("farmer.listings.cancel")}>
+            <button
+              type="button"
+              className="fl-detail-close"
+              onClick={closeDetail}
+              aria-label={t("farmer.listings.cancel")}
+            >
               <X size={20} />
             </button>
           </div>
           <dl className="fl-detail-grid">
             <div>
               <dt>{t("farmer.listings.price")}</dt>
-              <dd>Rs. {selectedListing.price} / {unitLabel(selectedListing.unit)}</dd>
+              <dd>
+                Rs. {selectedListing.price} / {unitLabel(selectedListing.unit)}
+              </dd>
             </div>
             <div>
               <dt>{t("farmer.listings.gradeLabel")}</dt>
-              <dd>{t("farmer.listings.grade").replace("{grade}", selectedListing.grade)}</dd>
+              <dd>
+                {t("farmer.listings.grade").replace(
+                  "{grade}",
+                  selectedListing.grade,
+                )}
+              </dd>
             </div>
             <div>
               <dt>{t("farmer.listings.stockLabel")}</dt>
-              <dd>{selectedListing.quantity} {unitLabel(selectedListing.unit)}</dd>
+              <dd>
+                {selectedListing.quantity} {unitLabel(selectedListing.unit)}
+              </dd>
             </div>
             <div>
               <dt>{t("farmer.listings.statusLabel")}</dt>
               <dd>
-                <span className={selectedListing.status === "Available" ? "fl-status fl-status--ok" : "fl-status fl-status--out"}>
-                  {selectedListing.status === "Available" ? t("farmer.listings.available") : t("farmer.listings.soldOut")}
+                <span
+                  className={
+                    selectedListing.status === "Available"
+                      ? "fl-status fl-status--ok"
+                      : "fl-status fl-status--out"
+                  }
+                >
+                  {selectedListing.status === "Available"
+                    ? t("farmer.listings.available")
+                    : t("farmer.listings.soldOut")}
                 </span>
               </dd>
             </div>
           </dl>
           <div className="fl-detail-desc">
             <h4>{t("farmer.listings.descriptionLabel")}</h4>
-            <p>{selectedListing.description || t("farmer.listings.noDescription")}</p>
+            <p>
+              {selectedListing.description ||
+                t("farmer.listings.noDescription")}
+            </p>
           </div>
         </section>
       ) : null}
 
       {/* ── Empty State / Grid Render Layout ── */}
       {filteredListings.length === 0 ? (
-        <div style={{ background: "white", border: "1px solid var(--surface-medium, #E5E7EB)", borderRadius: "var(--radius-xl, 16px)", textAlign: "center", padding: "48px 24px" }}>
+        <div
+          style={{
+            background: "white",
+            border: "1px solid var(--surface-medium, #E5E7EB)",
+            borderRadius: "var(--radius-xl, 16px)",
+            textAlign: "center",
+            padding: "48px 24px",
+          }}
+        >
           <div
             style={{
-              width: 56, height: 56, borderRadius: "var(--radius-xl, 12px)",
+              width: 56,
+              height: 56,
+              borderRadius: "var(--radius-xl, 12px)",
               background: "var(--primary-green-soft)",
-              display: "flex", alignItems: "center", justifyContent: "center",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
               margin: "0 auto 16px",
             }}
           >
             <Package size={24} color="var(--primary-green)" />
           </div>
-          <p style={{ fontWeight: 700, fontSize: 17, color: "var(--text-dark)", margin: 0 }}>
-            {listings.length === 0 ? t("farmer.listings.emptyTitle") : t("farmer.listings.noProducts")}
+          <p
+            style={{
+              fontWeight: 700,
+              fontSize: 17,
+              color: "var(--text-dark)",
+              margin: 0,
+            }}
+          >
+            {listings.length === 0
+              ? t("farmer.listings.emptyTitle")
+              : t("farmer.listings.noProducts")}
           </p>
-          <p style={{ fontSize: 15, color: "var(--text-muted)", margin: "6px auto 0", maxWidth: 360 }}>
-            {listings.length === 0 ? t("farmer.listings.emptyDesc") : t("farmer.listings.noProductsDesc")}
+          <p
+            style={{
+              fontSize: 15,
+              color: "var(--text-muted)",
+              margin: "6px auto 0",
+              maxWidth: 360,
+            }}
+          >
+            {listings.length === 0
+              ? t("farmer.listings.emptyDesc")
+              : t("farmer.listings.noProductsDesc")}
           </p>
           {listings.length === 0 ? (
-            <button type="button" className="btn btn-primary" style={{ marginTop: 20 }} onClick={onAddClick}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ marginTop: 20 }}
+              onClick={onAddClick}
+            >
               {t("farmer.listings.addProduct")}
             </button>
           ) : null}
@@ -305,11 +522,14 @@ export default function FarmerListings({
       ) : (
         <div className="mp-product-grid">
           {filteredListings.map((listing) => {
-            const isOutStock = listing.status === "Out of Stock";
+            const isOutStock = listing.visibility
+              ? listing.visibility !== "active"
+              : listing.status === "Out of Stock";
             let unitText = listing.unit;
             if (listing.unit === "kg") unitText = t("unit.kg");
             else if (listing.unit === "dozen") unitText = t("unit.dozen");
-            else if (listing.unit === "litre" || listing.unit === "liter") unitText = t("unit.litre");
+            else if (listing.unit === "litre" || listing.unit === "liter")
+              unitText = t("unit.litre");
 
             return (
               <div
@@ -323,16 +543,31 @@ export default function FarmerListings({
                 <div className="mp-card-img">
                   {listing.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img className="mp-card-photo" src={resolveApiUrl(listing.images[0])} alt="" loading="lazy" />
+                    <img
+                      className="mp-card-photo"
+                      src={resolveApiUrl(listing.images[0])}
+                      alt=""
+                      loading="lazy"
+                    />
                   ) : (
                     <Leaf className="leaf" size={56} />
                   )}
                   <div className="mp-card-grade">
-                    <Check size={12} strokeWidth={3} /> {t("farmer.listings.grade").replace("{grade}", listing.grade)}
+                    <Check size={12} strokeWidth={3} />{" "}
+                    {t("farmer.listings.grade").replace(
+                      "{grade}",
+                      listing.grade,
+                    )}
                   </div>
                   {isOutStock && (
                     <div className="mp-card-soldout">
-                      <span>{t("farmer.listings.soldOut")}</span>
+                      <span>
+                        {t(
+                          listing.visibility === "inactive"
+                            ? "farmer.edit.hidden"
+                            : "farmer.listings.soldOut",
+                        )}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -352,7 +587,9 @@ export default function FarmerListings({
                       {listing.name}
                     </button>
                   </div>
-                  <span className={`ledger-chip ledger-chip--${listing.ledger}`}>
+                  <span
+                    className={`ledger-chip ledger-chip--${listing.ledger}`}
+                  >
                     {t(`farmer.ledger.${listing.ledger}`)}
                   </span>
                   <div className="mp-card-farm">
@@ -360,36 +597,89 @@ export default function FarmerListings({
                       .replace("{stock}", String(listing.quantity))
                       .replace("{unit}", unitText)}
                   </div>
-                  <p style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.3px", marginBottom: 12 }}>
-                    {listing.category === "Vegetables" ? t("farmer.create.cat.veg") :
-                     listing.category === "Fruits" ? t("farmer.create.cat.fruit") :
-                     listing.category === "Grains" ? t("farmer.create.cat.grain") :
-                     listing.category === "Dairy" ? t("farmer.create.cat.dairy") : listing.category}
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text-muted)",
+                      textTransform: "uppercase",
+                      fontWeight: 600,
+                      letterSpacing: "0.3px",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {listing.category === "Vegetables"
+                      ? t("farmer.create.cat.veg")
+                      : listing.category === "Fruits"
+                        ? t("farmer.create.cat.fruit")
+                        : listing.category === "Grains"
+                          ? t("farmer.create.cat.grain")
+                          : listing.category === "Dairy"
+                            ? t("farmer.create.cat.dairy")
+                            : listing.category}
                   </p>
 
-                  <div className="mp-card-footer" style={{ borderTop: "1px solid var(--surface-medium)", paddingTop: "12px" }}>
+                  <div
+                    className="mp-card-footer"
+                    style={{
+                      borderTop: "1px solid var(--surface-medium)",
+                      paddingTop: "12px",
+                    }}
+                  >
                     <div className="mp-card-price">
-                      {t("farmer.listings.priceUnit").replace("{price}", String(listing.price))} <span>/ {unitText}</span>
+                      {t("farmer.listings.priceUnit").replace(
+                        "{price}",
+                        String(listing.price),
+                      )}{" "}
+                      <span>/ {unitText}</span>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
+                      {onEdit ? (
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          disabled={Boolean(busyId)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onEdit(listing);
+                          }}
+                        >
+                          {t("farmer.edit.action")}
+                        </button>
+                      ) : null}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onToggleStatus(listing.id);
                         }}
-                        title={isOutStock ? t("farmer.listings.soldOut") : "Toggle Status"}
+                        disabled={Boolean(busyId)}
+                        aria-label={t(
+                          isOutStock ? "farmer.edit.show" : "farmer.edit.hide",
+                        )}
+                        title={t(
+                          isOutStock ? "farmer.edit.show" : "farmer.edit.hide",
+                        )}
                         className="mp-add-btn"
                         style={{
-                          background: isOutStock ? "var(--surface-strong)" : "var(--primary-green-soft)",
-                          color: isOutStock ? "var(--text-muted)" : "var(--primary-green)",
+                          background: isOutStock
+                            ? "var(--surface-strong)"
+                            : "var(--primary-green-soft)",
+                          color: isOutStock
+                            ? "var(--text-muted)"
+                            : "var(--primary-green)",
                         }}
                       >
                         {isOutStock ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
 
-                      <span className="fl-delete-wrap" onClick={(e) => e.stopPropagation()}>
+                      <span
+                        className="fl-delete-wrap"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <InlineConfirm
+                          busy={Boolean(busyId)}
                           label={t("farmer.listings.delete")}
                           prompt={t("farmer.listings.deleteTitle")}
                           confirmLabel={t("farmer.listings.delete")}
@@ -402,13 +692,11 @@ export default function FarmerListings({
                     </div>
                   </div>
                 </div>
-
               </div>
             );
           })}
         </div>
       )}
-
     </div>
   );
 }

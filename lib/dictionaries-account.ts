@@ -4,6 +4,27 @@
  */
 export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
   en: {
+    "notifications.filter": "Filter notifications",
+    "notifications.all": "All",
+    "notifications.inboxHint": "Order, delivery and account updates.",
+    "notifications.loading": "Loading notifications…",
+    "notifications.updating": "Updating…",
+    "notifications.markRead": "Mark as read",
+    "notifications.caughtUp": "You’re all caught up",
+    "notifications.caughtUpHint": "New updates will appear here.",
+    "notifications.emptyHint":
+      "Your order, delivery and account updates will appear here.",
+    "notifications.close": "Close notifications",
+    "notifications.subtitle": "Your latest updates, in one place.",
+    "notifications.browserAlerts": "Browser alerts",
+    "notifications.enabled": "Enabled on this browser",
+    "notifications.disabled": "Disabled on this browser",
+    "account.title": "Your account",
+    "account.subtitle": "Manage your details, preferences and notifications.",
+    "account.navigation": "Account sections",
+    "account.overview": "Overview",
+    "account.details": "Your details",
+
     "confirm.cancel": "Cancel",
 
     "farmer.listings.price": "Price",
@@ -34,7 +55,8 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.farm": "Farm",
     "account.crops": "Crops",
     "account.pickup": "Pickup location",
-    "account.pickupMissing": "No pickup location yet. Buyers can't order from you without one.",
+    "account.pickupMissing":
+      "No pickup location yet. Buyers can't order from you without one.",
     "account.addPickup": "Add it",
     "account.vehicle": "Vehicle",
     "account.vehicleType": "Vehicle type",
@@ -49,9 +71,12 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.signOutConfirm": "Sign out",
 
     "account.editTitle": "Edit profile",
-    "account.editLede": "Change your details here. Your email and CNIC can't be edited.",
-    "account.readOnlyEmail": "Your email is how you sign in, so it can't be changed here.",
-    "account.readOnlyCnic": "Only the last 4 digits are shown. It can't be changed here.",
+    "account.editLede":
+      "Change your details here. Your email and CNIC can't be edited.",
+    "account.readOnlyEmail":
+      "Your email is how you sign in, so it can't be changed here.",
+    "account.readOnlyCnic":
+      "Only the last 4 digits are shown. It can't be changed here.",
     "account.saveBar": "Save changes",
     "account.unsaved": "You have unsaved changes.",
     "account.noChanges": "No changes yet.",
@@ -65,8 +90,10 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.stay": "Keep editing",
     "account.leave": "Leave",
     "account.err.rejected": "Farm2Fork didn't accept this value.",
-    "account.err.checkFields": "Some details weren't accepted. Check the highlighted fields.",
-    "account.err.saveFailed": "We couldn't save your changes. Please try again.",
+    "account.err.checkFields":
+      "Some details weren't accepted. Check the highlighted fields.",
+    "account.err.saveFailed":
+      "We couldn't save your changes. Please try again.",
     "account.err.tooManyCrops": "You can list up to 20 crops.",
 
     "account.photo.title": "Profile photo",
@@ -75,20 +102,45 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.photo.remove": "Remove photo",
     "account.photo.removePrompt": "Remove your photo?",
     "account.photo.removeConfirm": "Remove",
-    "account.photo.hint": "JPEG, PNG or WebP, up to 5 MB. You'll crop it to a square.",
+    "account.photo.hint":
+      "JPEG, PNG or WebP, up to 5 MB. You'll crop it to a square.",
     "account.photo.cropLabel": "Crop your photo",
     "account.photo.zoom": "Zoom",
-    "account.photo.cropHint": "Drag the photo to position it. Arrow keys move it too.",
+    "account.photo.cropHint":
+      "Drag the photo to position it. Arrow keys move it too.",
     "account.photo.use": "Use this photo",
     "account.photo.uploading": "Uploading…",
     "account.photo.saved": "Photo updated.",
     "account.photo.removed": "Photo removed.",
     "account.photo.errType": "Choose a JPEG, PNG or WebP image.",
     "account.photo.errSize": "That image is over 5 MB. Choose a smaller one.",
-    "account.photo.errUpload": "We couldn't upload your photo. Please try again.",
-    "account.photo.errRemove": "We couldn't remove your photo. Please try again.",
+    "account.photo.errUpload":
+      "We couldn't upload your photo. Please try again.",
+    "account.photo.errRemove":
+      "We couldn't remove your photo. Please try again.",
   },
   ur: {
+    "notifications.filter": "اطلاعات چھانٹیں",
+    "notifications.all": "سب",
+    "notifications.inboxHint": "آرڈر، ترسیل اور اکاؤنٹ کی خبریں۔",
+    "notifications.loading": "اطلاعات لوڈ ہو رہی ہیں…",
+    "notifications.updating": "اپ ڈیٹ ہو رہا ہے…",
+    "notifications.markRead": "پڑھی ہوئی نشان زد کریں",
+    "notifications.caughtUp": "تمام اطلاعات پڑھ لی گئی ہیں",
+    "notifications.caughtUpHint": "نئی اطلاعات یہاں نظر آئیں گی۔",
+    "notifications.emptyHint":
+      "آپ کے آرڈر، ترسیل اور اکاؤنٹ کی اطلاعات یہاں نظر آئیں گی۔",
+    "notifications.close": "اطلاعات بند کریں",
+    "notifications.subtitle": "آپ کی تازہ اطلاعات ایک جگہ۔",
+    "notifications.browserAlerts": "براؤزر کی اطلاعات",
+    "notifications.enabled": "اس براؤزر پر فعال",
+    "notifications.disabled": "اس براؤزر پر بند",
+    "account.title": "آپ کا اکاؤنٹ",
+    "account.subtitle": "اپنی تفصیلات، ترجیحات اور اطلاعات کا انتظام کریں۔",
+    "account.navigation": "اکاؤنٹ کے حصے",
+    "account.overview": "خلاصہ",
+    "account.details": "آپ کی تفصیلات",
+
     "confirm.cancel": "منسوخ کریں",
 
     "farmer.listings.price": "قیمت",
@@ -119,7 +171,8 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.farm": "فارم",
     "account.crops": "فصلیں",
     "account.pickup": "وصولی کی جگہ",
-    "account.pickupMissing": "ابھی وصولی کی جگہ نہیں ہے۔ اس کے بغیر خریدار آپ سے آرڈر نہیں کر سکتے۔",
+    "account.pickupMissing":
+      "ابھی وصولی کی جگہ نہیں ہے۔ اس کے بغیر خریدار آپ سے آرڈر نہیں کر سکتے۔",
     "account.addPickup": "شامل کریں",
     "account.vehicle": "گاڑی",
     "account.vehicleType": "گاڑی کی قسم",
@@ -134,9 +187,12 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.signOutConfirm": "سائن آؤٹ",
 
     "account.editTitle": "پروفائل میں ترمیم",
-    "account.editLede": "اپنی تفصیلات یہاں بدلیں۔ ای میل اور شناختی کارڈ میں ترمیم نہیں ہو سکتی۔",
-    "account.readOnlyEmail": "آپ کا ای میل سائن ان کا ذریعہ ہے، اس لیے یہاں نہیں بدلا جا سکتا۔",
-    "account.readOnlyCnic": "صرف آخری 4 ہندسے دکھائے جاتے ہیں۔ یہاں تبدیل نہیں ہو سکتا۔",
+    "account.editLede":
+      "اپنی تفصیلات یہاں بدلیں۔ ای میل اور شناختی کارڈ میں ترمیم نہیں ہو سکتی۔",
+    "account.readOnlyEmail":
+      "آپ کا ای میل سائن ان کا ذریعہ ہے، اس لیے یہاں نہیں بدلا جا سکتا۔",
+    "account.readOnlyCnic":
+      "صرف آخری 4 ہندسے دکھائے جاتے ہیں۔ یہاں تبدیل نہیں ہو سکتا۔",
     "account.saveBar": "تبدیلیاں محفوظ کریں",
     "account.unsaved": "آپ کی تبدیلیاں محفوظ نہیں ہوئیں۔",
     "account.noChanges": "ابھی کوئی تبدیلی نہیں۔",
@@ -146,12 +202,15 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.discard": "رد کریں",
     "account.discardPrompt": "اپنی تبدیلیاں رد کریں؟",
     "account.discardConfirm": "رد کریں",
-    "account.leavePrompt": "آپ کی تبدیلیاں محفوظ نہیں ہوئیں۔ بغیر محفوظ کیے چھوڑ دیں؟",
+    "account.leavePrompt":
+      "آپ کی تبدیلیاں محفوظ نہیں ہوئیں۔ بغیر محفوظ کیے چھوڑ دیں؟",
     "account.stay": "ترمیم جاری رکھیں",
     "account.leave": "چھوڑ دیں",
     "account.err.rejected": "Farm2Fork نے یہ قدر قبول نہیں کی۔",
-    "account.err.checkFields": "کچھ تفصیلات قبول نہیں ہوئیں۔ نمایاں خانے دیکھیں۔",
-    "account.err.saveFailed": "ہم آپ کی تبدیلیاں محفوظ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+    "account.err.checkFields":
+      "کچھ تفصیلات قبول نہیں ہوئیں۔ نمایاں خانے دیکھیں۔",
+    "account.err.saveFailed":
+      "ہم آپ کی تبدیلیاں محفوظ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
     "account.err.tooManyCrops": "آپ زیادہ سے زیادہ 20 فصلیں درج کر سکتے ہیں۔",
 
     "account.photo.title": "پروفائل تصویر",
@@ -160,17 +219,21 @@ export const accountDictionary: Record<"en" | "ur", Record<string, string>> = {
     "account.photo.remove": "تصویر ہٹائیں",
     "account.photo.removePrompt": "اپنی تصویر ہٹائیں؟",
     "account.photo.removeConfirm": "ہٹائیں",
-    "account.photo.hint": "JPEG، PNG یا WebP، 5 MB تک۔ آپ اسے چوکور میں کاٹیں گے۔",
+    "account.photo.hint":
+      "JPEG، PNG یا WebP، 5 MB تک۔ آپ اسے چوکور میں کاٹیں گے۔",
     "account.photo.cropLabel": "اپنی تصویر کاٹیں",
     "account.photo.zoom": "زوم",
-    "account.photo.cropHint": "تصویر کو کھینچ کر ٹھیک جگہ پر لائیں۔ تیر والی کلیدیں بھی کام کرتی ہیں۔",
+    "account.photo.cropHint":
+      "تصویر کو کھینچ کر ٹھیک جگہ پر لائیں۔ تیر والی کلیدیں بھی کام کرتی ہیں۔",
     "account.photo.use": "یہ تصویر استعمال کریں",
     "account.photo.uploading": "اپ لوڈ ہو رہی ہے…",
     "account.photo.saved": "تصویر اپ ڈیٹ ہو گئی۔",
     "account.photo.removed": "تصویر ہٹا دی گئی۔",
     "account.photo.errType": "JPEG، PNG یا WebP تصویر منتخب کریں۔",
     "account.photo.errSize": "یہ تصویر 5 MB سے بڑی ہے۔ چھوٹی تصویر منتخب کریں۔",
-    "account.photo.errUpload": "ہم آپ کی تصویر اپ لوڈ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
-    "account.photo.errRemove": "ہم آپ کی تصویر نہیں ہٹا سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+    "account.photo.errUpload":
+      "ہم آپ کی تصویر اپ لوڈ نہیں کر سکے۔ براہ کرم دوبارہ کوشش کریں۔",
+    "account.photo.errRemove":
+      "ہم آپ کی تصویر نہیں ہٹا سکے۔ براہ کرم دوبارہ کوشش کریں۔",
   },
 };

@@ -5,7 +5,11 @@ import "./globals.css";
 import "./site.css";
 import "./auth.css";
 import "./account.css";
+import "./motion.css";
+import "./product.css";
+import "./buyer.css";
 import PushRuntime from "@/components/PushRuntime";
+import { SESSION_HINT_SCRIPT } from "@/lib/auth/session-hint";
 import { HOME_PAGE } from "@/lib/seo/pages";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo/site";
 
@@ -85,7 +89,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${sans.variable} ${display.variable} ${urdu.variable}`}
+      // The inline script below may add data-f2f-buyer before React hydrates.
+      suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SESSION_HINT_SCRIPT }} />
+      </head>
       <body>
         <PushRuntime />
         {children}

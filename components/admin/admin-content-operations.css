@@ -1,0 +1,73 @@
+.admin-content-action {
+  display: grid;
+  gap: 16px;
+  max-width: 680px;
+  padding-block: 24px;
+  border-block: 1px solid var(--surface-strong);
+  margin-block: 24px;
+}
+.admin-content-action > .btn {
+  justify-self: start;
+}
+.admin-content-copy {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 72ch;
+}
+.admin-content-comment {
+  padding-block: 20px;
+  border-bottom: 1px solid var(--surface-strong);
+}
+.admin-content-comment summary {
+  cursor: pointer;
+  color: var(--primary-green);
+  text-underline-offset: 4px;
+}
+.admin-content-timeline {
+  padding-inline-start: 24px;
+}
+.admin-content-timeline li {
+  padding-block: 8px;
+}
+.admin-content-check {
+  display: flex !important;
+  align-items: start;
+}
+.admin-content-check input {
+  width: 22px;
+  min-height: 22px;
+  flex: 0 0 22px;
+  accent-color: var(--primary-green);
+}
+.admin-operations .data-table td {
+  overflow-wrap: anywhere;
+  max-width: 360px;
+}
+.admin-operations h3 {
+  margin-block: 28px 12px;
+  font-size: 20px;
+}
+.admin-operations dd,
+.admin-operations td {
+  font-variant-numeric: tabular-nums;
+}
+.admin-operations ::selection {
+  background: var(--primary-soft);
+  color: var(--text-main);
+}
+
+.admin-content-images {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-block: 20px;
+}
+.admin-content-images img {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--surface-light);
+}

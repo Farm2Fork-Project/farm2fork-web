@@ -10,6 +10,7 @@ import {
 } from "./firebase-web-auth-repository.ts";
 import { beginFirebaseOnboarding } from "./firebase-onboarding-flow.ts";
 import { resolvePostLoginPath } from "./role-routes.ts";
+import { rememberBuyerSession } from "./session-hint.ts";
 
 /**
  * The one sign-in flow for every role: email, Google and the Google redirect
@@ -29,6 +30,7 @@ export function useAuthFlow({ resumeRedirect = false, onError }: { resumeRedirec
   const afterResult = useCallback(
     (result: FirebaseWebAuthResult) => {
       if (result.kind === "session") {
+        if (result.user.role === "buyer") rememberBuyerSession();
         router.replace(resolvePostLoginPath(result.user.role, next));
         return;
       }

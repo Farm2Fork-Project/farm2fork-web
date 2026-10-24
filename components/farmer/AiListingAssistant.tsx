@@ -181,6 +181,14 @@ export default function AiListingAssistant({
     ? Math.round((price.predictedMinPrice + price.predictedMaxPrice) / 2)
     : 0;
   const untrained = status?.qualityModel === "untrained";
+  const observedOn = price
+    ? new Intl.DateTimeFormat(language === "ur" ? "ur-PK" : "en-PK", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${price.observedOn}T00:00:00Z`))
+    : "";
 
   return (
     <section className="card ai-assist" aria-labelledby="ai-assist-title">
@@ -220,7 +228,13 @@ export default function AiListingAssistant({
               })}
             </div>
             <p className="ai-note">
-              <Info size={13} aria-hidden="true" /> {t("farmer.ai.priceRuleBased")}
+              <Info size={13} aria-hidden="true" />{" "}
+              {price.marketScope === "Punjab"
+                ? fill(t("farmer.ai.pricePunjab"), { count: price.marketCount, date: observedOn })
+                : fill(t("farmer.ai.priceLocal"), { market: price.marketScope, date: observedOn })}
+            </p>
+            <p className="ai-note">
+              {fill(t("farmer.ai.priceSource"), { commodity: price.commodity })}
             </p>
             <button
               type="button"
@@ -300,7 +314,23 @@ export default function AiListingAssistant({
         {qualityError ? (
           <p className="ai-note ai-note--error" role="alert">{qualityError}</p>
         ) : null}
-        {quality ? (
+        {quality && (quality.needsReview || quality.modelGrade === null) ? (
+          <div className="ai-result" aria-live="polite">
+            <div className="ai-result-main">{t("farmer.ai.review.title")}</div>
+            <p className="ai-note ai-note--warn">
+              {t(`farmer.ai.review.${quality.reviewReason ?? "low_confidence"}`)}
+            </p>
+            <p className="ai-note">{t("farmer.ai.review.tips")}</p>
+            <button
+              type="button"
+              className="ai-link"
+              onClick={() => photoInput.current?.click()}
+            >
+              {t("farmer.ai.review.retake")}
+            </button>
+            <p className="ai-note">{t("farmer.ai.review.manual")}</p>
+          </div>
+        ) : quality?.modelGrade ? (
           <div className="ai-result" aria-live="polite">
             <div className="ai-result-main">
               {fill(t("farmer.ai.gradeResult"), {

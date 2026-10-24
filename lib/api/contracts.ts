@@ -167,9 +167,15 @@ export interface AiStatus {
   priceMethod?: string;
 }
 
+export type QualityReviewReason =
+  | "low_confidence"
+  | "unfamiliar_photo"
+  | "photo_check_unavailable";
+
 export interface QualityCheckResult {
   predictionId: string;
-  modelGrade: "A" | "B" | "C" | "D";
+  /** null when the photo needs review: no grade may be shown. */
+  modelGrade: "A" | "B" | "C" | "D" | null;
   /** null when the model says D (below any listable grade). */
   suggestedListingGrade: "A" | "B" | "C" | null;
   confidenceScore: number;
@@ -177,6 +183,9 @@ export interface QualityCheckResult {
   crop: GradableCrop;
   cropSupported: boolean;
   lowConfidence: boolean;
+  /** Ask for a retake or a manual grade instead of showing a grade. */
+  needsReview: boolean;
+  reviewReason: QualityReviewReason | null;
   modelStatus: "trained" | "untrained";
   modelVersion: string;
 }
@@ -194,9 +203,16 @@ export interface PriceSuggestion {
   predictedMinPrice: number;
   predictedMaxPrice: number;
   unit: FarmerProductUnit;
-  confidenceScore: number;
-  method: "rule_based";
-  basis: "crop" | "category";
+  /** Observed AMIS Punjab wholesale prices, not a prediction. */
+  method: "official_wholesale";
+  commodity: string;
+  /** Mandi trading day, YYYY-MM-DD. */
+  observedOn: string;
+  /** The farmer's own market, or "Punjab" for the middle half of markets. */
+  marketScope: string;
+  marketCount: number;
+  source: string;
+  sourceUrl: string;
   modelVersion: string;
 }
 

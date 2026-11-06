@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   TraceRepository,
   parseTraceProductId,
+  parseTraceLink,
   shortenTxHash,
 } from "./trace-repository.ts";
 
@@ -13,9 +14,29 @@ describe("parseTraceProductId", () => {
   });
 
   it("extracts the id from a scanned QR trace URL", () => {
+    expect(parseTraceProductId(`https://farm2fork.tech/trace/${ID}`)).toBe(ID);
     expect(parseTraceProductId(`https://farm2fork.com/trace/${ID}`)).toBe(ID);
-    expect(parseTraceProductId(`http://localhost:3001/trace/${ID}/`)).toBe(ID);
-    expect(parseTraceProductId(`https://x.pk/trace/${ID}?src=qr#top`)).toBe(ID);
+    expect(
+      parseTraceProductId(`https://farm2fork.tech/trace/products/${ID}`),
+    ).toBe(ID);
+    expect(
+      parseTraceLink(`https://preview.test/trace/orders/${ID}`, {
+        currentOrigin: "https://preview.test",
+      }),
+    ).toEqual({ kind: "order", id: ID });
+    expect(parseTraceLink(`farm2fork://app/trace/orders/${ID}`)).toEqual({
+      kind: "order",
+      id: ID,
+    });
+    expect(parseTraceProductId(`https://x.pk/trace/${ID}?src=qr`)).toBeNull();
+    expect(parseTraceLink(`https://farm2fork.tech/arbitrary/${ID}`)).toBeNull();
+    expect(parseTraceLink(`javascript://app/trace/${ID}`)).toBeNull();
+    expect(
+      parseTraceLink(`https://farm2fork.tech.evil.test/trace/${ID}`),
+    ).toBeNull();
+    expect(
+      parseTraceProductId(`farm2fork://app/trace/orders/${ID}`),
+    ).toBeNull();
   });
 
   it("rejects input that cannot be a product id", () => {
@@ -27,6 +48,14 @@ describe("parseTraceProductId", () => {
 });
 
 describe("TraceRepository", () => {
+  it("reads order trace and authenticated QR endpoints", async () => {
+    const request = vi.fn().mockResolvedValue({ events: [] });
+    const repository = new TraceRepository({ client: { request } });
+    await repository.getOrderTrace(ID);
+    await repository.getOrderQr(ID);
+    expect(request).toHaveBeenNthCalledWith(1, `/trace/orders/${ID}`);
+    expect(request).toHaveBeenNthCalledWith(2, `/orders/${ID}/qr`);
+  });
   it("reads the public trace endpoint for a product", async () => {
     const request = vi.fn().mockResolvedValue({ events: [] });
     const repository = new TraceRepository({ client: { request } });

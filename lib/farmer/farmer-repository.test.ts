@@ -130,3 +130,8 @@ test("FarmerRepository uploads listing photos as multipart and returns their URL
   expect(calls[0].options?.method).toBe("POST");
   expect((calls[0].options?.body as FormData).getAll("images")).toEqual([photo]);
 });
+
+test("price repository rejects obsolete responses without official provenance", async () => {
+  const repository = new FarmerRepository({ client: { request: async <T,>() => ({ method: "rule_based", predictedMinPrice: 10, predictedMaxPrice: 20 }) as T } });
+  await expect(repository.suggestPrice({ productName: "Mango", category: "fruit", unit: "kg" })).rejects.toMatchObject({ status: 422 });
+});

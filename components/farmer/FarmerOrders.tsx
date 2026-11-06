@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { OrderQr } from "@/components/orders/OrderQr";
 import { DeliveryTracking } from "@/components/orders/DeliveryTracking";
 import type { ApiOrder, ApiShipment } from "@/lib/api/contracts.ts";
 import { orderStatusClass } from "@/lib/status.ts";
@@ -169,8 +170,10 @@ function FarmerOrderCard({
           <span>Rs {order.grandTotal}</span>
         </div>
       </div>
+      <OrderQr orderId={order.id} eligible={order.canViewQr === true} />
       <DeliveryTracking
         shipment={shipment}
+        liveMapFor="farmer"
         unavailable={shipmentError}
         address={order.shippingAddress}
         orderStatus={order.status}

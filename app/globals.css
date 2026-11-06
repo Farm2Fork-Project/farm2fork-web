@@ -7082,3 +7082,24 @@ ol.scan-timeline {
 .listing-visibility input { width: 20px; height: 20px; accent-color: var(--primary-green); }
 .lc-photo-add:focus-within { outline: 2px solid var(--primary-green); outline-offset: 3px; }
 .order-delivery-address p, .order-card-id { overflow-wrap: anywhere; }
+
+/* On-demand paid-order label and camera, using the shared marketplace tokens. */
+.order-qr-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; margin: auto; padding: var(--sp-xxl); border: 1px solid var(--border-light); border-radius: var(--radius-xl); background: var(--white); color: var(--text-main); }
+.order-qr-dialog::backdrop { background: rgb(31 46 36 / 45%); }
+.order-qr-head, .order-qr-actions { display: flex; align-items: center; gap: var(--sp-sm); flex-wrap: wrap; }
+.order-qr-head { justify-content: space-between; }
+.order-qr-head h2 { font-family: var(--font-display); font-weight: 400; }
+.order-qr-image { display: block; margin: var(--sp-lg) auto; max-width: 100%; height: auto; background: white; }
+.order-qr-url { overflow-wrap: anywhere; user-select: all; }
+.trace-camera { display: grid; gap: var(--sp-md); margin-bottom: var(--sp-lg); }
+.trace-camera video { width: 100%; max-height: 420px; border-radius: var(--radius-lg); background: var(--text-main); }
+
+/* Public QR journeys retain language switching at narrow widths. */
+.trace-page-bar .market-language { display: inline-flex; }
+.private-order-details { max-width: 760px; margin-inline: auto; min-width: 0; }
+.private-order-details .scan-product-card { padding: var(--sp-xxl); overflow-wrap: anywhere; }
+.private-order-details h2 { margin-block: var(--sp-lg) var(--sp-sm); }
+.private-order-details ul { padding-inline-start: var(--sp-xl); }
+.private-order-details li { margin-block: var(--sp-sm); }
+.private-order-details dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sp-sm) var(--sp-lg); margin-block: var(--sp-xl); }
+.private-order-details dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }

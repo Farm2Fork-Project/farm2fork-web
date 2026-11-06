@@ -230,3 +230,15 @@
   .ac-hero .ac-edit { margin-inline-start: 104px; }
   .ac-card { padding: 20px; }
 }
+
+/* Delivery map (transporter active job, buyer and farmer tracking) */
+.delivery-map { display: flex; flex-direction: column; gap: var(--sp-sm); }
+.delivery-map-canvas { position: relative; height: 260px; overflow: hidden; border: 1px solid var(--surface-strong); border-radius: var(--radius-lg); }
+.delivery-map-legend { display: flex; flex-wrap: wrap; gap: var(--sp-sm) var(--sp-md); margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--text-muted); }
+.delivery-map-legend li { display: inline-flex; align-items: center; gap: 6px; }
+.delivery-map-legend a { font-weight: 700; color: var(--secondary-blue); }
+.delivery-map-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--surface-strong); }
+.delivery-map-dot--pickup { background: #2f7d32; }
+.delivery-map-dot--dropoff { background: #e07b00; }
+.delivery-map-dot--transporter { background: #6a3fb5; }
+.delivery-map-caption { margin: 0; font-size: 13px; color: var(--text-muted); }

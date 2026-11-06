@@ -14,6 +14,8 @@ import { TransporterAvailability } from "./TransporterAvailability";
 import { orderStatusClass } from "@/lib/status.ts";
 import { useLanguage } from "./LanguageContext";
 import { IcMapPin, IcSearch, IcStore, IcTruck } from "@/components/icons";
+import DeliveryMap, { googleMapsDirectionsUrl, type DeliveryMapPoint } from "@/components/maps/DeliveryMap";
+import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 
 type ShipmentRepositoryPort = Pick<
   ShipmentRepository,
@@ -421,7 +423,7 @@ function OwnedShipments({
               {shipment.deliveryFee.toLocaleString("en-PK")}
             </p>
           ) : null}
-          {["assigned", "picked_up", "in_transit"].includes(shipment.status) && <p><strong>{ur ? "موجودہ ڈیلیوری" : "Active delivery"}</strong> · <a target="_blank" rel="noopener noreferrer" href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(formatAddress(shipment.status === "assigned" ? shipment.pickupAddress : shipment.deliveryAddress))}`}>{ur ? "راستہ کھولیں" : "Open directions"}</a><span> · {ur ? "نقشہ دستیاب نہ ہو تو اوپر دیا گیا پتہ استعمال کریں۔" : "If maps is unavailable, use the address above."}</span></p>}
+          {["assigned", "picked_up", "in_transit"].includes(shipment.status) && <ActiveDeliveryMap shipment={shipment} ur={ur} />}
           <ShipmentContacts shipment={shipment} />
           <DriverHandover repository={handoverRepository} shipment={shipment} onUpdated={onUpdated} requestLock={requestLock} onBusy={busy => onBusy(shipment.id, busy)} />
           <ShipmentActions
@@ -446,6 +448,42 @@ function OwnedShipments({
         </article>
       ))}
     </section>
+  );
+}
+
+function pinOf(address: ApiShipment["pickupAddress"] | undefined): GeoPoint | null {
+  return typeof address?.lat === "number" && typeof address?.lng === "number"
+    ? { lat: address.lat, lng: address.lng }
+    : null;
+}
+
+/** Both stops on a map, with directions to the next one. */
+function ActiveDeliveryMap({ shipment, ur }: { shipment: ApiShipment; ur: boolean }) {
+  const pickup = pinOf(shipment.pickupAddress);
+  const dropoff = pinOf(shipment.deliveryAddress);
+  const toPickup = shipment.status === "assigned";
+  const next = toPickup ? pickup : dropoff;
+  const directions = next
+    ? googleMapsDirectionsUrl(next)
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(formatAddress(toPickup ? shipment.pickupAddress : shipment.deliveryAddress))}`;
+  const points: DeliveryMapPoint[] = [
+    ...(pickup ? [{ id: "pickup", point: pickup, kind: "pickup" as const, label: ur ? "پک اپ (فارم)" : "Pickup (farm)" }] : []),
+    ...(dropoff ? [{ id: "dropoff", point: dropoff, kind: "dropoff" as const, label: ur ? "ڈراپ آف (خریدار)" : "Drop-off (buyer)" }] : []),
+  ];
+  return (
+    <div className="active-delivery-map">
+      <p>
+        <strong>{ur ? "موجودہ ڈیلیوری" : "Active delivery"}</strong> ·{" "}
+        <a target="_blank" rel="noopener noreferrer" href={directions}>
+          {toPickup ? (ur ? "پک اپ تک راستہ" : "Directions to pickup") : (ur ? "ڈراپ آف تک راستہ" : "Directions to drop-off")}
+        </a>
+      </p>
+      <DeliveryMap
+        points={points}
+        title={ur ? "ڈیلیوری کا نقشہ" : "Delivery map"}
+        openLabel={ur ? "گوگل میپس میں کھولیں" : "Open in Google Maps"}
+      />
+    </div>
   );
 }
 

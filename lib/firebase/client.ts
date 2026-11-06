@@ -149,6 +149,17 @@ export function resolveFirebaseAuthDomain(
   );
 }
 
+/** Resolve local auth before validating the complete Firebase configuration. */
+export function resolveFirebaseClientConfig(
+  environment: FirebasePublicEnvironment,
+  origin: FirebaseBrowserOrigin,
+): FirebaseClientConfig {
+  return getFirebaseClientConfig({
+    ...environment,
+    NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: resolveFirebaseAuthDomain(environment, origin),
+  });
+}
+
 export async function signInWithGoogleForOrigin(
   auth: Auth,
   provider: GoogleAuthProvider,
@@ -165,16 +176,16 @@ async function getFirebaseAuth(
   origin: FirebaseBrowserOrigin = currentBrowserOrigin(),
 ): Promise<Auth> {
   authPromise ??= (async () => {
-    const config = {
-      ...getFirebaseClientConfig(),
-      authDomain: resolveFirebaseAuthDomain(firebasePublicEnvironment, origin),
-    };
+    const config = resolveFirebaseClientConfig(firebasePublicEnvironment, origin);
     const app = getApps().length > 0 ? getApp() : initializeApp(config);
     const auth = getAuth(app);
     await setPersistence(auth, inMemoryPersistence);
     initializedAuth = auth;
     return auth;
-  })();
+  })().catch((error: unknown) => {
+    authPromise = undefined;
+    throw error;
+  });
   return authPromise;
 }
 

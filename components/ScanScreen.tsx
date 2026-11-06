@@ -1,24 +1,28 @@
 "use client";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { LuArrowLeft, LuInfo, LuRefreshCw, LuSearch } from "react-icons/lu";
 import { ApiClient } from "@/lib/api/client.ts";
 import { ApiError } from "@/lib/api/contracts.ts";
 import {
   type ProductTrace,
+  type OrderTrace,
+  type TraceLink,
   TraceRepository,
-  parseTraceProductId,
+  parseTraceLink,
 } from "@/lib/trace/trace-repository.ts";
 import { useLanguage } from "./LanguageContext";
+import TraceCamera from "./trace/TraceCamera";
+import OrderTraceJourney from "./trace/OrderTraceJourney";
 import TraceJourney from "./trace/TraceJourney";
 
 type LookupState =
   | { kind: "idle" }
   | { kind: "invalid" }
-  | { kind: "loading"; productId: string }
-  | { kind: "not_found"; productId: string }
-  | { kind: "error"; productId: string }
-  | { kind: "loaded"; trace: ProductTrace };
+  | { kind: "loading"; target: TraceLink }
+  | { kind: "not_found"; target: TraceLink }
+  | { kind: "error"; target: TraceLink }
+  | { kind: "loaded"; trace: ProductTrace | OrderTrace };
 
 /**
  * In-app product trace lookup (buyer, farmer and transporter portals).
@@ -26,7 +30,7 @@ type LookupState =
  * ledger-backed journey from the public trace API.
  */
 export default function ScanScreen() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const repository = useMemo(
     () => new TraceRepository({ client: new ApiClient() }),
     [],
@@ -34,27 +38,27 @@ export default function ScanScreen() {
   const [query, setQuery] = useState("");
   const [state, setState] = useState<LookupState>({ kind: "idle" });
 
-  const lookup = async (productId: string) => {
-    setState({ kind: "loading", productId });
+  const [camera, setCamera] = useState(false);
+  const inFlight = useRef(false);
+  const active = useRef(true);
+  useEffect(() => {active.current = true; return () => {active.current = false;};}, []);
+  const lookup = async (target: TraceLink) => {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setCamera(false);
+    setState({ kind: "loading", target });
     try {
-      setState({ kind: "loaded", trace: await repository.getProductTrace(productId) });
+      const trace = target.kind === "order" ? await repository.getOrderTrace(target.id) : await repository.getProductTrace(target.id);
+      if (active.current) setState({ kind: "loaded", trace });
     } catch (error) {
-      setState(
-        error instanceof ApiError && error.status === 404
-          ? { kind: "not_found", productId }
-          : { kind: "error", productId },
-      );
-    }
+      if (active.current) setState(error instanceof ApiError && error.status === 404 ? { kind: "not_found", target } : { kind: "error", target });
+    } finally {inFlight.current = false;}
   };
-
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
-    const productId = parseTraceProductId(query);
-    if (!productId) {
-      setState({ kind: "invalid" });
-      return;
-    }
-    void lookup(productId);
+    const target = parseTraceLink(query);
+    if (!target) {setState({ kind: "invalid" }); return;}
+    void lookup(target);
   };
 
   if (state.kind === "loaded") {
@@ -66,7 +70,7 @@ export default function ScanScreen() {
         <div className="scan-header">
           <h1>{t("scan.traceTitle")}</h1>
         </div>
-        <TraceJourney trace={state.trace} />
+        {"order" in state.trace ? <OrderTraceJourney trace={state.trace} /> : <TraceJourney trace={state.trace} />}
       </>
     );
   }
@@ -74,6 +78,7 @@ export default function ScanScreen() {
   const busy = state.kind === "loading";
   return (
     <div className="qr-scanner-area">
+      {camera ? <TraceCamera onAccept={target => void lookup(target)} onStop={() => setCamera(false)} /> : <button type="button" className="btn btn-primary" disabled={busy} onClick={() => setCamera(true)}>{language === "ur" ? "کیمرے سے اسکین کریں" : "Scan with camera"}</button>}
       <form className="trace-search" onSubmit={onSubmit} role="search">
         <label htmlFor="trace-search-input" className="sr-only">
           {t("scan.placeholder")}
@@ -118,7 +123,7 @@ export default function ScanScreen() {
             <button
               type="button"
               className="btn btn-outline"
-              onClick={() => void lookup(state.productId)}
+              onClick={() => void lookup(state.target)}
             >
               {t("trace.retry")}
             </button>

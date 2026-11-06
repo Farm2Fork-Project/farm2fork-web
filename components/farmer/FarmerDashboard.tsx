@@ -137,6 +137,27 @@ export default function FarmerDashboard({
     };
   }, [activeTab, repository, reload]);
 
+  // While a transporter is heading to the farm, keep the pickup map current
+  // without reloading the order list.
+  const awaitingPickup = shipments.some((s) => s.status === "assigned");
+  useEffect(() => {
+    if (activeTab !== "orders" || !awaitingPickup) return;
+    let active = true;
+    const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      repository
+        .listShipments()
+        .then((next) => {
+          if (active) setShipments(next);
+        })
+        .catch(() => undefined);
+    }, 30_000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [activeTab, awaitingPickup, repository]);
+
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 

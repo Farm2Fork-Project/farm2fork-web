@@ -1,11 +1,14 @@
 import type { LoanStatus } from "@/lib/loans/loan-repository.ts";
 
-const pkr = new Intl.NumberFormat("en-PK", { maximumFractionDigits: 0 });
+export const money = (amount: number, language = "en") =>
+  `${language === "ur" ? "روپے" : "Rs"} ${new Intl.NumberFormat(language === "ur" ? "ur-PK" : "en-PK", { maximumFractionDigits: 0 }).format(amount)}`;
 
-export const money = (amount: number) => `Rs ${pkr.format(amount)}`;
-
-export const shortDate = (iso: string) =>
-  new Intl.DateTimeFormat("en-PK", { dateStyle: "medium" }).format(new Date(iso));
+export const shortDate = (iso: string, language = "en") => {
+  const date = new Date(iso);
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat(language === "ur" ? "ur-PK" : "en-PK", { dateStyle: "medium" }).format(date)
+    : "—";
+};
 
 export const STATUS_LABEL: Record<LoanStatus, string> = {
   pending: "Submitted",

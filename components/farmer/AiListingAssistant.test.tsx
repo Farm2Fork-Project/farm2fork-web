@@ -28,19 +28,22 @@ function renderAssistant(client: AiAssistantClient, overrides: Partial<{ product
 
 const quality = (overrides: Partial<QualityCheckResult> = {}): QualityCheckResult => ({
   predictionId: "p1",
+  needsReview: false,
+  reviewReason: null,
+  photoSimilarity: 0.9,
   modelGrade: "B",
   suggestedListingGrade: "B",
-  confidenceScore: 0.26,
+  confidenceScore: 0.9,
   probabilities: { A: 0.25, B: 0.26, C: 0.24, D: 0.25 },
   crop: "mango",
   cropSupported: true,
-  lowConfidence: true,
-  modelStatus: "untrained",
+  lowConfidence: false,
+  modelStatus: "trained",
   modelVersion: "grade-cond-efficientnet_b0-untrained",
   ...overrides,
 });
 
-test("labels the rule-based price and lets the farmer apply the midpoint", async () => {
+test("labels the official wholesale price and lets the farmer apply the midpoint", async () => {
   const user = userEvent.setup();
   const client: AiAssistantClient = {
     aiStatus: vi.fn().mockResolvedValue({ available: true, qualityModel: "trained" }),
@@ -49,9 +52,14 @@ test("labels the rule-based price and lets the farmer apply the midpoint", async
       predictedMinPrice: 154,
       predictedMaxPrice: 352,
       unit: "kg",
-      confidenceScore: 0.45,
-      method: "rule_based",
-      basis: "crop",
+      method: "official_wholesale",
+      currency: "PKR",
+      commodity: "Mango",
+      observedOn: "2026-06-01",
+      marketScope: "Punjab",
+      marketCount: 2,
+      source: "AMIS",
+      sourceUrl: "https://amis.pk",
       modelVersion: "price-rules-v1",
     }),
     checkQuality: vi.fn(),
@@ -61,7 +69,7 @@ test("labels the rule-based price and lets the farmer apply the midpoint", async
   await user.click(await screen.findByRole("button", { name: "Suggest a price" }));
 
   expect(await screen.findByText("Rs 154 – 352 per kg")).toBeTruthy();
-  expect(screen.getByText(/not live market data/)).toBeTruthy();
+  expect(screen.getByText(/not live market or farm-gate prices/)).toBeTruthy();
   expect(client.suggestPrice).toHaveBeenCalledWith({
     productName: "Chaunsa Mangoes",
     category: "fruits",
@@ -89,8 +97,8 @@ test("requires a deliberate crop choice and applies a grade only on confirmation
   await user.click(screen.getByRole("button", { name: "Check quality" }));
 
   expect(client.checkQuality).toHaveBeenCalledWith(photo, "mango");
-  expect(await screen.findByText("Suggested grade B · 26% model confidence")).toBeTruthy();
-  expect(screen.getByText(/Preview only/)).toBeTruthy();
+  expect(await screen.findByText("Suggested grade B · 90% model confidence")).toBeTruthy();
+
   expect(onApplyGrade).not.toHaveBeenCalled();
   expect(screen.getByText(/does not certify quality/)).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Use grade B" }));

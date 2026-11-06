@@ -188,6 +188,7 @@ test.each([false, true])(
       checkQuality: vi.fn().mockResolvedValue({
         modelGrade: "B",
         suggestedListingGrade: "B",
+        needsReview: false, reviewReason: null, photoSimilarity: 0.9,
         confidenceScore: 0.8,
         crop: "mango",
         cropSupported: true,

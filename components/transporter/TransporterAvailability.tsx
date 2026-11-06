@@ -51,7 +51,9 @@ export function TransporterAvailability({
     return () => document.removeEventListener('visibilitychange', changed);
   }, []);
   useEffect(() => {
-    if (!status?.online || !gpsEnabled) return;
+    // Keep sharing during a delivery even when offline for new offers: the
+    // farmer and buyer follow the active job on their tracking map.
+    if (!(status?.online || status?.activeShipmentId) || !gpsEnabled) return;
     let cancelled = false;
     let running = false;
     const measure = async () => {
@@ -72,7 +74,7 @@ export function TransporterAvailability({
     const timer = setInterval(() => void measure(),45000);
     document.addEventListener('visibilitychange', resume);
     return () => { cancelled = true; clearInterval(timer); document.removeEventListener('visibilitychange',resume); };
-  }, [status?.online, gpsEnabled, repository, onRefresh, ur]);
+  }, [status?.online, status?.activeShipmentId, gpsEnabled, repository, onRefresh, ur]);
   useEffect(() => {
     let active = true;
     repository

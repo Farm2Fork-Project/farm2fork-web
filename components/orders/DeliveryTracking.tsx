@@ -1,7 +1,15 @@
 "use client";
+import { useEffect, useState } from "react";
 import { BuyerDeliveryCode } from "@/components/delivery/BuyerDeliveryCode";
 import type { ApiOrderAddress, ApiShipment } from "@/lib/api/contracts";
 import { useLanguage } from "@/components/LanguageContext";
+import DeliveryMap, { type DeliveryMapPoint } from "@/components/maps/DeliveryMap";
+
+/** Shipment states in which each viewer follows the transporter. */
+const LIVE_STATES = {
+  buyer: ["picked_up", "in_transit"],
+  farmer: ["assigned"],
+} as const;
 
 export function DeliveryTracking({
   shipment,
@@ -10,6 +18,8 @@ export function DeliveryTracking({
   address,
   showHistory = true,
   showDeliveryCode = false,
+  liveMapFor,
+  now,
 }: {
   shipment?: ApiShipment;
   orderStatus: string;
@@ -18,6 +28,10 @@ export function DeliveryTracking({
   /** Set false when the caller already draws the shipment's steps. */
   showHistory?: boolean;
   showDeliveryCode?: boolean;
+  /** Shows the transporter against the viewer's own place while they wait. */
+  liveMapFor?: "buyer" | "farmer";
+  /** Injected by tests. */
+  now?: number;
 }) {
   const { language } = useLanguage();
   const ur = language === "ur";
@@ -75,6 +89,9 @@ export function DeliveryTracking({
             {states[shipment.status] ?? shipment.status}
           </p>
           {showDeliveryCode && ["assigned", "picked_up", "in_transit"].includes(shipment.status) && <BuyerDeliveryCode key={`${shipment.id}:${shipment.transporterId}`} shipmentId={shipment.id} />}
+          {liveMapFor && (LIVE_STATES[liveMapFor] as readonly string[]).includes(shipment.status) ? (
+            <LiveDeliveryMap shipment={shipment} viewer={liveMapFor} ur={ur} now={now} />
+          ) : null}
           {showHistory && shipment.statusHistory.length > 0 ? (
             <ol className="shipment-timeline">
               {shipment.statusHistory.map((entry) => (
@@ -91,5 +108,67 @@ export function DeliveryTracking({
         </>
       )}
     </div>
+  );
+}
+
+function LiveDeliveryMap({
+  shipment,
+  viewer,
+  ur,
+  now,
+}: {
+  shipment: ApiShipment;
+  viewer: "buyer" | "farmer";
+  ur: boolean;
+  now?: number;
+}) {
+  const [clock, setClock] = useState(() => Date.now());
+  useEffect(() => {
+    if (now !== undefined) return;
+    const timer = setInterval(() => setClock(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, [now]);
+  const current = now ?? clock;
+  const place = viewer === "farmer" ? shipment.pickupAddress : shipment.deliveryAddress;
+  const located = shipment.transporterLocation;
+  const points: DeliveryMapPoint[] = [];
+  // Legacy shipments may lack an address pin.
+  if (typeof place?.lat === "number" && typeof place?.lng === "number") {
+    points.push({
+      id: "place",
+      point: { lat: place.lat, lng: place.lng },
+      kind: viewer === "farmer" ? "pickup" : "dropoff",
+      label: viewer === "farmer" ? (ur ? "آپ کا فارم" : "Your farm") : ur ? "آپ کا ڈراپ آف" : "Your drop-off",
+    });
+  }
+  if (located) {
+    points.push({
+      id: "transporter",
+      point: { lat: located.lat, lng: located.lng },
+      kind: "transporter",
+      label: ur ? "ٹرانسپورٹر" : "Transporter",
+    });
+  }
+  const minutes = located ? Math.max(0, Math.floor((current - new Date(located.at).getTime()) / 60000)) : null;
+  const caption =
+    minutes === null
+      ? ur
+        ? "ٹرانسپورٹر کی ایپ کھلی ہونے پر اُن کا مقام یہاں نظر آتا ہے۔"
+        : "The transporter's position appears here while their app is open."
+      : minutes < 1
+        ? ur
+          ? "ٹرانسپورٹر کا مقام ابھی اپ ڈیٹ ہوا۔"
+          : "Transporter position updated just now."
+        : ur
+          ? `ٹرانسپورٹر کا مقام ${minutes} منٹ پہلے اپ ڈیٹ ہوا۔`
+          : `Transporter position updated ${minutes} min ago.`;
+  if (points.length === 0) return <p className="delivery-map-caption">{caption}</p>;
+  return (
+    <DeliveryMap
+      points={points}
+      caption={caption}
+      title={ur ? "ترسیل کا براہِ راست نقشہ" : "Live delivery map"}
+      openLabel={ur ? "گوگل میپس میں کھولیں" : "Open in Google Maps"}
+    />
   );
 }

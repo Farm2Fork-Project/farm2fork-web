@@ -59,6 +59,9 @@ type BuyerRepositoryPort = Partial<Pick<BuyerRepository, "cancelOrder">> &
     | "simulatePaymentSuccess"
   >;
 
+/** How often an open orders tab refreshes a delivery that is on the way. */
+const LIVE_REFRESH_MS = 30_000;
+
 export function BuyerApp({
   repository,
   onLogout,
@@ -247,6 +250,18 @@ export function BuyerApp({
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [activeTab, buyer, refreshOrders]);
+
+  // While goods are on the way, keep the live delivery map current.
+  const followingDelivery = Boolean(
+    shipments?.some((s) => s.status === "picked_up" || s.status === "in_transit"),
+  );
+  useEffect(() => {
+    if (!buyer || activeTab !== "orders" || !followingDelivery) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") void refreshOrders();
+    }, LIVE_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [activeTab, buyer, followingDelivery, refreshOrders]);
 
   useEffect(() => {
     cartRef.current = cart;

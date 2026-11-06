@@ -169,8 +169,11 @@ export interface AiStatus {
 
 export interface QualityCheckResult {
   predictionId: string;
+  needsReview: boolean;
+  reviewReason: "low_confidence" | "unfamiliar_photo" | "photo_check_unavailable" | "unsupported_crop" | "untrained_model" | null;
+  photoSimilarity: number | null;
   modelGrade: "A" | "B" | "C" | "D";
-  /** null when the model says D (below any listable grade). */
+  /** null when review is required or the model says D (below listing grades). */
   suggestedListingGrade: "A" | "B" | "C" | null;
   confidenceScore: number;
   probabilities: Record<string, number>;
@@ -194,9 +197,14 @@ export interface PriceSuggestion {
   predictedMinPrice: number;
   predictedMaxPrice: number;
   unit: FarmerProductUnit;
-  confidenceScore: number;
-  method: "rule_based";
-  basis: "crop" | "category";
+  method: "official_wholesale";
+  currency: "PKR";
+  commodity: string;
+  observedOn: string;
+  marketScope: string;
+  marketCount: number;
+  source: string;
+  sourceUrl: string;
   modelVersion: string;
 }
 
@@ -286,6 +294,8 @@ export interface ApiOrderItem {
 }
 
 export interface ApiOrder {
+  /** Server-authoritative settled-payment QR eligibility. */
+  canViewQr?: boolean;
   canCancel?: boolean;
   id: string;
   buyerId: string;
@@ -341,6 +351,9 @@ export interface ApiShipmentAddress {
   city?: string;
   province?: string;
   zip?: string;
+  /** Map pin (absent on legacy shipments). */
+  lat?: number;
+  lng?: number;
 }
 
 export interface ApiShipmentStatusHistory {
@@ -364,6 +377,8 @@ export interface ApiShipment {
   pickupAddress: ApiShipmentAddress;
   deliveryAddress: ApiShipmentAddress;
   statusHistory: ApiShipmentStatusHistory[];
+  /** Transporter's last position: farmer before pickup, buyer after pickup, admins while active. */
+  transporterLocation?: { lat: number; lng: number; at: string };
   estimatedDelivery?: string;
   actualDelivery?: string;
   createdAt: string;

@@ -9,9 +9,10 @@ import DashboardScreen from '@/components/financial/DashboardScreen'
 import LoanDetailScreen from '@/components/financial/LoanDetailScreen'
 import SettingsScreen from '@/components/financial/SettingsScreen'
 import LogoutModal from '@/components/financial/LogoutModal'
-import { LanguageProvider } from '@/components/LanguageContext'
+import { LanguageProvider, useLanguage } from '@/components/LanguageContext'
 
 function FinancialPortal() {
+  const { t } = useLanguage()
   const router = useRouter()
   const [currentView, setCurrentView] = useState<'queue' | 'settings' | 'detail'>('queue')
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
@@ -34,7 +35,7 @@ function FinancialPortal() {
       setShowLogoutModal(false);
       router.replace('/login?signedout=1');
     } catch {
-      setLogoutError('Could not sign out. Please retry.');
+      setLogoutError(t("financial.logoutError"));
     } finally {
       setLogoutBusy(false);
     }
@@ -45,7 +46,8 @@ function FinancialPortal() {
       {logoutError ? <p role="alert">{logoutError}</p> : null}
       {currentView === 'detail' && selectedLoanId && (
         <LoanDetailScreen 
-          loanId={selectedLoanId} 
+          loanId={selectedLoanId}
+          onLogout={triggerLogoutModal}
           onBack={() => {
             setSelectedLoanId(null)
             setCurrentView('queue')
@@ -70,7 +72,7 @@ function FinancialPortal() {
             setSelectedLoanId(id)
             setCurrentView('detail')
           }} 
-          onLogout={triggerLogoutModal} 
+          onLogout={triggerLogoutModal}
           onNavigateToSettings={() => setCurrentView('settings')}
         />
       )}

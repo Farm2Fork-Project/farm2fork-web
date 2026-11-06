@@ -6,7 +6,7 @@ import type { LoanApplication, LoanRepository } from "@/lib/loans/loan-repositor
 import DashboardScreen from "./DashboardScreen";
 import LoanDetailScreen from "./LoanDetailScreen";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); });
 
 const base: LoanApplication = {
   id: "l1",
@@ -112,4 +112,14 @@ test("review, reject-with-reason and repayment call the loan API", async () => {
   expect(decide).toHaveBeenCalledWith("l1", "rejected", "No sales history yet");
   expect(await screen.findByText("Reviewer note: No sales history yet")).toBeTruthy();
   expect(within(screen.getAllByText("Rejected")[0].parentElement!).getByText("Rejected")).toBeTruthy();
+});
+
+
+test("Urdu queue uses translated status, controls and RTL", async () => {
+  localStorage.setItem("app_lang", "ur");
+  const view = render(<LanguageProvider><DashboardScreen repository={repo({ list: vi.fn().mockResolvedValue({ data: [base] }) })} onSelectLoan={vi.fn()} onLogout={vi.fn()} onNavigateToSettings={vi.fn()} /></LanguageProvider>);
+  expect(await screen.findByRole("heading", { name: "کسانوں کی قرض کی درخواستیں" })).toBeInTheDocument();
+  expect(view.container.querySelector('.app-shell')).toHaveAttribute('dir', 'rtl');
+  expect(screen.getByRole('tab', { name: 'جمع شدہ' })).toBeInTheDocument();
+  expect(screen.getByPlaceholderText('فارم، شہر یا مقصد تلاش کریں')).toBeInTheDocument();
 });

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Camera, Info, Loader2, Sparkles, TriangleAlert } from "lucide-react";
+import { canApplyQuality, isOfficialWholesale } from "@/lib/farmer/ai-contract";
 import { useLanguage } from "./LanguageContext";
 import {
   ApiError,
@@ -41,7 +42,7 @@ function fill(template: string, values: Record<string, string | number>): string
 
 /**
  * Farmer-facing AI help while creating a listing: a price range from the
- * rule-based estimator and a photo quality check from the grading model.
+ * official wholesale reference and a photo quality check from the grading model.
  * Both are suggestions the farmer applies explicitly; neither is ever
  * presented as certified quality. Only four crops have model support.
  */
@@ -62,6 +63,7 @@ export default function AiListingAssistant({
   const [pricing, setPricing] = useState(false);
   const [crop, setCrop] = useState<GradableCrop | "other" | "">("");
   const qualityRequest = useRef(0);
+  const priceRequest = useRef(0);
   const [photo, setPhoto] = useState<File | null>(null);
   const [quality, setQuality] = useState<QualityCheckResult | null>(null);
   const [qualityError, setQualityError] = useState("");
@@ -100,11 +102,18 @@ export default function AiListingAssistant({
       ? t("farmer.ai.unavailable")
       : error instanceof ApiError && error.status === 429
         ? t("farmer.ai.tooMany")
-        : error instanceof ApiError && error.message
-          ? error.message
-          : t("farmer.ai.failed");
+        : t("farmer.ai.failed");
+
+  useEffect(() => {
+    priceRequest.current += 1;
+    setPrice(null);
+    setPriceError("");
+    setPricing(false);
+    return () => { priceRequest.current += 1; };
+  }, [productName, category, unit, grade]);
 
   const requestPrice = async () => {
+    const request = ++priceRequest.current;
     if (!productName.trim()) {
       setPriceError(t("farmer.ai.needName"));
       return;
@@ -112,15 +121,14 @@ export default function AiListingAssistant({
     setPricing(true);
     setPriceError("");
     try {
-      setPrice(
-        await client.suggestPrice({
-          productName: productName.trim(),
-          category: category.toLowerCase(),
-          unit,
-          qualityGrade: grade,
-        }),
-      );
+      const result = await client.suggestPrice({
+        productName: productName.trim(), category: category.toLowerCase(), unit, qualityGrade: grade,
+      });
+      if (request !== priceRequest.current) return;
+      if (!isOfficialWholesale(result, unit)) throw new ApiError(422, "Invalid wholesale reference");
+      setPrice(result);
     } catch (error) {
+      if (request !== priceRequest.current) return;
       setPrice(null);
       setPriceError(
         error instanceof ApiError && error.status === 422
@@ -128,7 +136,7 @@ export default function AiListingAssistant({
           : errorText(error),
       );
     } finally {
-      setPricing(false);
+      if (request === priceRequest.current) setPricing(false);
     }
   };
 
@@ -180,6 +188,7 @@ export default function AiListingAssistant({
   const midpoint = price
     ? Math.round((price.predictedMinPrice + price.predictedMaxPrice) / 2)
     : 0;
+  const canApplyGrade = canApplyQuality(quality, crop);
   const untrained = status?.qualityModel === "untrained";
 
   return (
@@ -222,6 +231,7 @@ export default function AiListingAssistant({
             <p className="ai-note">
               <Info size={13} aria-hidden="true" /> {t("farmer.ai.priceRuleBased")}
             </p>
+            <p className="ai-note"><a href={price.sourceUrl} target="_blank" rel="noopener noreferrer">{price.source}</a> · {price.commodity} · {price.observedOn} · {price.marketScope} ({price.marketCount}) · {price.currency}</p>
             <button
               type="button"
               className="ai-link"
@@ -303,10 +313,10 @@ export default function AiListingAssistant({
         {quality ? (
           <div className="ai-result" aria-live="polite">
             <div className="ai-result-main">
-              {fill(t("farmer.ai.gradeResult"), {
+              {canApplyGrade ? fill(t("farmer.ai.gradeResult"), {
                 grade: quality.modelGrade,
                 confidence: Math.round(quality.confidenceScore * 100),
-              })}
+              }) : t("farmer.ai.reviewRequired")}
             </div>
             {quality.modelStatus === "untrained" ? (
               <p className="ai-note ai-note--warn">{t("farmer.ai.previewResult")}</p>
@@ -317,13 +327,13 @@ export default function AiListingAssistant({
             {quality.modelStatus === "trained" && quality.lowConfidence ? (
               <p className="ai-note">{t("farmer.ai.lowConfidence")}</p>
             ) : null}
-            {quality.cropSupported && quality.suggestedListingGrade ? (
+            {canApplyGrade ? (
               <button
                 type="button"
                 className="ai-link"
                 onClick={() => onApplyGrade(quality.suggestedListingGrade!)}
               >
-                {fill(t("farmer.ai.useGrade"), { grade: quality.suggestedListingGrade })}
+                {fill(t("farmer.ai.useGrade"), { grade: quality.suggestedListingGrade! })}
               </button>
             ) : quality.modelGrade === "D" ? (
               <p className="ai-note ai-note--warn">{t("farmer.ai.gradeD")}</p>

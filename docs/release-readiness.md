@@ -29,3 +29,7 @@ Owned `farm2fork-web` only; preserved pre-existing QR/private-order/delivery/map
 No authenticated production or external service integration claims. Firebase provider/authorized-domain setup, cookie/CORS/CSRF environment, storage, maps, browser push, payment service configuration and physical QR/camera/GPS require intended-environment acceptance. No full authenticated browser visual review was performed. Source and component RTL checks do not establish all responsive layouts.
 
 No shared contract deviations: wholesale responses contain no fabricated confidence or crop/category rule basis. Confidence >=0.7 is a conservative independent client gate matching current served quality configuration. Historical observation dates are never guessed. Finite photoSimilarity is required for Apply; the upstream/backend review flag remains responsible for unfamiliar-photo threshold decisions.
+
+## Develop integration — 2026-11-06
+
+Merged the release work onto develop based on freshly fetched origin/main. Final merged-tree validation passed: 371 tests, 2 skipped, TypeScript. Production was not contacted or deployed. Signing/device/provider acceptance gates remain as recorded above.

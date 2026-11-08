@@ -1,5 +1,7 @@
 'use client'
 
+import { useLanguage } from '@/components/LanguageContext'
+
 import { useEffect, useMemo, useState } from 'react'
 import { CheckCircle, ChevronRight, Clock, Search, Wallet, TrendingUp } from 'lucide-react'
 import { DashboardScreenProps } from '../types'
@@ -10,7 +12,7 @@ import {
   type LoanApplication,
   type LoanStatus,
 } from '@/lib/loans/loan-repository.ts'
-import { STATUS_BADGE, STATUS_LABEL, money, shortDate } from './loan-format'
+import { STATUS_BADGE, money, shortDate } from './loan-format'
 
 type LoadState =
   | { kind: 'loading' }
@@ -27,6 +29,7 @@ export default function DashboardScreen({
   onNavigateToSettings,
   repository,
 }: DashboardScreenProps & { repository?: LoanRepository }) {
+  const { t, language } = useLanguage()
   const loans = useMemo(() => repository ?? new LoanRepository(), [repository])
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [statusFilter, setStatusFilter] = useState<LoanStatus | 'all'>('pending')
@@ -69,7 +72,7 @@ export default function DashboardScreen({
   )
 
   return (
-    <div className="app-shell" style={{ flexDirection: 'column' }}>
+    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell" style={{ flexDirection: 'column' }}>
       <Topbar
         currentView="queue"
         onNavigateToQueue={() => {}}
@@ -79,23 +82,22 @@ export default function DashboardScreen({
       <div className="app-main">
         <main className="app-content">
           <div className="page-header">
-            <h1>Farmer loan applications</h1>
+            <h1>{t("financial.farmerLoanApplications")}</h1>
             <p>
-              Review each farm and its Farm2Fork sales history, then approve with a monthly
-              repayment plan or reject with a reason the farmer will see.
+              {t("financial.reviewEachFarmAndItsFarm2Fork")}
             </p>
           </div>
 
           <div className="grid-4 mb-xl">
-            <Stat label="Total requested" value={money(stats.requested)} icon={<Wallet className="w-4 h-4" />} />
-            <Stat label="Approved amount" value={money(stats.approvedAmount)} icon={<CheckCircle className="w-4 h-4" />} />
-            <Stat label="Approval rate (decided)" value={stats.approvalRate} icon={<TrendingUp className="w-4 h-4" />} />
-            <Stat label="Awaiting a decision" value={String(stats.awaiting)} icon={<Clock className="w-4 h-4" />} />
+            <Stat label={t("financial.totalRequested")} value={money(stats.requested, language)} icon={<Wallet className="w-4 h-4" />} />
+            <Stat label={t("financial.approvedAmount")} value={money(stats.approvedAmount, language)} icon={<CheckCircle className="w-4 h-4" />} />
+            <Stat label={t("financial.approvalRateDecided")} value={stats.approvalRate} icon={<TrendingUp className="w-4 h-4" />} />
+            <Stat label={t("financial.awaitingADecision")} value={String(stats.awaiting)} icon={<Clock className="w-4 h-4" />} />
           </div>
 
           <div className="card">
             <div className="loan-queue-toolbar">
-              <div className="loan-queue-filters" role="tablist" aria-label="Filter by status">
+              <div className="loan-queue-filters" role="tablist" aria-label={t("financial.filterByStatus")}>
                 {(['all', ...LOAN_STATUSES] as const).map((status) => (
                   <button
                     key={status}
@@ -105,15 +107,15 @@ export default function DashboardScreen({
                     className={statusFilter === status ? 'btn btn-primary' : 'btn btn-outline'}
                     onClick={() => setStatusFilter(status)}
                   >
-                    {status === 'all' ? 'All' : STATUS_LABEL[status]}
+                    {status === 'all' ? t("financial.all") : t("financial." + "status." + status)}
                   </button>
                 ))}
               </div>
               <label className="loan-queue-search">
                 <Search className="w-4 h-4" aria-hidden="true" />
                 <input
-                  placeholder="Search farm, city or purpose"
-                  aria-label="Search applications"
+                  placeholder={t("financial.searchFarmCityOrPurpose")}
+                  aria-label={t("financial.searchApplications")}
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
@@ -121,35 +123,35 @@ export default function DashboardScreen({
             </div>
 
             {state.kind === 'loading' ? (
-              <p className="text-muted">Loading applications…</p>
+              <p className="text-muted">{t("financial.loadingApplications")}</p>
             ) : state.kind === 'error' ? (
               <div role="alert">
-                <p>Couldn&apos;t load applications.</p>
+                <p>{t("financial.couldnTLoadApplications")}</p>
                 <button type="button" className="btn btn-outline" onClick={() => setReloadKey((k) => k + 1)}>
-                  Try again
+                  {t("financial.tryAgain")}
                 </button>
               </div>
             ) : visible.length === 0 ? (
-              <p className="text-muted">No applications match.</p>
+              <p className="text-muted">{t("financial.noApplicationsMatch")}</p>
             ) : (
               <ul className="loan-queue-list">
                 {visible.map((loan) => (
                   <li key={loan.id}>
                     <button type="button" className="loan-queue-row" onClick={() => onSelectLoan(loan.id)}>
                       <span className="loan-queue-main">
-                        <strong>{loan.applicant?.farmName ?? 'Farm'}</strong>
+                        <strong>{loan.applicant?.farmName ?? t("financial.farm")}</strong>
                         <span className="text-muted">
                           {[loan.applicant?.city, loan.applicant?.province].filter(Boolean).join(', ')}
                           {' · '}
-                          {shortDate(loan.createdAt)}
+                          {shortDate(loan.createdAt, language)}
                         </span>
                         <span className="loan-queue-purpose">{loan.purpose}</span>
                       </span>
                       <span className="loan-queue-amount">
-                        {money(loan.amount)}
-                        <span className="text-muted">{loan.durationMonths} months</span>
+                        {money(loan.amount, language)}
+                        <span className="text-muted">{loan.durationMonths} {t("financial.word.months")}</span>
                       </span>
-                      <span className={`badge ${STATUS_BADGE[loan.status]}`}>{STATUS_LABEL[loan.status]}</span>
+                      <span className={`badge ${STATUS_BADGE[loan.status]}`}>{t("financial." + "status." + loan.status)}</span>
                       <ChevronRight className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </li>

@@ -1,3 +1,5 @@
+import { isOfficialWholesale } from "./ai-contract.ts";
+import { ApiError } from "../api/contracts.ts";
 import { collectPages } from "../api/pagination.ts";
 import type { ApiRequestOptions } from "../api/client.ts";
 import type { FarmLocation, FarmLocationStatus } from "./farm-location.ts";
@@ -123,11 +125,13 @@ export class FarmerRepository {
     return this.client.request<AiStatus>("/ai/status");
   }
 
-  suggestPrice(input: PriceSuggestionRequest): Promise<PriceSuggestion> {
-    return this.client.request<PriceSuggestion>("/ai/price", {
+  async suggestPrice(input: PriceSuggestionRequest): Promise<PriceSuggestion> {
+    const result = await this.client.request<PriceSuggestion>("/ai/price", {
       method: "POST",
       body: input,
     });
+    if (!isOfficialWholesale(result, input.unit)) throw new ApiError(422, "Invalid official wholesale reference.");
+    return result;
   }
 
   checkQuality(photo: File, crop: GradableCrop): Promise<QualityCheckResult> {

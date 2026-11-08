@@ -167,25 +167,19 @@ export interface AiStatus {
   priceMethod?: string;
 }
 
-export type QualityReviewReason =
-  | "low_confidence"
-  | "unfamiliar_photo"
-  | "photo_check_unavailable";
-
 export interface QualityCheckResult {
   predictionId: string;
-  /** null when the photo needs review: no grade may be shown. */
-  modelGrade: "A" | "B" | "C" | "D" | null;
-  /** null when the model says D (below any listable grade). */
+  needsReview: boolean;
+  reviewReason: "low_confidence" | "crop_mismatch" | "unfamiliar_photo" | "photo_check_unavailable" | "unsupported_crop" | "untrained_model" | null;
+  photoSimilarity: number | null;
+  modelGrade: "A" | "B" | "C" | "D";
+  /** null when review is required or the model says D (below listing grades). */
   suggestedListingGrade: "A" | "B" | "C" | null;
   confidenceScore: number;
   probabilities: Record<string, number>;
   crop: GradableCrop;
   cropSupported: boolean;
   lowConfidence: boolean;
-  /** Ask for a retake or a manual grade instead of showing a grade. */
-  needsReview: boolean;
-  reviewReason: QualityReviewReason | null;
   modelStatus: "trained" | "untrained";
   modelVersion: string;
 }
@@ -203,12 +197,10 @@ export interface PriceSuggestion {
   predictedMinPrice: number;
   predictedMaxPrice: number;
   unit: FarmerProductUnit;
-  /** Observed AMIS Punjab wholesale prices, not a prediction. */
   method: "official_wholesale";
+  currency: "PKR";
   commodity: string;
-  /** Mandi trading day, YYYY-MM-DD. */
   observedOn: string;
-  /** The farmer's own market, or "Punjab" for the middle half of markets. */
   marketScope: string;
   marketCount: number;
   source: string;
@@ -302,6 +294,8 @@ export interface ApiOrderItem {
 }
 
 export interface ApiOrder {
+  /** Server-authoritative settled-payment QR eligibility. */
+  canViewQr?: boolean;
   canCancel?: boolean;
   id: string;
   buyerId: string;
@@ -357,6 +351,9 @@ export interface ApiShipmentAddress {
   city?: string;
   province?: string;
   zip?: string;
+  /** Map pin (absent on legacy shipments). */
+  lat?: number;
+  lng?: number;
 }
 
 export interface ApiShipmentStatusHistory {
@@ -380,6 +377,8 @@ export interface ApiShipment {
   pickupAddress: ApiShipmentAddress;
   deliveryAddress: ApiShipmentAddress;
   statusHistory: ApiShipmentStatusHistory[];
+  /** Transporter's last position: farmer before pickup, buyer after pickup, admins while active. */
+  transporterLocation?: { lat: number; lng: number; at: string };
   estimatedDelivery?: string;
   actualDelivery?: string;
   createdAt: string;

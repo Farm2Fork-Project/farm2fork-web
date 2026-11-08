@@ -123,3 +123,14 @@ test("uses a Google redirect from HTTPS", async () => {
   expect(firebaseAuth.signInWithRedirect).toHaveBeenCalledOnce();
   expect(firebaseAuth.signInWithPopup).not.toHaveBeenCalled();
 });
+
+
+test("local Firebase initialization accepts the documented blank auth domain", () => {
+  const environment = {
+    NEXT_PUBLIC_FIREBASE_API_KEY: "key", NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: "",
+    NEXT_PUBLIC_FIREBASE_PROJECT_ID: "farm2fork", NEXT_PUBLIC_FIREBASE_APP_ID: "app",
+    NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: "sender",
+  };
+  expect(client.resolveFirebaseClientConfig(environment, { protocol: "http:", hostname: "localhost" }).authDomain).toBe("farm2fork.firebaseapp.com");
+  expect(() => client.resolveFirebaseClientConfig(environment, { protocol: "https:", hostname: "farm2fork.org" })).toThrow("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
+});

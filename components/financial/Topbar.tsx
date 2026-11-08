@@ -1,8 +1,10 @@
 'use client'
 
-import { IcBell as Bell, IcLeaf as Leaf, IcSearch as Search } from "@/components/icons";
-import { ArrowLeft, HelpCircle, LogOut } from "lucide-react";
-import React, { useState } from 'react'
+import { useLanguage } from '@/components/LanguageContext'
+
+import { IcLeaf as Leaf, IcSearch as Search } from "@/components/icons";
+import { ArrowLeft, LogOut } from "lucide-react";
+import React from 'react'
 import { TopbarProps } from '../types'
 import NotificationBell from '@/components/NotificationBell'
 
@@ -11,7 +13,6 @@ export default function Topbar({
   onNavigateToQueue,
   onNavigateToSettings,
   onLogout,
-  title,
   showSearch = false,
   searchQuery = '',
   onSearchChange,
@@ -20,11 +21,11 @@ export default function Topbar({
   userName = 'Partner User',
   userRole = 'Lending Partner'
 }: TopbarProps) {
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const { t, language, setLanguage } = useLanguage()
 
   return (
     <>
-    <header className="topbar">
+    <header dir={language === 'ur' ? 'rtl' : 'ltr'} className="topbar">
 
       {/* Left side: Brand Logo / Back Indicator */}
       <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-lg)' }}>
@@ -61,7 +62,7 @@ export default function Topbar({
           }`}
           style={{ background: 'none', borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
         >
-          Credit Queue
+          {t("financial.creditQueue")}
         </button>
 
         <button
@@ -71,7 +72,7 @@ export default function Topbar({
           }`}
           style={{ background: 'none', borderTop: 'none', borderLeft: 'none', borderRight: 'none' }}
         >
-          Settings
+          {t("financial.settings")}
         </button>
       </nav>
 
@@ -85,13 +86,14 @@ export default function Topbar({
             </span>
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t("financial.search")}
               value={searchQuery}
               onChange={(e) => onSearchChange?.(e.target.value)}
             />
           </div>
         )}
 
+        <button type="button" className="btn btn-outline" onClick={() => setLanguage(language === 'en' ? 'ur' : 'en')} aria-label={language === 'en' ? 'اردو منتخب کریں' : 'Switch to English'}>{language === 'en' ? 'اردو' : 'English'}</button>
         <NotificationBell />
 
         <div className="flex items-center gap-3 pl-4 border-l border-surface-medium" style={{ borderLeft: '1px solid var(--surface-medium)', paddingLeft: 'var(--sp-lg)' }}>
@@ -100,8 +102,8 @@ export default function Topbar({
               {userName.charAt(0).toUpperCase()}
             </div>
             <div className="hidden md:flex flex-col" style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', lineHeight: 1.2 }}>{userName}</span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{userRole}</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-dark)', lineHeight: 1.2 }}>{userName === 'Partner User' ? t("financial.partnerUser") : userName}</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{userRole === 'Lending Partner' ? t("financial.lendingPartner") : userRole}</span>
             </div>
           </div>
 
@@ -110,7 +112,7 @@ export default function Topbar({
               if (onLogout) onLogout()
             }}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: 'var(--radius-md)', backgroundColor: '#FDECEC', color: 'var(--error-red)', border: 'none', cursor: 'pointer' }}
-            title="Logout"
+            title={t("financial.logout")}
           >
             <LogOut size={16} strokeWidth={2.5} />
           </button>

@@ -59,23 +59,81 @@ export interface ProductTrace {
 
 const OBJECT_ID = /^[a-f0-9]{24}$/i;
 
-/**
- * Accepts what a person can actually paste or scan: a bare product id, or a
- * full QR trace URL (`https://…/trace/<id>`, with or without a trailing slash
- * or query string). Returns null when the input can't be a product id, so the
- * UI can say so without a pointless network round trip.
- */
-export function parseTraceProductId(input: string): string | null {
-  const value = input.trim();
-  if (!value) return null;
-  if (OBJECT_ID.test(value)) return value.toLowerCase();
+export interface OrderTrace {
+  order: {
+    id: string;
+    reference: string;
+    status: string;
+    paidAt: string;
+    items: Array<{
+      productId: string;
+      productName: string;
+      quantity: number;
+      unit?: string;
+    }>;
+  };
+  farmer: ProductTrace["farmer"];
+  events: TraceEvent[];
+  summary: ProductTrace["summary"];
+}
+export interface OrderQr {
+  orderId: string;
+  qrCode: string;
+  qrImageDataUri: string;
+}
+export type TraceLink = { kind: "product" | "order"; id: string };
 
-  const candidate = value
-    .split(/[?#]/)[0]
-    .replace(/\/+$/, "")
-    .split("/")
-    .pop();
-  return candidate && OBJECT_ID.test(candidate) ? candidate.toLowerCase() : null;
+/** Only our exact trace routes and trusted origins are scan targets. */
+export function parseTraceLink(
+  input: string,
+  options: { currentOrigin?: string; canonicalOrigin?: string } = {},
+): TraceLink | null {
+  const value = input.trim();
+  if (OBJECT_ID.test(value))
+    return { kind: "product", id: value.toLowerCase() };
+  try {
+    const url = new URL(value);
+    if (url.username || url.password) return null;
+    if (url.protocol === "farm2fork:") {
+      if (url.hostname !== "app" || url.port) return null;
+    } else {
+      if (!["https:", "http:"].includes(url.protocol)) return null;
+      const origins = [
+        "https://farm2fork.com",
+        options.canonicalOrigin ??
+          process.env.NEXT_PUBLIC_SITE_URL ??
+          "https://farm2fork.tech",
+        options.currentOrigin ??
+          (typeof window !== "undefined" ? window.location.origin : undefined),
+      ];
+      if (
+        !origins.some((origin) => {
+          try {
+            return origin && new URL(origin).origin === url.origin;
+          } catch {
+            return false;
+          }
+        })
+      )
+        return null;
+    }
+    const match = /^\/trace\/(?:(orders|products)\/)?([a-f0-9]{24})\/?$/i.exec(
+      url.pathname,
+    );
+    return match
+      ? {
+          kind: match[1] === "orders" ? "order" : "product",
+          id: match[2].toLowerCase(),
+        }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export function parseTraceProductId(input: string): string | null {
+  const target = parseTraceLink(input);
+  return target?.kind === "product" ? target.id : null;
 }
 
 export class TraceRepository {
@@ -83,6 +141,15 @@ export class TraceRepository {
 
   constructor({ client }: { client: ApiRequester }) {
     this.client = client;
+  }
+
+  getOrderTrace(id: string): Promise<OrderTrace> {
+    return this.client.request<OrderTrace>(
+      `/trace/orders/${encodeURIComponent(id)}`,
+    );
+  }
+  getOrderQr(id: string): Promise<OrderQr> {
+    return this.client.request<OrderQr>(`/orders/${encodeURIComponent(id)}/qr`);
   }
 
   getProductTrace(productId: string): Promise<ProductTrace> {

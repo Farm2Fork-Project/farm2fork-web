@@ -28,21 +28,22 @@ function renderAssistant(client: AiAssistantClient, overrides: Partial<{ product
 
 const quality = (overrides: Partial<QualityCheckResult> = {}): QualityCheckResult => ({
   predictionId: "p1",
+  needsReview: false,
+  reviewReason: null,
+  photoSimilarity: 0.9,
   modelGrade: "B",
   suggestedListingGrade: "B",
-  confidenceScore: 0.26,
+  confidenceScore: 0.9,
   probabilities: { A: 0.25, B: 0.26, C: 0.24, D: 0.25 },
   crop: "mango",
   cropSupported: true,
-  lowConfidence: true,
-  needsReview: false,
-  reviewReason: null,
-  modelStatus: "untrained",
+  lowConfidence: false,
+  modelStatus: "trained",
   modelVersion: "grade-cond-efficientnet_b0-untrained",
   ...overrides,
 });
 
-test("shows the dated official mandi source and lets the farmer apply the midpoint", async () => {
+test("labels the official wholesale price and lets the farmer apply the midpoint", async () => {
   const user = userEvent.setup();
   const client: AiAssistantClient = {
     aiStatus: vi.fn().mockResolvedValue({ available: true, qualityModel: "trained" }),
@@ -52,13 +53,14 @@ test("shows the dated official mandi source and lets the farmer apply the midpoi
       predictedMaxPrice: 352,
       unit: "kg",
       method: "official_wholesale",
-      commodity: "Mango(Chounsa)",
-      observedOn: "2026-08-15",
+      currency: "PKR",
+      commodity: "Mango",
+      observedOn: "2026-06-01",
       marketScope: "Punjab",
-      marketCount: 39,
-      source: "AMIS Punjab",
-      sourceUrl: "http://www.amis.pk",
-      modelVersion: "amis-punjab-2026-10-22",
+      marketCount: 2,
+      source: "AMIS",
+      sourceUrl: "https://amis.pk",
+      modelVersion: "price-rules-v1",
     }),
     checkQuality: vi.fn(),
   };
@@ -67,8 +69,7 @@ test("shows the dated official mandi source and lets the farmer apply the midpoi
   await user.click(await screen.findByRole("button", { name: "Suggest a price" }));
 
   expect(await screen.findByText("Rs 154 – 352 per kg")).toBeTruthy();
-  expect(screen.getByText(/across 39 Punjab markets on 15 Aug 2026/)).toBeTruthy();
-  expect(screen.getByText(/Source: AMIS Punjab \(Mango\(Chounsa\)\)/)).toBeTruthy();
+  expect(screen.getByText(/not live market or farm-gate prices/)).toBeTruthy();
   expect(client.suggestPrice).toHaveBeenCalledWith({
     productName: "Chaunsa Mangoes",
     category: "fruits",
@@ -96,8 +97,8 @@ test("requires a deliberate crop choice and applies a grade only on confirmation
   await user.click(screen.getByRole("button", { name: "Check quality" }));
 
   expect(client.checkQuality).toHaveBeenCalledWith(photo, "mango");
-  expect(await screen.findByText("Suggested grade B · 26% model confidence")).toBeTruthy();
-  expect(screen.getByText(/Preview only/)).toBeTruthy();
+  expect(await screen.findByText("Suggested grade B · 90% model confidence")).toBeTruthy();
+
   expect(onApplyGrade).not.toHaveBeenCalled();
   expect(screen.getByText(/does not certify quality/)).toBeInTheDocument();
   await user.click(screen.getByRole("button", { name: "Use grade B" }));
@@ -241,41 +242,4 @@ test("Other crop and unavailable grading guidance are localized in Urdu", async 
   expect(screen.getByRole("option", { name: "دیگر فصل" })).toBeInTheDocument();
   expect(screen.getByText(/اس فصل کے لیے اے آئی گریڈنگ دستیاب نہیں ہے/)).toBeInTheDocument();
   expect(client.checkQuality).not.toHaveBeenCalled();
-});
-
-test.each([
-  ["unfamiliar_photo", /looks different from the photos the model learned from/],
-  ["low_confidence", /wasn't sure enough/],
-] as const)("shows no grade and offers a retake when the photo is %s", async (reason, message) => {
-  const user = userEvent.setup();
-  const client = gradingClient(
-    vi.fn().mockResolvedValue(
-      quality({
-        modelGrade: null,
-        suggestedListingGrade: null,
-        confidenceScore: 0.97,
-        probabilities: {},
-        lowConfidence: true,
-        needsReview: true,
-        reviewReason: reason,
-        modelStatus: "trained",
-      }),
-    ),
-  );
-  const { onApplyGrade } = renderAssistant(client);
-
-  await user.selectOptions(screen.getByLabelText("Crop in the photo"), "mango");
-  const input = document.getElementById("ai-photo") as HTMLInputElement;
-  await user.upload(input, new File([new Uint8Array([1])], "mango.jpg", { type: "image/jpeg" }));
-  await user.click(screen.getByRole("button", { name: "Check quality" }));
-
-  expect(await screen.findByText("No grade from this photo")).toBeInTheDocument();
-  expect(screen.getByText(message)).toBeInTheDocument();
-  expect(screen.getByText(/choose the listing grade yourself/)).toBeInTheDocument();
-  expect(screen.queryByText(/Suggested grade/)).toBeNull();
-  expect(screen.queryByRole("button", { name: /Use grade/ })).toBeNull();
-  const click = vi.spyOn(input, "click");
-  await user.click(screen.getByRole("button", { name: "Retake photo" }));
-  expect(click).toHaveBeenCalled();
-  expect(onApplyGrade).not.toHaveBeenCalled();
 });

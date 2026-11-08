@@ -1,5 +1,7 @@
 'use client'
 
+import { useLanguage } from '@/components/LanguageContext'
+
 import { IcCheckCircle as CheckCircle, IcUser as User } from "@/components/icons";
 import { Save, Settings, Shield } from "lucide-react";
 import React, { useState, useEffect } from 'react'
@@ -18,6 +20,7 @@ const defaultProfile: UserProfile = {
 }
 
 export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScreenProps) {
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'preferences'>('profile')
   const [profile, setProfile] = useState<UserProfile>(defaultProfile)
   const [isSaved, setIsSaved] = useState(false)
@@ -42,7 +45,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
   }
 
   return (
-    <div className="app-shell" style={{ flexDirection: 'column' }}>
+    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell" style={{ flexDirection: 'column' }}>
 
       {/* Top Bar Navigation with horizontal layout links */}
       <Topbar
@@ -50,7 +53,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
         onNavigateToQueue={onBackToQueue}
         onNavigateToSettings={() => {}}
         onLogout={onLogout}
-        title="Account Settings"
+        title={t("financial.accountSettings")}
         userName={profile.fullName}
         userRole={profile.role}
       />
@@ -62,8 +65,8 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
         <div className="page-header">
           <div className="page-header-row">
             <div>
-              <h1>Settings</h1>
-              <p>Manage your user profile details, system preferences, and security notifications.</p>
+              <h1>{t("financial.settings")}</h1>
+              <p>{t("financial.manageYourUserProfileDetailsSystem")}</p>
             </div>
           </div>
         </div>
@@ -84,7 +87,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
             }}
           >
             <User className="w-4 h-4" />
-            <span>Personal Profile</span>
+            <span>{t("financial.personalProfile")}</span>
           </button>
 
           <button
@@ -101,7 +104,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
             }}
           >
             <Settings className="w-4 h-4" />
-            <span>System Preferences</span>
+            <span>{t("financial.systemPreferences")}</span>
           </button>
 
           <button
@@ -118,7 +121,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
             }}
           >
             <Shield className="w-4 h-4" />
-            <span>Notifications &amp; Security</span>
+            <span>{t("financial.notificationsSecurity")}</span>
           </button>
         </div>
 
@@ -131,38 +134,38 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                 <div className="flex items-center gap-sm pb-md" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
                   <User className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
-                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>Personal Profile Details</h3>
-                    <p className="text-xs text-muted">Manage your personal identification info used in loan evaluation trails.</p>
+                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.personalProfileDetails")}</h3>
+                    <p className="text-xs text-muted">{t("financial.manageYourPersonalIdentificationInfoUsed")}</p>
                   </div>
                 </div>
 
                 <div className="grid-2 gap-xl">
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">Full Legal Name</label>
+                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.fullLegalName")}</label>
                     <input
                       type="text"
                       value={profile.fullName}
                       onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
-                      placeholder="e.g. Partner User"
+                      placeholder={t("financial.eGPartnerUser")}
                       className="input"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">Corporate Email Address</label>
+                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.corporateEmailAddress")}</label>
                     <input
                       type="email"
                       value={profile.email}
                       onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                      placeholder="e.g. partner.user@farm2fork.org"
+                      placeholder={t("financial.eGPartnerUserFarm2ForkOrg")}
                       className="input"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">Assigned Role</label>
+                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.assignedRole")}</label>
                     <input
                       type="text"
                       value={profile.role}
@@ -170,7 +173,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                       className="input"
                       style={{ backgroundColor: 'var(--surface-medium)', color: 'var(--text-muted)', cursor: 'not-allowed', borderColor: 'transparent' }}
                     />
-                    <p className="text-[10px] text-muted mt-xs">Lending team roles are defined by your organization admin.</p>
+                    <p className="text-[10px] text-muted mt-xs">{t("financial.lendingTeamRolesAreDefinedBy")}</p>
                   </div>
                 </div>
               </div>
@@ -181,37 +184,37 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                 <div className="flex items-center gap-sm pb-md" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
                   <Settings className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
-                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>Lending Preferences</h3>
-                    <p className="text-xs text-muted">Set up defaults for currency representations and lending terms.</p>
+                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.lendingPreferences")}</h3>
+                    <p className="text-xs text-muted">{t("financial.setUpDefaultsForCurrencyRepresentations")}</p>
                   </div>
                 </div>
 
                 <div className="grid-2 gap-xl">
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">Display Currency</label>
+                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.displayCurrency")}</label>
                     <select
                       value={profile.currency}
                       onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
                       className="input cursor-pointer"
                     >
-                      <option value="PKR">Pakistani Rupee (PKR)</option>
-                      <option value="USD">US Dollar (USD)</option>
-                      <option value="EUR">Euro (EUR)</option>
+                      <option value="PKR">{t("financial.pakistaniRupeePkr")}</option>
+                      <option value="USD">{t("financial.usDollarUsd")}</option>
+                      <option value="EUR">{t("financial.euroEur")}</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">Default Preferred Repayment Term</label>
+                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.defaultPreferredRepaymentTerm")}</label>
                     <select
                       value={profile.defaultRepaymentTerm}
                       onChange={(e) => setProfile({ ...profile, defaultRepaymentTerm: e.target.value })}
                       className="input cursor-pointer"
                     >
-                      <option value="12 Months">12 Months</option>
-                      <option value="24 Months">24 Months</option>
-                      <option value="36 Months">36 Months</option>
-                      <option value="48 Months">48 Months</option>
-                      <option value="60 Months">60 Months</option>
+                      <option value="12 Months">{t("financial.12Months")}</option>
+                      <option value="24 Months">{t("financial.24Months")}</option>
+                      <option value="36 Months">{t("financial.36Months")}</option>
+                      <option value="48 Months">{t("financial.48Months")}</option>
+                      <option value="60 Months">{t("financial.60Months")}</option>
                     </select>
                   </div>
                 </div>
@@ -223,8 +226,8 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                 <div className="flex items-center gap-sm pb-md" style={{ borderBottom: '1px solid var(--surface-medium)' }}>
                   <Shield className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
-                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>Alerts &amp; Access Controls</h3>
-                    <p className="text-xs text-muted">Choose when you wish to receive notifications and manage session security.</p>
+                    <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.alertsAccessControls")}</h3>
+                    <p className="text-xs text-muted">{t("financial.chooseWhenYouWishToReceive")}</p>
                   </div>
                 </div>
 
@@ -232,39 +235,42 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   <label className="flex items-start gap-sm cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={profile.newAppAlerts}
+                      disabled
+                      checked={false}
                       onChange={(e) => setProfile({ ...profile, newAppAlerts: e.target.checked })}
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark">New Loan Application Alerts</span>
-                      <span className="text-[10px] text-muted">Notify me immediately by email whenever a farmer submits a new evaluation request.</span>
+                      <span className="block text-xs font-bold text-dark">{t("financial.newLoanApplicationAlerts")}</span>
+                      <span className="text-[10px] text-muted">{t("financial.notifyMeImmediatelyByEmailWhenever")}</span>
                     </div>
                   </label>
 
                   <label className="flex items-start gap-sm cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={profile.weeklySummaryAlerts}
+                      disabled
+                      checked={false}
                       onChange={(e) => setProfile({ ...profile, weeklySummaryAlerts: e.target.checked })}
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark">Weekly Summary Reports</span>
-                      <span className="text-[10px] text-muted">Send a digested summary of ledger approvals and rejection statistics every Monday morning.</span>
+                      <span className="block text-xs font-bold text-dark">{t("financial.weeklySummaryReports")}</span>
+                      <span className="text-[10px] text-muted">{t("financial.sendADigestedSummaryOfLedger")}</span>
                     </div>
                   </label>
 
                   <label className="flex items-start gap-sm cursor-pointer pt-md" style={{ borderTop: '1px solid var(--surface-medium)' }}>
                     <input
                       type="checkbox"
-                      checked={profile.twoFactorAuth}
+                      disabled
+                      checked={false}
                       onChange={(e) => setProfile({ ...profile, twoFactorAuth: e.target.checked })}
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark font-sans">Enable Two-Factor Authentication</span>
-                      <span className="text-[10px] text-muted">Require verification code alongside standard login credentials to evaluation board.</span>
+                      <span className="block text-xs font-bold text-dark font-sans">{t("financial.enableTwoFactorAuthentication")}</span>
+                      <span className="text-[10px] text-muted">{t("financial.requireVerificationCodeAlongsideStandardLogin")}</span>
                     </div>
                   </label>
                 </div>
@@ -276,11 +282,11 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
               {isSaved ? (
                 <div className="flex items-center gap-sm text-success font-bold text-xs">
                   <CheckCircle className="w-4 h-4" />
-                  <span>Your preferences were updated successfully!</span>
+                  <span>{t("financial.yourPreferencesWereUpdatedSuccessfully")}</span>
                 </div>
               ) : (
                 <div className="text-[11px] text-muted">
-                  <span>Changes take effect immediately on current dashboard session.</span>
+                  <span>{t("financial.changesTakeEffectImmediatelyOnCurrent")}</span>
                 </div>
               )}
 
@@ -289,7 +295,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                 className="btn btn-primary"
               >
                 <Save className="w-4 h-4" />
-                <span>Save Settings</span>
+                <span>{t("financial.saveSettings")}</span>
               </button>
             </div>
           </form>

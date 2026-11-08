@@ -9,6 +9,7 @@ import {
   IcRefresh,
   IcStore,
 } from "@/components/icons";
+import { OrderQr } from "@/components/orders/OrderQr";
 import { DeliveryTracking } from "@/components/orders/DeliveryTracking";
 import { InlineConfirm } from "@/components/ui/InlineConfirm";
 import type { ApiOrder, ApiPayment, ApiShipment } from "@/lib/api/contracts.ts";
@@ -373,6 +374,7 @@ function OrderCard({
         </div>
       </div>
 
+      <OrderQr orderId={order.id} eligible={order.canViewQr === true} />
       <OrderTimeline stages={stages} shipment={shipment} />
 
       {order.status === "cancelled" && !payment ? null : (
@@ -452,6 +454,7 @@ function OrderCard({
       ) : null}
       <DeliveryTracking
         showDeliveryCode
+        liveMapFor="buyer"
         unavailable={shipmentsUnavailable}
         shipment={shipment}
         orderStatus={order.status}

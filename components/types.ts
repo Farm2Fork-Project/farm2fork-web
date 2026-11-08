@@ -35,6 +35,7 @@ export interface DashboardScreenProps {
 }
 
 export interface LoanDetailScreenProps {
+  onLogout?: () => void
   loanId: string
   onBack: () => void
   onNavigateToSettings: () => void

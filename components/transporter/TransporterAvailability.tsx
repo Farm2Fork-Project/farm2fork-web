@@ -3,6 +3,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ApiTransporterStatus } from "@/lib/api/contracts.ts";
 import type { ShipmentRepository } from "@/lib/shipment/shipment-repository.ts";
 import { useLanguage } from "./LanguageContext";
+import MapPinPicker from "@/components/maps/MapPinPicker";
+import ProvinceCityFields from "@/components/maps/ProvinceCityFields";
+import { isInPakistan, type GeoPoint } from "@/lib/geo/geo-point.ts";
+import { cityTarget } from "@/lib/geo/pakistan-locations.ts";
 export function TransporterAvailability({
   repository,
   onRefresh,
@@ -18,8 +22,9 @@ export function TransporterAvailability({
   const { t, language } = useLanguage();
   const ur = language === "ur";
   const [status, setStatus] = useState<ApiTransporterStatus | null>(null);
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+  const [province, setProvince] = useState("");
+  const [city, setCity] = useState("");
+  const [pin, setPin] = useState<GeoPoint | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   const [gpsEnabled, setGpsEnabled] = useState(false);
@@ -32,7 +37,7 @@ export function TransporterAvailability({
     if (lock.current) return;
     lock.current = true; const epoch = visibilityEpoch.current; setBusy(true); setGpsError("");
     try {
-      if (!navigator.geolocation) throw new Error(ur ? "براؤزر میں مقام دستیاب نہیں۔ نیچے دستی نقاط درج کریں۔" : "Browser location is unavailable. Enter a manual pin below.");
+      if (!navigator.geolocation) throw new Error(ur ? "براؤزر میں مقام دستیاب نہیں۔ نیچے نقشے پر اپنا علاقہ چنیں۔" : "Browser location is unavailable. Set your area on the map below.");
       const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }));
       if (!alive.current || epoch !== visibilityEpoch.current || document.visibilityState === "hidden") return;
       const location = { lat: position.coords.latitude, lng: position.coords.longitude };
@@ -42,7 +47,7 @@ export function TransporterAvailability({
       else { const next = await repository.setAvailability(true, location); if (alive.current) setStatus(next); }
       if (!alive.current) return;
       try { await onRefresh(); } catch { setGpsError(ur ? "مقام محفوظ ہے۔ پیشکشیں تازہ کریں۔" : "Location saved. Refresh to load current offers."); }
-    } catch (e) { if (alive.current) setGpsError(e instanceof Error ? e.message : "Location permission denied or GPS unavailable. Allow location in browser settings and retry, or enter a manual pin."); }
+    } catch (e) { if (alive.current) setGpsError(e instanceof Error ? e.message : "Location permission denied or GPS unavailable. Allow location in browser settings and retry, or set your area on the map."); }
     finally { lock.current = false; if (alive.current) setBusy(false); }
   }
   useEffect(() => {
@@ -124,18 +129,8 @@ export function TransporterAvailability({
     event.preventDefault();
     if (lock.current || !status) return;
     setGpsEnabled(false);
-    const location = { lat: Number(lat), lng: Number(lng) };
-    if (
-      !lat.trim() ||
-      !lng.trim() ||
-      !Number.isFinite(location.lat) ||
-      !Number.isFinite(location.lng) ||
-      location.lat < 23.5 ||
-      location.lat > 37.2 ||
-      location.lng < 60.5 ||
-      location.lng > 77.9
-    )
-      return;
+    if (!pin || !isInPakistan(pin)) return;
+    const location = pin;
     lock.current = true;
     setBusy(true);
     setError(false);
@@ -187,41 +182,28 @@ export function TransporterAvailability({
       <button type="button" className="btn btn-primary" disabled={busy || !status} onClick={() => void locate()}>{busy ? (ur ? "مقام تلاش ہو رہا ہے…" : "Checking location…") : (ur ? "موجودہ GPS مقام استعمال کریں" : "Use current GPS location")}</button>
       {gpsError && <p role="alert">{gpsError}</p>}
       <p>{ur ? "مقام صرف کھلے اور نظر آنے والے صفحے پر بھیجا جاتا ہے۔ واپس آنے پر GPS تازہ کریں۔" : "Location is shared only while this page is open and visible. Refresh GPS after returning to this page."}</p>
-      <h3>{ur ? "دستی مقام" : "Manual pin fallback"}</h3><p>{ur ? "درج کیے گئے نقاط دستی مقام ہیں، براہ راست GPS نہیں۔" : "Coordinates entered below are a manual location, not live GPS."}</p>
+      <h3>{ur ? "نقشے پر اپنا علاقہ چنیں" : "Or set your area on the map"}</h3>
       <p className="dispatch-help">{t("dispatch.help")}</p>
       <fieldset disabled={busy || !status} style={{ border: 0, padding: 0 }}>
-        <div className="checkout-address-grid">
-          <label>
-            {t("dispatch.latitude")}
-            <input
-              required
-              type="number"
-              min="23.5"
-              max="37.2"
-              step="any"
-              value={lat}
-              onChange={(e) => setLat(e.target.value)}
-            />
-          </label>
-          <label>
-            {t("dispatch.longitude")}
-            <input
-              required
-              type="number"
-              min="60.5"
-              max="77.9"
-              step="any"
-              value={lng}
-              onChange={(e) => setLng(e.target.value)}
-            />
-          </label>
-        </div>
+        <ProvinceCityFields
+          idPrefix="dispatch"
+          province={province}
+          city={city}
+          onChange={(next) => { setProvince(next.province); setCity(next.city); }}
+        />
+        <MapPinPicker
+          purpose="transporter"
+          value={pin}
+          onChange={setPin}
+          disabled={busy || !status}
+          city={cityTarget(province, city)}
+        />
       </fieldset>
       <div className="dispatch-actions">
         <button
           className="btn btn-primary"
           type="submit"
-          disabled={busy || !status}
+          disabled={busy || !status || !pin}
         >
           {status?.online
             ? t("dispatch.updateLocation")

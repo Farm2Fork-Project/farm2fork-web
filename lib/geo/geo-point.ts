@@ -29,7 +29,9 @@ export function currentPosition(): Promise<GeoPoint> {
           new Error(
             error.code === error.PERMISSION_DENIED
               ? "map.locationDenied"
-              : "map.locationUnavailable",
+              : error.code === error.TIMEOUT
+                ? "map.locationTimeout"
+                : "map.locationUnavailable",
           ),
         ),
       { enableHighAccuracy: true, timeout: 20_000, maximumAge: 60_000 },

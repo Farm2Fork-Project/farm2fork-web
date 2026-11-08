@@ -1,3 +1,4 @@
+import { chooseOption, dragMapTo } from "@/test/map-helpers";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -22,7 +23,7 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-test("a farmer signs up in three steps; the location step needs address, province and a pin inside Pakistan", async () => {
+test("a farmer signs up in three steps; the location step needs province, city, address and a pin inside Pakistan", async () => {
   const user = userEvent.setup();
   render(
     <LanguageProvider>
@@ -50,22 +51,21 @@ test("a farmer signs up in three steps; the location step needs address, provinc
   await user.click(screen.getByRole("button", { name: "Create account" }));
   expect(screen.getByText("Enter the street or village.")).toBeInTheDocument();
   expect(screen.getByText("Choose a province.")).toBeInTheDocument();
-  expect(screen.getByText("Pin your farm on the map, or enter coordinates inside Pakistan.")).toBeInTheDocument();
+  expect(screen.getByText("Pin your farm on the map, inside Pakistan.")).toBeInTheDocument();
   expect(screen.getByText("A CNIC has 13 digits.")).toBeInTheDocument();
   expect(signUp).not.toHaveBeenCalled();
 
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Multan");
+  dragMapTo({ lat: 51.5, lng: 71.5249 });
+  expect(screen.getByText("Please choose a location inside Pakistan.")).toBeInTheDocument();
   await user.type(screen.getByLabelText("Street or village"), "Chak 5, Canal Road");
-  await user.type(screen.getByLabelText("City"), "Multan");
-  await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
-  await user.type(screen.getByLabelText("Latitude"), "51.5");
-  await user.type(screen.getByLabelText("Longitude"), "71.5249");
   await user.type(screen.getByLabelText("CNIC"), "3520212345671");
   await user.click(screen.getByRole("button", { name: "Create account" }));
-  expect(screen.getByText("Pin your farm on the map, or enter coordinates inside Pakistan.")).toBeInTheDocument();
+  expect(screen.getByText("Pin your farm on the map, inside Pakistan.")).toBeInTheDocument();
   expect(signUp).not.toHaveBeenCalled();
 
-  await user.clear(screen.getByLabelText("Latitude"));
-  await user.type(screen.getByLabelText("Latitude"), "30.1575");
+  dragMapTo({ lat: 30.1575, lng: 71.5249 });
   await user.click(screen.getByRole("button", { name: "Create account" }));
 
   await waitFor(() => expect(signUp).toHaveBeenCalledTimes(1));
@@ -74,7 +74,8 @@ test("a farmer signs up in three steps; the location step needs address, provinc
     farmName: "Green Valley Farm",
     cropTypes: ["wheat"],
     province: "Punjab",
-    lat: "30.1575",
+    lat: "30.157500",
+    city: "Multan",
     cnic: "35202-1234567-1",
   });
 });

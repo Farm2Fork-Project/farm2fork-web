@@ -82,6 +82,7 @@ const ur: Record<string, string> = {
     "ڈیلیوری کی تفصیلات درج کریں، آرڈر دیں، پھر Safepay پر محفوظ ادائیگی کریں۔",
   "1. Delivery address": "۱۔ ڈیلیوری کا پتہ",
   Street: "گلی اور مکان",
+  "Street, area or landmark": "گلی، علاقہ یا کوئی مشہور نشانی",
   City: "شہر",
   Province: "صوبہ",
   "Select province": "صوبہ منتخب کریں",

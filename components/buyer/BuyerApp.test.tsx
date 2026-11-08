@@ -1,3 +1,4 @@
+import { chooseOption } from "@/test/map-helpers";
 import {
   cleanup,
   render as testingRender,
@@ -493,9 +494,9 @@ test("clearing a confirmed cart keeps the hosted checkout receipt visible", asyn
     await screen.findByRole("button", { name: "Add Roma Tomatoes to cart" }),
   );
   await user.click(screen.getByRole("button", { name: /cart \(1\)/i }));
-  await user.type(screen.getByLabelText("Street"), "12 Mall Road");
-  await user.type(screen.getByLabelText("City"), "Lahore");
-  await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Lahore");
+  await user.type(screen.getByLabelText("Street, area or landmark"), "12 Mall Road");
   vi.stubGlobal("navigator", {
     ...navigator,
     geolocation: {

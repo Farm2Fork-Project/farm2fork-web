@@ -8,7 +8,9 @@ import { IcMapPin } from "@/components/icons";
 import { useLanguage } from "./LanguageContext";
 
 import MapPinPicker from "@/components/maps/MapPinPicker";
-import { PAKISTAN_PROVINCES, type PakistanProvince } from "@/lib/farmer/farm-location.ts";
+import ProvinceCityFields from "@/components/maps/ProvinceCityFields";
+import { cityTarget } from "@/lib/geo/pakistan-locations.ts";
+import { type PakistanProvince } from "@/lib/farmer/farm-location.ts";
 
 export function FarmPickupLocation({
   repository,
@@ -111,16 +113,32 @@ export function FarmPickupLocation({
       <h3>{ur ? "فارم سے وصولی کی جگہ" : "Farm pickup location"}</h3>
       <p>
         {ur
-          ? "ترسیل کی قیمت اور وصولی کے لیے اپنے فارم کا درست پتہ اور نقشے کے نقاط محفوظ کریں۔"
-          : "Save your farm address and coordinates so buyers can price delivery and transporters can collect orders."}
+          ? "ترسیل کی قیمت اور وصولی کے لیے اپنے فارم کا شہر منتخب کریں، نقشے پر پن لگائیں اور گلی کا پتہ لکھیں۔"
+          : "Choose your farm city, pin it on the map and add your street so buyers can price delivery and transporters can collect orders."}
       </p>
       <fieldset
         disabled={loading || saving || !loaded}
         style={{ border: 0, padding: 0 }}
       >
+        <ProvinceCityFields
+          idPrefix="pickup"
+          province={location.province ?? ""}
+          city={location.city ?? ""}
+          onChange={({ province, city }) => {
+            setSaved(false);
+            setLocation((v) => ({ ...v, province, city }));
+          }}
+        />
+        <MapPinPicker
+          value={typeof location.lat === "number" && typeof location.lng === "number" ? { lat: location.lat, lng: location.lng } : null}
+          onChange={(point) => { setSaved(false); setLocation((current) => ({ ...current, ...point })); }}
+          purpose="farm"
+          disabled={loading || saving || !loaded}
+          city={cityTarget(location.province ?? "", location.city ?? "")}
+        />
         <div className="checkout-address-grid">
           <label>
-            {ur ? "گلی یا گاؤں" : "Street or village"}
+            {ur ? "گلی، گاؤں یا کوئی مشہور نشانی" : "Street, village or landmark"}
             <input
               required
               maxLength={200}
@@ -131,43 +149,7 @@ export function FarmPickupLocation({
               }}
             />
           </label>
-          <label>
-            {ur ? "شہر" : "Farm city"}
-            <input
-              required
-              maxLength={80}
-              value={location.city ?? ""}
-              onChange={(e) => {
-                setSaved(false);
-                setLocation((v) => ({ ...v, city: e.target.value }));
-              }}
-            />
-          </label>
-          <label>
-            {ur ? "صوبہ" : "Farm province"}
-            <select
-              required
-              value={location.province ?? ""}
-              onChange={(e) => {
-                setSaved(false);
-                setLocation((v) => ({ ...v, province: e.target.value }));
-              }}
-            >
-              <option value="">
-                {ur ? "صوبہ منتخب کریں" : "Select province"}
-              </option>
-              {PAKISTAN_PROVINCES.map((p) => (
-                <option key={p}>{p}</option>
-              ))}
-            </select>
-          </label>
         </div>
-        <MapPinPicker
-          value={typeof location.lat === "number" && typeof location.lng === "number" ? { lat: location.lat, lng: location.lng } : null}
-          onChange={(point) => { setSaved(false); setLocation((current) => ({ ...current, ...point })); }}
-          purpose="farm"
-          disabled={loading || saving || !loaded}
-        />
         <button type="submit" className="btn btn-primary">
           {saving
             ? ur

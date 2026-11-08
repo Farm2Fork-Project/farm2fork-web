@@ -170,7 +170,7 @@ export interface AiStatus {
 export interface QualityCheckResult {
   predictionId: string;
   needsReview: boolean;
-  reviewReason: "low_confidence" | "unfamiliar_photo" | "photo_check_unavailable" | "unsupported_crop" | "untrained_model" | null;
+  reviewReason: "low_confidence" | "crop_mismatch" | "unfamiliar_photo" | "photo_check_unavailable" | "unsupported_crop" | "untrained_model" | null;
   photoSimilarity: number | null;
   modelGrade: "A" | "B" | "C" | "D";
   /** null when review is required or the model says D (below listing grades). */

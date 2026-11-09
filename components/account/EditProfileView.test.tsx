@@ -1,3 +1,4 @@
+import { dragMapTo } from "@/test/map-helpers";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
@@ -112,13 +113,13 @@ test("farmers: profile fields and the farm pin are saved by their own endpoints"
   await user.clear(screen.getByLabelText("Farm name"));
   await user.type(screen.getByLabelText("Farm name"), "Blue Farm");
   await user.click(screen.getByRole("checkbox", { name: "Rice" }));
-  fireEvent.change(screen.getByLabelText("Latitude"), { target: { value: "31.5" } });
+  dragMapTo({ lat: 30.2, lng: 71.5 });
   await user.click(screen.getByRole("button", { name: "Save changes" }));
 
   await waitFor(() =>
     expect(repository.updateProfile).toHaveBeenCalledWith({ farmName: "Blue Farm", cropTypes: ["wheat", "Tomatoes", "rice"] }),
   );
-  expect(repository.updateFarmLocation).toHaveBeenCalledWith({ address: "Chak 5", city: "Multan", province: "Punjab", lat: 31.5, lng: 71.5249 });
+  expect(repository.updateFarmLocation).toHaveBeenCalledWith({ address: "Chak 5", city: "Multan", province: "Punjab", lat: 30.2, lng: 71.5 });
   // A crop the farmer already had that is not one of the standard choices stays selectable.
   expect(screen.getByRole("checkbox", { name: "Tomatoes" })).toBeChecked();
 });

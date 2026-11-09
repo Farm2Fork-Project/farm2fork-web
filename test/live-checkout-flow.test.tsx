@@ -1,3 +1,4 @@
+import { chooseOption, dragMapTo } from "@/test/map-helpers";
 import { DeliveryRepository } from '../lib/delivery/delivery-repository';
 // Runs only via backend scripts/test/web-checkout-e2e.ts.
 // The fixture uses test JWT identities and local Safepay API responses.
@@ -137,9 +138,9 @@ test.skipIf(!baseUrl)(
       />,
     );
     const user = userEvent.setup();
-    await user.type(screen.getByLabelText("Street"), "12 Mall Road");
-    await user.type(screen.getByLabelText("City"), "Lahore");
-    await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
+    await chooseOption(user, "Province", "Punjab");
+    await chooseOption(user, "City", "Lahore");
+    await user.type(screen.getByLabelText("Street, area or landmark"), "12 Mall Road");
     vi.stubGlobal("navigator", {
       ...navigator,
       geolocation: {
@@ -335,8 +336,9 @@ test.skipIf(!baseUrl)(
         </LanguageProvider>,
       );
       await screen.findByText("Offline");
-      await user.type(screen.getByLabelText("Current latitude"), "31.52");
-      await user.type(screen.getByLabelText("Current longitude"), "74.35");
+      await chooseOption(user, "Province", "Punjab");
+      await chooseOption(user, "City", "Lahore");
+      dragMapTo({ lat: 31.52, lng: 74.35 });
       await user.click(screen.getByRole("button", { name: "Go online" }));
       await screen.findByText("Online");
       await waitFor(() =>

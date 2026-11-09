@@ -1,3 +1,4 @@
+import { chooseOption } from "@/test/map-helpers";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
@@ -81,9 +82,9 @@ function renderPanel(
 }
 
 async function fillAddress(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText("Street"), "12 Mall Road");
-  await user.type(screen.getByLabelText("City"), "Lahore");
-  await user.selectOptions(screen.getByLabelText("Province"), "Punjab");
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Lahore");
+  await user.type(screen.getByLabelText("Street, area or landmark"), "12 Mall Road");
 }
 
 afterEach(() => {

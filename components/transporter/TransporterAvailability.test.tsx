@@ -1,11 +1,12 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
+import { chooseOption, dragMapTo } from "@/test/map-helpers";
 import { LanguageProvider } from "./LanguageContext";
 import { TransporterAvailability } from "./TransporterAvailability";
 afterEach(cleanup);
 
-test("online requires valid current coordinates and offline requires no pin", async () => {
+test("online needs a pin placed on the map inside Pakistan and offline needs none", async () => {
   const status = { online: false, locationFresh: false, radiusKm: 20 };
   const repository = {
     getTransporterStatus: vi.fn().mockResolvedValue(status),
@@ -27,19 +28,19 @@ test("online requires valid current coordinates and offline requires no pin", as
   );
   await screen.findByText("Offline");
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Current latitude"), "0");
-  await user.type(screen.getByLabelText("Current longitude"), "74.35");
-  await user.click(screen.getByRole("button", { name: "Go online" }));
-  expect(repository.setAvailability).not.toHaveBeenCalled();
-  await user.clear(screen.getByLabelText("Current latitude"));
-  await user.type(screen.getByLabelText("Current latitude"), "31.52");
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Lahore");
+  expect(screen.getByRole("button", { name: "Go online" })).toBeDisabled();
+  dragMapTo({ lat: 0, lng: 74.35 });
+  expect(screen.getByRole("alert")).toBeVisible();
+  expect(screen.getByRole("button", { name: "Go online" })).toBeDisabled();
+  dragMapTo({ lat: 31.52, lng: 74.35 });
   await user.click(screen.getByRole("button", { name: "Go online" }));
   expect(await screen.findByText("Online")).toBeVisible();
   expect(repository.setAvailability).toHaveBeenCalledWith(true, {
     lat: 31.52,
     lng: 74.35,
   });
-  await user.clear(screen.getByLabelText("Current latitude"));
   await user.click(screen.getByRole("button", { name: "Go offline" }));
   expect(await screen.findByText("Offline")).toBeVisible();
   expect(repository.setAvailability).toHaveBeenLastCalledWith(false);
@@ -68,8 +69,9 @@ test("failed online update keeps server state and supports retry", async () => {
   );
   await screen.findByText("Offline");
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Current latitude"), "31.52");
-  await user.type(screen.getByLabelText("Current longitude"), "74.35");
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Lahore");
+  dragMapTo({ lat: 31.52, lng: 74.35 });
   await user.click(screen.getByRole("button", { name: "Go online" }));
   await screen.findByRole("alert");
   expect(screen.getByText("Offline")).toBeVisible();

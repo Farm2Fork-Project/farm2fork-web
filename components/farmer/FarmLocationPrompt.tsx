@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 import { useLanguage } from "./LanguageContext";
 import MapPinPicker from "@/components/maps/MapPinPicker";
+import ProvinceCityFields from "@/components/maps/ProvinceCityFields";
+import { cityTarget } from "@/lib/geo/pakistan-locations.ts";
 import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 import {
   PAKISTAN_PROVINCES,
-  provinceKey,
   type FarmLocation,
   type FarmLocationStatus,
   type PakistanProvince,
@@ -98,26 +99,25 @@ export default function FarmLocationPrompt({ client }: { client: FarmLocationCli
         </div>
       </div>
       <form className="farm-location-form" onSubmit={(e) => void save(e)}>
+        <div className="farm-location-pin">
+          <ProvinceCityFields
+            idPrefix="farm-location"
+            province={province}
+            city={city}
+            disabled={saving}
+            onChange={(next) => {
+              setProvince(next.province as PakistanProvince | "");
+              setCity(next.city);
+            }}
+          />
+        </div>
+        <div className="farm-location-pin">
+          <MapPinPicker value={pin} onChange={setPin} purpose="farm" disabled={saving} city={cityTarget(province, city)} />
+        </div>
         <label>
           <span>{t("farmLocation.address")}</span>
           <input className="auth-input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder={t("farmLocation.addressPlaceholder")} />
         </label>
-        <label>
-          <span>{t("farmLocation.city")}</span>
-          <input className="auth-input" value={city} onChange={(e) => setCity(e.target.value)} />
-        </label>
-        <label>
-          <span>{t("farmLocation.province")}</span>
-          <select className="auth-input" value={province} onChange={(e) => setProvince(e.target.value as PakistanProvince | "")}>
-            <option value="">{t("farmLocation.provincePlaceholder")}</option>
-            {PAKISTAN_PROVINCES.map((option) => (
-              <option key={option} value={option}>{t(provinceKey(option))}</option>
-            ))}
-          </select>
-        </label>
-        <div className="farm-location-pin">
-          <MapPinPicker value={pin} onChange={setPin} purpose="farm" disabled={saving} />
-        </div>
         <button type="submit" className="btn btn-primary" disabled={saving}>
           {saving ? t("farmer.ai.working") : t("farmLocation.save")}
         </button>

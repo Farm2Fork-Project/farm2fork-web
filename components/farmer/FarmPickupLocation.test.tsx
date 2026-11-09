@@ -1,3 +1,4 @@
+import { chooseOption } from "@/test/map-helpers";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
@@ -19,9 +20,9 @@ test("saves a complete pickup location and blocks an invalid map pin", async () 
   );
   const user = userEvent.setup();
   await screen.findByRole("button", { name: "Save pickup location" });
-  await user.type(screen.getByLabelText("Street or village"), "Farm road");
-  await user.type(screen.getByLabelText("Farm city"), "Lahore");
-  await user.selectOptions(screen.getByLabelText("Farm province"), "Punjab");
+  await chooseOption(user, "Province", "Punjab");
+  await chooseOption(user, "City", "Lahore");
+  await user.type(screen.getByLabelText("Street, village or landmark"), "Farm road");
   vi.stubGlobal("navigator", { ...navigator, geolocation: {
     getCurrentPosition: (ok: PositionCallback) => ok({ coords: { latitude: 0, longitude: 74.3587 } } as GeolocationPosition),
   } });

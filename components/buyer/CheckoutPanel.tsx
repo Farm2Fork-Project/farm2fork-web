@@ -16,7 +16,8 @@ import type {
   PaymentGateway,
 } from "@/lib/api/contracts.ts";
 import MapPinPicker from "@/components/maps/MapPinPicker";
-import { PAKISTAN_PROVINCES } from "@/lib/farmer/farm-location.ts";
+import ProvinceCityFields from "@/components/maps/ProvinceCityFields";
+import { cityTarget } from "@/lib/geo/pakistan-locations.ts";
 import type { GeoPoint } from "@/lib/geo/geo-point.ts";
 import { paymentStateLabel } from "@/lib/buyer/order-progress.ts";
 
@@ -327,9 +328,34 @@ export function CheckoutPanel({
         style={{ border: 0, margin: 0, padding: 0 }}
       >
         <h4 className="checkout-step">{copy("1. Delivery address")}</h4>
+        <ProvinceCityFields
+          idPrefix="checkout"
+          province={address.province}
+          city={address.city}
+          onChange={({ province, city }) =>
+            setAddress((current) => ({ ...current, province, city }))
+          }
+        />
+
+        <div className="checkout-dropoff">
+          <h4 className="checkout-step">{copy("2. Drop-off location")}</h4>
+          <p className="checkout-hint">
+            {copy(
+              "Pin where the delivery should arrive. The delivery fee is calculated from this pin.",
+            )}
+          </p>
+          <MapPinPicker
+            value={dropoff}
+            onChange={setDropoff}
+            purpose="dropoff"
+            disabled={isSubmitting}
+            city={cityTarget(address.province, address.city)}
+          />
+        </div>
+
         <div className="checkout-address-grid">
           <label>
-            {copy("Street")}
+            {copy("Street, area or landmark")}
             <input
               required
               value={address.street}
@@ -340,39 +366,6 @@ export function CheckoutPanel({
                 }))
               }
             />
-          </label>
-          <label>
-            {copy("City")}
-            <input
-              required
-              value={address.city}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  city: event.target.value,
-                }))
-              }
-            />
-          </label>
-          <label>
-            {copy("Province")}
-            <select
-              required
-              value={address.province}
-              onChange={(event) =>
-                setAddress((current) => ({
-                  ...current,
-                  province: event.target.value,
-                }))
-              }
-            >
-              <option value="">{copy("Select province")}</option>
-              {PAKISTAN_PROVINCES.map((province) => (
-                <option key={province} value={province}>
-                  {province}
-                </option>
-              ))}
-            </select>
           </label>
           <label>
             {copy("ZIP code (optional)")}
@@ -388,20 +381,6 @@ export function CheckoutPanel({
           </label>
         </div>
 
-        <div className="checkout-dropoff">
-          <h4 className="checkout-step">{copy("2. Drop-off location")}</h4>
-          <p className="checkout-hint">
-            {copy(
-              "Pin where the delivery should arrive. The delivery fee is calculated from this pin.",
-            )}
-          </p>
-          <MapPinPicker
-            value={dropoff}
-            onChange={setDropoff}
-            purpose="dropoff"
-            disabled={isSubmitting}
-          />
-        </div>
       </fieldset>
 
       <h4 className="checkout-step">

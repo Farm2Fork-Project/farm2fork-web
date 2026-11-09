@@ -5934,14 +5934,6 @@ ol.scan-timeline {
     pointer-events: none;
     filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
   }
-  .map-pin-nokey {
-    margin: 0;
-    padding: 10px 12px;
-    border-radius: var(--radius-md);
-    border: 1px dashed var(--surface-strong);
-    background: var(--surface-light);
-    font-size: 13px;
-  }
   .map-pin-actions {
     display: flex;
     flex-wrap: wrap;

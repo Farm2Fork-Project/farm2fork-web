@@ -556,7 +556,7 @@ export default function FarmerDashboard({
             </div>
           ) : null}
           {activeTab === "listings" && (
-            <FarmPickupLocation repository={repository} />
+            <FarmPickupLocation repository={repository} variant="card" />
           )}
           {activeTab === "listings" && (
             <>

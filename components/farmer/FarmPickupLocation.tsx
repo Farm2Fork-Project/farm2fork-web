@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import type {
   FarmerRepository,
   FarmLocation,
@@ -12,10 +13,18 @@ import ProvinceCityFields from "@/components/maps/ProvinceCityFields";
 import { cityTarget } from "@/lib/geo/pakistan-locations.ts";
 import { type PakistanProvince } from "@/lib/farmer/farm-location.ts";
 
+/**
+ * `card` is the compact dashboard summary that links to the full screen;
+ * `form` is the full Province > City > map > street form for /farmer/location.
+ */
 export function FarmPickupLocation({
   repository,
+  variant = "form",
+  onSaved,
 }: {
   repository: Pick<FarmerRepository, "getFarmLocation" | "updateFarmLocation">;
+  variant?: "card" | "form";
+  onSaved?: () => void;
 }) {
   const { language } = useLanguage();
   const ur = language === "ur";
@@ -26,7 +35,7 @@ export function FarmPickupLocation({
   const [error, setError] = useState<"load" | "save" | null>(null);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [saved, setSaved] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(variant === "form");
   useEffect(() => {
     let active = true;
     repository
@@ -69,11 +78,41 @@ export function FarmPickupLocation({
       setLocation(value);
       setSaved(true);
       setEditing(false);
+      onSaved?.();
     } catch {
       setError("save");
     } finally {
       setSaving(false);
     }
+  }
+  if (variant === "card") {
+    if (loading) return null;
+    const title = ur ? "فارم سے وصولی کی جگہ" : "Farm pickup location";
+    const complete = loaded && location.complete;
+    return (
+      <section className="pickup-summary" aria-label={title}>
+        <span className="pickup-summary-icon">
+          <IcMapPin size={22} />
+        </span>
+        <div className="pickup-summary-text">
+          <strong>{title}</strong>
+          <span>
+            {error === "load"
+              ? ur
+                ? "فارم کی جگہ لوڈ نہیں ہو سکی۔"
+                : "Could not load your pickup location."
+              : complete
+                ? [location.address, location.city, location.province].filter(Boolean).join(", ")
+                : ur
+                  ? "ابھی طے نہیں۔ ٹرانسپورٹر آپ کے آرڈر تب ہی اٹھا سکتے ہیں جب یہ محفوظ ہو۔"
+                  : "Not set yet. Transporters can only collect your orders once this is saved."}
+          </span>
+        </div>
+        <Link className="pickup-summary-edit" href="/farmer/location">
+          {complete ? (ur ? "ترمیم کریں" : "Edit") : ur ? "جگہ مقرر کریں" : "Set location"}
+        </Link>
+      </section>
+    );
   }
   if (loaded && location.complete && !editing) {
     const title = ur ? "فارم سے وصولی کی جگہ" : "Farm pickup location";
@@ -159,17 +198,10 @@ export function FarmPickupLocation({
               ? "وصولی کی جگہ محفوظ کریں"
               : "Save pickup location"}
         </button>
-        {editing ? (
-          <button
-            type="button"
-            className="pickup-summary-edit"
-            onClick={() => {
-              setEditing(false);
-              setLoadAttempt((v) => v + 1);
-            }}
-          >
+        {editing && variant === "form" ? (
+          <Link className="pickup-summary-edit" href="/farmer">
             {ur ? "منسوخ کریں" : "Cancel"}
-          </button>
+          </Link>
         ) : null}
       </fieldset>
       {loading ? (

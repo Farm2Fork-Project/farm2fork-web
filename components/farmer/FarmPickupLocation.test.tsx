@@ -63,3 +63,26 @@ test("keeps saving disabled when loading the existing location fails", async () 
     screen.getByRole("button", { name: "Save pickup location" }),
   ).toBeDisabled();
 });
+
+test("dashboard card links to the full location screen instead of embedding the form", async () => {
+  const repository = {
+    getFarmLocation: vi.fn().mockResolvedValue({
+      complete: true,
+      address: "Farm road",
+      city: "Lahore",
+      province: "Punjab",
+      lat: 31.5204,
+      lng: 74.3587,
+    }),
+    updateFarmLocation: vi.fn(),
+  };
+  render(
+    <LanguageProvider>
+      <FarmPickupLocation repository={repository} variant="card" />
+    </LanguageProvider>,
+  );
+  const edit = await screen.findByRole("link", { name: "Edit" });
+  expect(edit).toHaveAttribute("href", "/farmer/location");
+  expect(screen.getByText("Farm road, Lahore, Punjab")).toBeVisible();
+  expect(screen.queryByRole("button", { name: "Save pickup location" })).toBeNull();
+});

@@ -1,7 +1,7 @@
 'use client'
 
 import { IcClose as X, IcLeaf as Leaf, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
-import { BookOpen, LayoutDashboard, LogOut, Settings, SlidersHorizontal, Store, TrendingUp } from "lucide-react";
+import { BookOpen, Flag, LayoutDashboard, LogOut, ReceiptText, Settings, SlidersHorizontal, Star, Store, TrendingUp } from "lucide-react";
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -14,7 +14,10 @@ const navItems = [
   { id: 'orders', href: '/admin/orders', title: 'Orders', icon: BookOpen },
   { id: 'payouts', href: '/admin/payouts', title: 'Transporter Payouts', icon: BookOpen },
   { id: 'loans', href: '/admin/loans', title: 'Loan Applications', icon: Wheat },
-  { id: 'moderation', href: '/admin/moderation', title: 'Moderation', icon: MessageSquare },
+  { id: 'rates', href: '/admin/rate-lists', title: 'Market Rate Lists', icon: ReceiptText },
+  { id: 'reports', href: '/admin/reports', title: 'Reports', icon: Flag },
+  { id: 'moderation', href: '/admin/moderation', title: 'Community Posts', icon: MessageSquare },
+  { id: 'reviews', href: '/admin/reviews', title: 'Buyer Reviews', icon: Star },
   { id: 'audit', href: '/admin/audit-logs', title: 'Audit Logs', icon: TrendingUp },
   { id: 'config', href: '/admin/config', title: 'System Config', icon: SlidersHorizontal },
 ]

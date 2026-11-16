@@ -40,9 +40,9 @@ const person = (value?: AdminPerson | string) =>
   typeof value === "string"
     ? value
     : value?.fullName || value?.email || value?._id || "Account unavailable";
-const errorText = (error: unknown) =>
+export const errorText = (error: unknown) =>
   error instanceof Error ? error.message : "Request failed. Try again.";
-function useRead<T>(read: () => Promise<T>) {
+export function useRead<T>(read: () => Promise<T>) {
   const [data, setData] = useState<T>();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -66,7 +66,7 @@ function useRead<T>(read: () => Promise<T>) {
   }, [read, version]);
   return { data, error, loading, refresh };
 }
-function ReadState({
+export function ReadState({
   state,
 }: {
   state: { error: string; loading: boolean; refresh: () => void };
@@ -85,7 +85,7 @@ function ReadState({
     </>
   );
 }
-function Pager({
+export function Pager({
   page,
   total,
   limit,
@@ -118,7 +118,7 @@ function Pager({
     </nav>
   );
 }
-function Table({
+export function Table({
   headings,
   children,
 }: {
@@ -876,9 +876,8 @@ export function ModerationScreen({
   return (
     <div className="admin-operations">
       <p>
-        Review published and removed community posts. This view contains actual
-        community content; user reports are not collected by the current
-        service.
+        Every community post, published or removed. Content that members
+        have flagged is on the Reports page.
       </p>
       <ListTools
         query={query}

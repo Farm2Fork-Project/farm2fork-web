@@ -12,6 +12,7 @@ import {
   type LoanApplication,
 } from '@/lib/loans/loan-repository.ts'
 import { STATUS_BADGE, money, shortDate } from './loan-format'
+import CreditAssessmentCard from './CreditAssessmentCard'
 
 /** One application: farm summary, private documents, decision, repayments. */
 export default function LoanDetailScreen({
@@ -154,6 +155,8 @@ export default function LoanDetailScreen({
                   </dl>
                 </section>
               ) : null}
+
+              {loan.credit ? <CreditAssessmentCard credit={loan.credit} /> : null}
 
               <section className="card">
                 <h2 className="card-title">{t("financial.documents")}</h2>

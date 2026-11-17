@@ -34,6 +34,26 @@ export interface LoanApplicant {
   deliveredRevenue: number;
 }
 
+export type CreditBand = "strong" | "fair" | "limited" | "weak";
+export type CreditConfidence = "high" | "medium" | "low";
+
+export interface CreditFactor {
+  key: string;
+  points: number;
+  maxPoints: number;
+  /** Plain-English reason for the points. */
+  summary: string;
+}
+
+/** Advisory rule-based score; reviewers only. */
+export interface CreditAssessment {
+  score: number;
+  band: CreditBand;
+  confidence: CreditConfidence;
+  factors: CreditFactor[];
+  modelVersion: string;
+}
+
 export interface LoanApplication {
   id: string;
   applicantId: string;
@@ -45,6 +65,7 @@ export interface LoanApplication {
   documentCount: number;
   repaymentSchedule: LoanInstalment[];
   applicant?: LoanApplicant;
+  credit?: CreditAssessment;
   /** Short-lived signed links (single-application read only). */
   documents?: { index: number; url: string }[];
   createdAt: string;

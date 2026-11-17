@@ -12,6 +12,7 @@ import {
   type LoanApplication,
   type LoanStatus,
 } from '@/lib/loans/loan-repository.ts'
+import { CreditScoreChip } from './CreditAssessmentCard'
 import { STATUS_BADGE, money, shortDate } from './loan-format'
 
 type LoadState =
@@ -151,6 +152,7 @@ export default function DashboardScreen({
                         {money(loan.amount, language)}
                         <span className="text-muted">{loan.durationMonths} {t("financial.word.months")}</span>
                       </span>
+                      {loan.credit ? <CreditScoreChip credit={loan.credit} /> : <span />}
                       <span className={`badge ${STATUS_BADGE[loan.status]}`}>{t("financial." + "status." + loan.status)}</span>
                       <ChevronRight className="w-4 h-4" aria-hidden="true" />
                     </button>

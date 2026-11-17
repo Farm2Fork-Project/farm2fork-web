@@ -6091,7 +6091,7 @@ ol.scan-timeline {
   .loan-queue-row {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr auto auto auto;
+    grid-template-columns: 1fr auto auto auto auto;
     gap: var(--sp-lg);
     align-items: center;
     padding: var(--sp-md) var(--sp-lg);
@@ -6119,6 +6119,122 @@ ol.scan-timeline {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .credit-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--sp-xs);
+    padding: 2px var(--sp-sm);
+    border-radius: var(--radius-pill);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    background: var(--credit-soft);
+    color: var(--credit-ink);
+  }
+  .credit-chip strong {
+    font-variant-numeric: tabular-nums;
+  }
+  .credit-strong {
+    --credit-ink: var(--primary-green-dark);
+    --credit-soft: var(--primary-green-soft);
+    --credit-fill: var(--primary-green);
+  }
+  .credit-fair {
+    --credit-ink: #1f5670;
+    --credit-soft: var(--secondary-blue-soft);
+    --credit-fill: var(--secondary-blue);
+  }
+  .credit-limited {
+    --credit-ink: #7a5600;
+    --credit-soft: var(--accent-yellow-soft);
+    --credit-fill: var(--accent-yellow);
+  }
+  .credit-weak {
+    --credit-ink: #8f2f26;
+    --credit-soft: #fbe6e3;
+    --credit-fill: var(--error-red);
+  }
+  .credit-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-lg);
+    margin-bottom: var(--sp-lg);
+  }
+  .credit-dial {
+    flex: none;
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    padding-top: 28px;
+    background:
+      radial-gradient(closest-side, var(--white) 78%, transparent 79%),
+      conic-gradient(var(--credit-fill) calc(var(--credit-score) * 1%), var(--surface-medium) 0);
+  }
+  .credit-dial-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dark);
+  }
+  .credit-dial-max {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .credit-head-text {
+    min-width: 0;
+  }
+  .credit-badge {
+    background: var(--credit-soft);
+    color: var(--credit-ink);
+  }
+  .credit-confidence {
+    margin: var(--sp-sm) 0 0;
+  }
+  .credit-factors {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-md);
+  }
+  .credit-factors p {
+    margin: var(--sp-xs) 0 0;
+    text-align: start;
+  }
+  .credit-factor-top {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-md);
+    font-weight: 600;
+  }
+  .credit-factor-points {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+  .credit-bar {
+    height: 6px;
+    margin-top: var(--sp-xs);
+    border-radius: var(--radius-pill);
+    background: var(--surface-medium);
+    overflow: hidden;
+  }
+  .credit-bar span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--primary-green);
+  }
+  .credit-note {
+    margin: var(--sp-lg) 0 0;
+    padding: var(--sp-sm) var(--sp-md);
+    border-radius: var(--radius-md);
+    background: var(--surface-light);
+    color: var(--text-muted);
   }
   .loan-detail-grid {
     display: grid;

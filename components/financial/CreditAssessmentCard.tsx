@@ -34,7 +34,7 @@ export default function CreditAssessmentCard({ credit }: { credit: CreditAssessm
           style={{ ['--credit-score' as string]: credit.score }}
         >
           <span className="credit-dial-value">{credit.score}</span>
-          <span className="credit-dial-max">/100</span>
+          <span className="credit-dial-max">/ 100</span>
         </div>
         <div className="credit-head-text">
           <span className={`badge credit-badge credit-${credit.band}`}>

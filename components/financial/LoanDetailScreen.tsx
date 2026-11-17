@@ -3,7 +3,7 @@
 import { useLanguage } from '@/components/LanguageContext'
 
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, CheckCircle2, Circle, FileText } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Circle, ExternalLink, FileText, MapPin } from 'lucide-react'
 import { LoanDetailScreenProps } from '../types'
 import Topbar from './Topbar'
 import {
@@ -65,7 +65,7 @@ export default function LoanDetailScreen({
   const repaid = loan?.repaymentSchedule.filter((i) => i.isPaid).reduce((s, i) => s + i.amount, 0) ?? 0
 
   return (
-    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell" style={{ flexDirection: 'column' }}>
+    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell fin-shell" style={{ flexDirection: 'column' }}>
       <Topbar
         currentView="detail"
         onNavigateToQueue={onBack}
@@ -84,16 +84,24 @@ export default function LoanDetailScreen({
             <p className="text-muted">{t("financial.loading")}</p>
           ) : (
             <div className="loan-detail-grid">
-              <section className="card">
-                <div className="flex-between mb-md">
-                  <h1 className="card-title" style={{ margin: 0 }}>{money(loan.amount, language)}</h1>
+              <div className="loan-detail-main">
+              <section className="card loan-summary">
+                <div className="loan-summary-head">
+                  <div>
+                    <p className="loan-summary-label">{t("financial.word.Requested")}</p>
+                    <h1 className="loan-summary-amount">{money(loan.amount, language)}</h1>
+                  </div>
                   <span className={`badge ${STATUS_BADGE[loan.status]}`}>{t("financial." + "status." + loan.status)}</span>
                 </div>
-                <p className="text-muted">
+                <p className="loan-summary-meta">
                   {loan.durationMonths} {t("financial.word.months")} · {t("financial.word.submitted")} {shortDate(loan.createdAt, language)}
                 </p>
-                <p>{loan.purpose}</p>
-                {loan.reviewNote ? <p className="text-muted">{t("financial.word.Reviewer note:")} {loan.reviewNote}</p> : null}
+                <p className="loan-purpose">{loan.purpose}</p>
+                {loan.reviewNote ? (
+                  <div className={`loan-note loan-note-${loan.status}`}>
+                    {t("financial.word.Reviewer note:")} {loan.reviewNote}
+                  </div>
+                ) : null}
 
                 {loan.status === 'pending' ? (
                   <button type="button" className="btn btn-primary" disabled={busy} onClick={() => run(() => loans.startReview(loan.id))}>
@@ -139,24 +147,19 @@ export default function LoanDetailScreen({
 
               {loan.applicant ? (
                 <section className="card">
-                  <h2 className="card-title">{loan.applicant.farmName}</h2>
-                  <p className="text-muted">
+                  <h2 className="card-title loan-farm-title">{loan.applicant.farmName}</h2>
+                  <p className="loan-farm-place">
+                    <MapPin className="w-4 h-4" aria-hidden="true" />
                     {[loan.applicant.city, loan.applicant.province].filter(Boolean).join(', ')}
                   </p>
                   <dl className="loan-facts">
-                    <dt>{t("financial.land")}</dt>
-                    <dd>{loan.applicant.landSizeAcres != null ? `${loan.applicant.landSizeAcres} ${t("financial.word.acres")}` : t("financial.notStated")}</dd>
-                    <dt>{t("financial.crops")}</dt>
-                    <dd>{loan.applicant.cropTypes.length ? loan.applicant.cropTypes.join(', ') : t("financial.notStated")}</dd>
-                    <dt>{t("financial.deliveredOrders")}</dt>
-                    <dd>{loan.applicant.deliveredOrders}</dd>
-                    <dt>{t("financial.revenueFromDeliveredOrders")}</dt>
-                    <dd>{money(loan.applicant.deliveredRevenue, language)}</dd>
+                    <div className="loan-fact"><dt>{t("financial.land")}</dt><dd>{loan.applicant.landSizeAcres != null ? `${loan.applicant.landSizeAcres} ${t("financial.word.acres")}` : t("financial.notStated")}</dd></div>
+                    <div className="loan-fact"><dt>{t("financial.crops")}</dt><dd>{loan.applicant.cropTypes.length ? loan.applicant.cropTypes.join(', ') : t("financial.notStated")}</dd></div>
+                    <div className="loan-fact"><dt>{t("financial.deliveredOrders")}</dt><dd>{loan.applicant.deliveredOrders}</dd></div>
+                    <div className="loan-fact"><dt>{t("financial.revenueFromDeliveredOrders")}</dt><dd>{money(loan.applicant.deliveredRevenue, language)}</dd></div>
                   </dl>
                 </section>
               ) : null}
-
-              {loan.credit ? <CreditAssessmentCard credit={loan.credit} /> : null}
 
               <section className="card">
                 <h2 className="card-title">{t("financial.documents")}</h2>
@@ -166,7 +169,9 @@ export default function LoanDetailScreen({
                       {loan.documents.map((doc) => (
                         <li key={doc.index}>
                           <a href={resolveApiUrl(doc.url)} target="_blank" rel="noopener noreferrer">
-                            <FileText className="w-4 h-4" aria-hidden="true" /> {t("financial.word.Document")} {doc.index + 1}
+                            <FileText className="w-4 h-4" aria-hidden="true" />
+                            <span>{t("financial.word.Document")} {doc.index + 1}</span>
+                            <ExternalLink className="w-4 h-4 loan-doc-ext" aria-hidden="true" />
                           </a>
                         </li>
                       ))}
@@ -210,6 +215,12 @@ export default function LoanDetailScreen({
                     ))}
                   </ul>
                 </section>
+              ) : null}
+              </div>
+              {loan.credit ? (
+                <aside className="loan-detail-aside">
+                  <CreditAssessmentCard credit={loan.credit} />
+                </aside>
               ) : null}
             </div>
           )}

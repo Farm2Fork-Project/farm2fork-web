@@ -29,7 +29,7 @@ test("farmer funding keeps failed application input and prevents a second open a
     .mockRejectedValueOnce(new Error("Connection lost"))
     .mockResolvedValueOnce(loan);
   const repository = {
-    listAll: vi.fn().mockResolvedValue([]),
+    mine: vi.fn().mockResolvedValue([]),
     limits: vi.fn().mockResolvedValue(limits),
     apply,
   } as unknown as LoanRepository;

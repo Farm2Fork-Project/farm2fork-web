@@ -54,7 +54,7 @@ export default function FarmerLoans({
 
   useEffect(() => {
     let active = true;
-    Promise.all([client.listAll(), client.limits()]).then(
+    Promise.all([client.mine(), client.limits()]).then(
       ([loans, limits]) => {
         if (active) {
           setState({ loans, limits });

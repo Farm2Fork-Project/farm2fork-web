@@ -6989,7 +6989,10 @@ ol.scan-timeline {
 .shipment-tabs .btn { min-height: 44px; padding: 0 22px; font-size: calc(15px * var(--font-scale, 1)); }
 
 /* Trace: same page structure as every other tab, left-aligned, solid action. */
-.qr-scanner-area { align-items: stretch; max-width: 680px; padding: 0; margin: 0; }
+.qr-scanner-area { align-items: stretch; max-width: 680px; padding: 0; margin: 0; gap: var(--sp-md); }
+.qr-scanner-area .trace-search,
+.qr-scanner-area .trace-feedback-slot { max-width: none; }
+.qr-scanner-area .trace-search .qr-simulate-btn { min-width: 120px; }
 .qr-scanner-area > div:not(.page-header) { max-width: none !important; }
 .qr-scanner-area .auth-input { min-height: 48px; }
 .qr-description { max-width: none; text-align: start; font-size: calc(15px * var(--font-scale, 1)); }

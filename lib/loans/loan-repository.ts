@@ -98,6 +98,11 @@ export class LoanRepository {
     return this.client.request<LoanLimits>("/loans/limits");
   }
 
+  /** The signed-in farmer's own applications (GET /loans is reviewers only). */
+  mine(): Promise<LoanApplication[]> {
+    return this.client.request<LoanApplication[]>("/loans/mine");
+  }
+
   async listAll(): Promise<LoanApplication[]> {
     const result: LoanApplication[] = [];
     let page = 1;

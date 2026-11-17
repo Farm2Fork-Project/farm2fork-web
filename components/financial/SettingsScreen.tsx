@@ -45,7 +45,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
   }
 
   return (
-    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell" style={{ flexDirection: 'column' }}>
+    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell fin-shell" style={{ flexDirection: 'column' }}>
 
       {/* Top Bar Navigation with horizontal layout links */}
       <Topbar
@@ -72,61 +72,28 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
         </div>
 
         {/* Sub Navigation Tabs */}
-        <div className="flex-between gap-xs p-xs mb-xl" style={{ border: '1px solid var(--surface-medium)', borderRadius: 'var(--radius-pill)', backgroundColor: 'var(--white)' }}>
-          <button
-            onClick={() => setActiveTab('profile')}
-            className="btn"
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-pill)',
-              backgroundColor: activeTab === 'profile' ? 'var(--primary-green-soft)' : 'transparent',
-              color: activeTab === 'profile' ? 'var(--primary-green)' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 16px'
-            }}
-          >
-            <User className="w-4 h-4" />
-            <span>{t("financial.personalProfile")}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('preferences')}
-            className="btn"
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-pill)',
-              backgroundColor: activeTab === 'preferences' ? 'var(--primary-green-soft)' : 'transparent',
-              color: activeTab === 'preferences' ? 'var(--primary-green)' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 16px'
-            }}
-          >
-            <Settings className="w-4 h-4" />
-            <span>{t("financial.systemPreferences")}</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('notifications')}
-            className="btn"
-            style={{
-              flex: 1,
-              justifyContent: 'center',
-              borderRadius: 'var(--radius-pill)',
-              backgroundColor: activeTab === 'notifications' ? 'var(--primary-green-soft)' : 'transparent',
-              color: activeTab === 'notifications' ? 'var(--primary-green)' : 'var(--text-muted)',
-              border: 'none',
-              padding: '8px 16px'
-            }}
-          >
-            <Shield className="w-4 h-4" />
-            <span>{t("financial.notificationsSecurity")}</span>
-          </button>
+        <div className="fin-tabs" role="tablist" aria-label={t("financial.settings")}>
+          {([
+            ['profile', User, 'financial.personalProfile'],
+            ['preferences', Settings, 'financial.systemPreferences'],
+            ['notifications', Shield, 'financial.notificationsSecurity'],
+          ] as const).map(([key, Icon, label]) => (
+            <button
+              key={key}
+              type="button"
+              role="tab"
+              aria-selected={activeTab === key}
+              onClick={() => setActiveTab(key)}
+              className={`fin-tab${activeTab === key ? ' is-active' : ''}`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{t(label)}</span>
+            </button>
+          ))}
         </div>
 
         {/* Tab Content Form */}
-        <div className="card">
+        <div className="card fin-settings-card">
           <form onSubmit={handleSave} className="flex flex-col gap-xl">
 
             {activeTab === 'profile' && (
@@ -135,13 +102,13 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   <User className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
                     <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.personalProfileDetails")}</h3>
-                    <p className="text-xs text-muted">{t("financial.manageYourPersonalIdentificationInfoUsed")}</p>
+                    <p className="fin-help">{t("financial.manageYourPersonalIdentificationInfoUsed")}</p>
                   </div>
                 </div>
 
                 <div className="grid-2 gap-xl">
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.fullLegalName")}</label>
+                    <label className="fin-label mb-xs">{t("financial.fullLegalName")}</label>
                     <input
                       type="text"
                       value={profile.fullName}
@@ -153,7 +120,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.corporateEmailAddress")}</label>
+                    <label className="fin-label mb-xs">{t("financial.corporateEmailAddress")}</label>
                     <input
                       type="email"
                       value={profile.email}
@@ -165,7 +132,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.assignedRole")}</label>
+                    <label className="fin-label mb-xs">{t("financial.assignedRole")}</label>
                     <input
                       type="text"
                       value={profile.role}
@@ -173,7 +140,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                       className="input"
                       style={{ backgroundColor: 'var(--surface-medium)', color: 'var(--text-muted)', cursor: 'not-allowed', borderColor: 'transparent' }}
                     />
-                    <p className="text-[10px] text-muted mt-xs">{t("financial.lendingTeamRolesAreDefinedBy")}</p>
+                    <p className="fin-help text-muted mt-xs">{t("financial.lendingTeamRolesAreDefinedBy")}</p>
                   </div>
                 </div>
               </div>
@@ -185,13 +152,13 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   <Settings className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
                     <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.lendingPreferences")}</h3>
-                    <p className="text-xs text-muted">{t("financial.setUpDefaultsForCurrencyRepresentations")}</p>
+                    <p className="fin-help">{t("financial.setUpDefaultsForCurrencyRepresentations")}</p>
                   </div>
                 </div>
 
                 <div className="grid-2 gap-xl">
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.displayCurrency")}</label>
+                    <label className="fin-label mb-xs">{t("financial.displayCurrency")}</label>
                     <select
                       value={profile.currency}
                       onChange={(e) => setProfile({ ...profile, currency: e.target.value })}
@@ -204,7 +171,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-dark mb-xs">{t("financial.defaultPreferredRepaymentTerm")}</label>
+                    <label className="fin-label mb-xs">{t("financial.defaultPreferredRepaymentTerm")}</label>
                     <select
                       value={profile.defaultRepaymentTerm}
                       onChange={(e) => setProfile({ ...profile, defaultRepaymentTerm: e.target.value })}
@@ -227,11 +194,12 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   <Shield className="w-5 h-5" style={{ color: 'var(--primary-green)' }} />
                   <div>
                     <h3 className="card-title" style={{ borderBottom: 'none', padding: 0, margin: 0 }}>{t("financial.alertsAccessControls")}</h3>
-                    <p className="text-xs text-muted">{t("financial.chooseWhenYouWishToReceive")}</p>
+                    <p className="fin-help">{t("financial.chooseWhenYouWishToReceive")}</p>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-lg">
+                <p className="fin-soon">Alerts and two-factor sign-in are not available yet.</p>
+                <div className="flex flex-col gap-lg fin-options">
                   <label className="flex items-start gap-sm cursor-pointer">
                     <input
                       type="checkbox"
@@ -241,8 +209,8 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark">{t("financial.newLoanApplicationAlerts")}</span>
-                      <span className="text-[10px] text-muted">{t("financial.notifyMeImmediatelyByEmailWhenever")}</span>
+                      <span className="fin-label">{t("financial.newLoanApplicationAlerts")}</span>
+                      <span className="fin-help text-muted">{t("financial.notifyMeImmediatelyByEmailWhenever")}</span>
                     </div>
                   </label>
 
@@ -255,8 +223,8 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark">{t("financial.weeklySummaryReports")}</span>
-                      <span className="text-[10px] text-muted">{t("financial.sendADigestedSummaryOfLedger")}</span>
+                      <span className="fin-label">{t("financial.weeklySummaryReports")}</span>
+                      <span className="fin-help text-muted">{t("financial.sendADigestedSummaryOfLedger")}</span>
                     </div>
                   </label>
 
@@ -269,8 +237,8 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                       style={{ accentColor: 'var(--primary-green)', marginTop: '2px' }}
                     />
                     <div>
-                      <span className="block text-xs font-bold text-dark font-sans">{t("financial.enableTwoFactorAuthentication")}</span>
-                      <span className="text-[10px] text-muted">{t("financial.requireVerificationCodeAlongsideStandardLogin")}</span>
+                      <span className="fin-label font-sans">{t("financial.enableTwoFactorAuthentication")}</span>
+                      <span className="fin-help text-muted">{t("financial.requireVerificationCodeAlongsideStandardLogin")}</span>
                     </div>
                   </label>
                 </div>
@@ -285,7 +253,7 @@ export default function SettingsScreen({ onBackToQueue, onLogout }: SettingsScre
                   <span>{t("financial.yourPreferencesWereUpdatedSuccessfully")}</span>
                 </div>
               ) : (
-                <div className="text-[11px] text-muted">
+                <div className="fin-help text-muted">
                   <span>{t("financial.changesTakeEffectImmediatelyOnCurrent")}</span>
                 </div>
               )}

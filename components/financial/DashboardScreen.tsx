@@ -73,7 +73,7 @@ export default function DashboardScreen({
   )
 
   return (
-    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell" style={{ flexDirection: 'column' }}>
+    <div dir={language === 'ur' ? 'rtl' : 'ltr'} className="app-shell fin-shell" style={{ flexDirection: 'column' }}>
       <Topbar
         currentView="queue"
         onNavigateToQueue={() => {}}
@@ -105,10 +105,12 @@ export default function DashboardScreen({
                     type="button"
                     role="tab"
                     aria-selected={statusFilter === status}
-                    className={statusFilter === status ? 'btn btn-primary' : 'btn btn-outline'}
+                    aria-label={status === 'all' ? t("financial.all") : t("financial." + "status." + status)}
+                    className={`loan-tab${statusFilter === status ? ' is-active' : ''}`}
                     onClick={() => setStatusFilter(status)}
                   >
                     {status === 'all' ? t("financial.all") : t("financial." + "status." + status)}
+                    <span className="loan-tab-count">{status === 'all' ? all.length : all.filter((l) => l.status === status).length}</span>
                   </button>
                 ))}
               </div>
@@ -124,7 +126,7 @@ export default function DashboardScreen({
             </div>
 
             {state.kind === 'loading' ? (
-              <p className="text-muted">{t("financial.loadingApplications")}</p>
+              <p className="loan-queue-empty">{t("financial.loadingApplications")}</p>
             ) : state.kind === 'error' ? (
               <div role="alert">
                 <p>{t("financial.couldnTLoadApplications")}</p>
@@ -133,12 +135,12 @@ export default function DashboardScreen({
                 </button>
               </div>
             ) : visible.length === 0 ? (
-              <p className="text-muted">{t("financial.noApplicationsMatch")}</p>
+              <p className="loan-queue-empty">{t("financial.noApplicationsMatch")}</p>
             ) : (
               <ul className="loan-queue-list">
                 {visible.map((loan) => (
                   <li key={loan.id}>
-                    <button type="button" className="loan-queue-row" onClick={() => onSelectLoan(loan.id)}>
+                    <button type="button" className="loan-queue-row" data-status={loan.status} onClick={() => onSelectLoan(loan.id)}>
                       <span className="loan-queue-main">
                         <strong>{loan.applicant?.farmName ?? t("financial.farm")}</strong>
                         <span className="text-muted">

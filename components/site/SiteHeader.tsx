@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IcLeaf } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
 import { type Locale, LOCALE_META, localePath } from "@/lib/seo/locale";
 import { pagesInGroup } from "@/lib/seo/pages";
 import { UI } from "@/lib/seo/ui";
@@ -36,9 +36,7 @@ export function SiteHeader({ locale = "en", path = "/" }: Props) {
   return (
     <header className="site-header">
       <Link className="site-brand" href={localePath("/", locale)} aria-label={ui.brandAria}>
-        <span className="site-brand-mark">
-          <IcLeaf size={20} />
-        </span>
+        <BrandMark size={34} />
         <span>Farm2Fork</span>
       </Link>
 

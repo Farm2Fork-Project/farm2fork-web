@@ -3,7 +3,7 @@
 import Link from "next/link";
 import NotificationBell from "@/components/NotificationBell";
 import { Avatar } from "@/components/account/Avatar";
-import { IcLeaf } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
 import { useBuyerCopy } from "@/lib/buyer/use-buyer-copy";
 
 export type BuyerTab = "cart" | "marketplace" | "orders" | "scan" | "feed";
@@ -63,7 +63,7 @@ export function BuyerTopbar({
           onClick={() => onSelect("marketplace")}
           type="button"
         >
-          <IcLeaf size={22} className="logo-icon" />
+          <BrandMark />
           <h2>Farm2Fork</h2>
         </button>
       </div>

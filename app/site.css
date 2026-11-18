@@ -52,14 +52,6 @@
   font-size: 24px;
   text-decoration: none;
 }
-.site-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  border: 1px solid var(--market-green);
-}
 
 .site-nav { display: flex; align-items: center; gap: 4px; justify-content: center; }
 .site-nav a {
@@ -462,13 +454,4 @@ html[data-f2f-buyer] .session-splash {
   gap: 18px;
   background: var(--bg-light);
   color: var(--primary-green-dark);
-}
-
-.session-splash-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-display);
-  font-size: 28px;
-  letter-spacing: -0.02em;
 }

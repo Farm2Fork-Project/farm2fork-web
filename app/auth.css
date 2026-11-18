@@ -45,15 +45,6 @@
   font-size: 24px;
   text-decoration: none;
 }
-.af-brand-mark {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--af-wash);
-  color: var(--af-green);
-}
 .af-lang {
   min-height: 44px;
   padding: 0 16px;

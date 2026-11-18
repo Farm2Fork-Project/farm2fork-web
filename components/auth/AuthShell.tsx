@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useLanguage } from "@/components/LanguageContext";
-import { IcGlobe, IcLeaf } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
+import { IcGlobe } from "@/components/icons";
 
 /**
  * Shared frame for every sign-in and sign-up page: brand and language switch
@@ -18,7 +19,7 @@ export function AuthShell({ children, panel = true }: { children: ReactNode; pan
     <div className="af-page" dir={rtl ? "rtl" : "ltr"} lang={rtl ? "ur" : "en"}>
       <header className="af-top">
         <Link className="af-brand" href="/" aria-label={t("auth.homeAria")}>
-          <span className="af-brand-mark"><IcLeaf size={22} /></span>
+          <BrandMark size={36} />
           <span>{t("app.title")}</span>
         </Link>
         <button

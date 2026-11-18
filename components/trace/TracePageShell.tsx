@@ -2,7 +2,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LuGlobe, LuLeaf } from "react-icons/lu";
+import { LuGlobe } from "react-icons/lu";
+import { BrandMark } from "@/components/BrandLogo";
 import { useLanguage } from "../LanguageContext";
 
 /**
@@ -17,7 +18,7 @@ export default function TracePageShell({ children }: { children: ReactNode }) {
     <div className="trace-page" dir={language === "ur" ? "rtl" : "ltr"}>
       <header className="trace-page-bar">
         <Link href="/" className="trace-brand">
-          <LuLeaf size={22} aria-hidden="true" />
+          <BrandMark />
           <span>{t("app.title")}</span>
         </Link>
         <button

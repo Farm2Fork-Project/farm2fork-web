@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IcLeaf } from "@/components/icons";
+import { BrandWordmark } from "@/components/BrandLogo";
 import { type Locale, LOCALE_META, localePath } from "@/lib/seo/locale";
 import { guidePagesFor, pagesInGroup } from "@/lib/seo/pages";
 import { UI } from "@/lib/seo/ui";
@@ -26,10 +26,7 @@ export function SiteFooter({ className = "", locale = "en", path = "/" }: Props)
       <div className="site-footer-inner">
         <div className="site-footer-about">
           <Link className="site-brand" href={localePath("/", locale)} aria-label={ui.brandAria}>
-            <span className="site-brand-mark">
-              <IcLeaf size={20} />
-            </span>
-            <span>Farm2Fork</span>
+            <BrandWordmark width={188} alt="" />
           </Link>
           <p>{ui.footer.about}</p>
           <p className="site-footer-note">{ui.footer.note}</p>

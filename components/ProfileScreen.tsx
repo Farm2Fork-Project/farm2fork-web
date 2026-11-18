@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 
 import { ProfileScreenProps } from "./types";
 import { useLanguage } from "./LanguageContext";
-import { IcAlert, IcBell, IcCart, IcChevronRight, IcClose, IcFile, IcGlobe, IcHelp, IcInfo, IcLeaf, IcLogOut, IcMessage, IcShield } from "@/components/icons";
+import { BrandWordmark } from "@/components/BrandLogo";
+import { IcAlert, IcBell, IcCart, IcChevronRight, IcClose, IcFile, IcGlobe, IcHelp, IcInfo, IcLogOut, IcMessage, IcShield } from "@/components/icons";
 
 import NotificationSettings from "./NotificationSettings";
 const SUPPORT_EMAIL = "support@farm2fork.pk";
@@ -142,10 +143,9 @@ export default function ProfileScreen({
             <p className="profile-tab-subtitle">{t("settings.about.subtitle")}</p>
 
             <div style={{ textAlign: "center", padding: "40px 0", background: "linear-gradient(145deg, var(--surface-light), var(--surface-strong))", borderRadius: "24px", border: "1px solid var(--border-light)", boxShadow: "0 8px 30px rgba(0,0,0,0.04)" }}>
-              <div style={{ width: "90px", height: "90px", background: "var(--primary-green-soft)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto var(--sp-lg)", boxShadow: "0 4px 15px rgba(39, 174, 96, 0.2)" }}>
-                <IcLeaf size={44} color="var(--primary-green)" />
-              </div>
-              <h3 style={{ fontSize: "24px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "var(--sp-xs)" }}>{t("settings.about.app")}</h3>
+              <h3 style={{ margin: "0 0 var(--sp-md)", display: "flex", justifyContent: "center" }}>
+                <BrandWordmark width={192} alt={t("settings.about.app")} />
+              </h3>
               <div style={{ display: "inline-block", background: "var(--primary-green)", color: "white", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, marginBottom: "var(--sp-xl)" }}>
                 {t("settings.about.version")}
               </div>

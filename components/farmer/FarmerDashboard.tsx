@@ -1,5 +1,7 @@
 "use client";
 
+import { BrandMark } from "@/components/BrandLogo";
+
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import FarmerListings, { Listing } from "./FarmerListings";
 import CreateListingForm from "./CreateListingForm";
@@ -27,7 +29,6 @@ import {
   IcCheckCircle as CheckCircle,
   IcClose as X,
   IcFeed as Rss,
-  IcLeaf,
   IcMenu as Menu,
   IcPlusCircle as PlusCircle,
   IcQr as QrCode,
@@ -308,7 +309,7 @@ export default function FarmerDashboard({
               <Menu size={22} />
             </button>
             <div className="topbar-logo">
-              <IcLeaf size={24} className="logo-icon" />
+              <BrandMark />
               <h2>{language === "ur" ? "فارم ٹو فورک" : "Farm2Fork"}</h2>
             </div>
           </div>

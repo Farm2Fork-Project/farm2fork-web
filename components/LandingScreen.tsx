@@ -8,7 +8,8 @@ import { LandingScreenProps } from "./types";
 import LandingProducts from "./LandingProducts";
 import { useLanguage } from "./LanguageContext";
 import { useReveal } from "@/lib/react/use-reveal";
-import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcLeaf, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
+import { BrandMark, BrandWordmark } from "@/components/BrandLogo";
+import { IcArrowRight, IcBadgeCheck, IcCrate, IcGlobe, IcMapPin, IcScan, IcSprout, IcTruck, IcUsers } from "@/components/icons";
 
 /** Position in a staggered group; read by the reveal transition in motion.css. */
 const step = (index: number) => ({ "--i": index }) as CSSProperties;
@@ -24,7 +25,7 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
     <div className="market-landing" dir={isRtl ? "rtl" : "ltr"} ref={rootRef}>
       <header className="market-header">
         <Link className="market-brand" href="/" aria-label="Farm2Fork home">
-          <span className="market-brand-mark"><IcLeaf size={22} /></span>
+          <BrandMark className="market-brand-mark" />
           <span>{t("app.title")}</span>
         </Link>
 
@@ -222,8 +223,7 @@ export default function LandingScreen({ portalHref, seoContent, footerContent }:
       {footerContent ?? (
         <footer className="market-footer">
           <div className="market-brand">
-            <span className="market-brand-mark"><IcLeaf size={20} /></span>
-            <span>{t("app.title")}</span>
+            <BrandWordmark alt={t("app.title")} />
           </div>
           <p>{t("landing.footer.desc")}</p>
           <span>{t("landing.footer.fyp")}</span>

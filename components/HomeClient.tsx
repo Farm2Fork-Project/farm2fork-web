@@ -6,7 +6,7 @@ import LandingScreen from "@/components/LandingScreen";
 import { LanguageProvider } from "@/components/LanguageContext";
 import { BuyerApp } from "@/components/buyer/BuyerApp";
 import { buyerTabHref, parseBuyerTab } from "@/components/buyer/BuyerTopbar";
-import { IcLeaf } from "@/components/icons";
+import { BrandWordmark } from "@/components/BrandLogo";
 import { ApiClient } from "@/lib/api/client.ts";
 import { ApiError, type ApiAuthUser } from "@/lib/api/contracts.ts";
 import { BuyerRepository } from "@/lib/buyer/buyer-repository.ts";
@@ -104,9 +104,7 @@ function SessionSplash() {
       role="status"
       aria-label="Opening Farm2Fork"
     >
-      <span className="session-splash-brand">
-        <IcLeaf size={26} aria-hidden="true" /> Farm2Fork
-      </span>
+      <BrandWordmark width={195} />
       <div className="app-spinner" aria-hidden="true" />
     </div>
   );

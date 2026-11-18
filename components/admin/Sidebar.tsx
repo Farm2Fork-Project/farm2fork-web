@@ -1,6 +1,7 @@
 'use client'
 
-import { IcClose as X, IcLeaf as Leaf, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
+import { IcClose as X, IcMessage as MessageSquare, IcWheat as Wheat } from "@/components/icons";
 import { BookOpen, Flag, LayoutDashboard, LogOut, ReceiptText, Settings, SlidersHorizontal, Star, Store, TrendingUp } from "lucide-react";
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -60,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }: { isOpen: boolean; onClose:
         <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div>
             <h1 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Leaf size={22} />
+              <BrandMark size={30} />
               Farm2Fork
             </h1>
             <p>Supply Chain Admin</p>

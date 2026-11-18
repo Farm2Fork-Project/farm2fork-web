@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { IcGlobe, IcLeaf, IcSearch } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
+import { IcGlobe, IcSearch } from "@/components/icons";
 import { ApiClient } from "@/lib/api/client.ts";
 import {
   ApiError,
@@ -236,7 +237,7 @@ function ProductPageContent({ slug }: { slug: string }) {
     <div className="trace-page" dir={rtl ? "rtl" : "ltr"}>
       <header className="trace-page-bar">
         <Link href="/" className="trace-brand">
-          <IcLeaf size={22} />
+          <BrandMark />
           <span>{t("app.title")}</span>
         </Link>
         <div className="pdp-guest-actions">

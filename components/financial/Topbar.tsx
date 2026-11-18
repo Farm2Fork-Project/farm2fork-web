@@ -2,7 +2,8 @@
 
 import { useLanguage } from '@/components/LanguageContext'
 
-import { IcLeaf as Leaf, IcSearch as Search } from "@/components/icons";
+import { BrandMark } from "@/components/BrandLogo";
+import { IcSearch as Search } from "@/components/icons";
 import { ArrowLeft, LogOut } from "lucide-react";
 import React from 'react'
 import { TopbarProps } from '../types'
@@ -34,9 +35,7 @@ export default function Topbar({
           className="cursor-pointer"
           style={{ display: 'flex', alignItems: 'center', gap: 'var(--sp-sm)' }}
         >
-          <div style={{ backgroundColor: 'var(--primary-green)', color: 'var(--white)', padding: '6px', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Leaf size={18} strokeWidth={2.5} />
-          </div>
+          <BrandMark size={30} />
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-dark)' }}>Farm2Fork</h2>
         </div>
 
